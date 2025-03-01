@@ -1,0 +1,350 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: CASCADIA Code;
+  font-style: normal;
+  font-display: swap;
+  src: url(/public/assets/fonts/Cascadia.ttf) format("truetype");
+  font-display: block;
+}
+
+#root {
+  min-height: 100vh;
+}
+:root {
+  line-height: 1.5;
+  font-size: 15px;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  background-color: rgb(10, 9, 15);
+  color: rgb(239, 239, 229);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  font-family: CASCADIA Code, sans-serif !important;
+  color: lightgrey;
+  word-spacing: -3px;
+}
+
+@media (max-width: 600px) {
+  :root {
+    font-size: 14px;
+  }
+}
+
+/* Style for the scrollbar */
+::-webkit-scrollbar {
+  width: 10px; /* Width of the scrollbar */
+  height: 10px; /* Height of the scrollbar */
+  background: #515157; /* Color of the track */
+}
+
+/* Style for the scrollbar track */
+::-webkit-scrollbar-track {
+  background: #515157; /* Color of the track */
+}
+
+/* Style for the scrollbar thumb */
+::-webkit-scrollbar-thumb {
+  background: #a1a1a1; /* Color of the thumb */
+  cursor: pointer;
+}
+
+/* Style for the scrollbar button (arrows) */
+::-webkit-scrollbar-button {
+  background: #515157; /* Background color for buttons */
+  height: 10px; /* Height of the button */
+  cursor: pointer;
+  display: none;
+}
+
+/* Up arrow button */
+::-webkit-scrollbar-button:vertical:decrement {
+  background: #727272; /* Background color for the up arrow */
+}
+
+/* Down arrow button */
+::-webkit-scrollbar-button:vertical:increment {
+  background: #727272; /* Background color for the down arrow */
+}
+
+/* Arrow shapes using content property */
+::-webkit-scrollbar-button:vertical:decrement::before {
+  content: "▲"; /* Up arrow */
+  display: block;
+  text-align: center;
+  line-height: 12px; /* Centering the arrow vertically */
+}
+
+::-webkit-scrollbar-button:vertical:increment::before {
+  content: "▼"; /* Down arrow */
+  display: block;
+  text-align: center;
+  line-height: 12px; /* Centering the arrow vertically */
+}
+
+/* Optional: Hover effect for scrollbar button */
+::-webkit-scrollbar-button:hover {
+  background: #aaa; /* Change background on hover */
+}
+
+body {
+  margin: 0;
+  background-color: rgb(10, 9, 15);
+  overflow-x: hidden;
+}
+
+img {
+  vertical-align: middle;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: Violetsans, Arial, sans-serif;
+  color: white;
+  line-height: 1.15;
+}
+
+h1 {
+  font-size: 4rem;
+}
+
+h2 {
+  font-size: 3.2rem;
+}
+
+h3 {
+  font-size: 2.4rem;
+}
+
+h4 {
+  font-size: 1.8rem;
+}
+
+h5 {
+  font-size: 1.4rem;
+}
+
+h6 {
+  font-size: 1rem;
+}
+
+/* custom */
+.cst-text-gradient {
+  font-family: Pilat Extended;
+  font-weight: 950;
+  text-transform: uppercase;
+  background: linear-gradient(to right, #cc2d8f, #346da1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+}
+
+.cst-footer-icon {
+  box-shadow: 0px 2px 2px 2px rgba(20, 23, 34, 0.699),
+    0px 3px 3px 3px rgba(18, 22, 34, 0.226);
+  transition: 0.3s;
+}
+
+.cst-footer-icon:hover {
+  transform: translateY(-6px);
+  box-shadow: 0px 8px 4px 3px rgba(20, 23, 34, 0.705),
+    0px 9px 5px 4px rgba(18, 22, 34, 0.418);
+}
+
+.cst-card-shadow {
+  box-shadow: #1c1a2fab 0px 1px 2px, #1c1a2fab 0px 2px 4px,
+    #1c1a2fab 0px 4px 8px, #1c1a2fab 0px 8px 16px, #1c1a2fab 0px 16px 32px,
+    #1c1a2fab 0px 32px 64px;
+}
+
+.cst-link-item-bg,
+.cst-link-item-bg-active {
+  background-size: 100% 100%;
+  background-position: center;
+}
+
+.cst-link-item-bg {
+  background-image: url("https://cdn.prod.website-files.com/64354b8ce4872ad8cd1c7b04/6549081cc567736a0bc36f46_product-menu-bg.webp");
+}
+
+.cst-link-item-bg-active {
+  background-image: url("https://cdn.prod.website-files.com/64354b8ce4872ad8cd1c7b04/654911540c925020ce09ce55_menu-active.webp");
+}
+
+.subscribe-btn {
+  background-image: url("https://cdn.prod.website-files.com/64354b8ce4872ad8cd1c7b04/644920edd0560b68918741c2_btn-shape.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.team-member-outline-bg {
+  background-image: url("https://cdn.prod.website-files.com/64354b8ce4872ad8cd1c7b04/64534f12fbd92f3d36a20110_team-shape-2.svg");
+  background-size: 100% 100%;
+}
+.gradient-text {
+  background: linear-gradient(to right, #fb6443, #d5df64 70%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.content-none::before {
+  content: none !important;
+}
+.content-none::after {
+  content: none !important;
+}
+.orange-gradient {
+  background-image: linear-gradient(to right, #f6851b, #df4938);
+}
+.active-orange {
+  color: orange !important;
+}
+
+#locks-table td {
+  padding: 0 16px;
+  white-space: nowrap;
+}
+.countdowntimer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.countdowntimer > div {
+  border-radius: 5px;
+  background-color: #1f2731;
+  margin: 0 5px;
+}
+/* .timer {
+  font-family: "Montserrat";
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.text {
+  color: #aaa;
+}
+
+.value {
+  font-size: 40px;
+}
+
+.info {
+  max-width: 360px;
+  margin: 40px auto 0;
+  text-align: center;
+  font-size: 16px;
+}
+
+.button-wrapper {
+  text-align: center;
+  margin-top: 40px;
+} */
+
+.transaction-table table,
+.transaction-table th,
+.transaction-table td {
+  border: 1px solid rgba(81, 81, 87, 0.356);
+  border-collapse: collapse;
+}
+.token-table table,
+.token-table th,
+.token-table td {
+  border: 1px solid rgba(81, 81, 87, 0.356);
+  border-collapse: collapse;
+}
+.token-table td:first-child, .token-table th:first-child {
+  position: sticky;
+  left: -1px;
+  padding: 0;
+}
+.token-tr:hover .token-td, .token-tr:hover .token-first-item {
+  background-color: #211E2C!important;
+}
+@media screen and (max-width: 960px) {
+  .page-content {
+    min-height: calc(100vh - 82.5px);
+    width: 100%;
+  }
+}
+@media screen and (max-width: 600px) {
+  .page-content {
+    /* height: calc(100vh - 78px); */
+  }
+}
+@media screen and (min-width: 600px) {
+  .page-content {
+    /* height: calc(100vh - 83.5px); */
+  }
+}
+@media screen and (min-width: 960px) {
+  .page-content {
+    width: calc(100vw - 261px);
+  }
+}
+@media screen and (min-width: 1140px) {
+  .page-content {
+    /* height: calc(100vh - 86.5px); */
+  }
+}
+@media screen and (min-width: 1320px) {
+  .page-content {
+    /* height: calc(100vh - 90.5px); */
+  }
+}
+
+.token-sort-container::-webkit-scrollbar {
+  display: none;
+}
+.scroll-hidden::-webkit-scrollbar {
+  display: none;
+}
+.transaction-tab nav {
+  overflow-x: scroll;
+}
+.transaction-tab nav::-webkit-scrollbar {
+  display: none;
+}
+[type="datetime-local"]::-webkit-inner-spin-button {
+  display: none;
+}
+
+[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg); /* Style the dropdown icon */
+  cursor: pointer;
+}
+
+
+
+[type="datetime-local"]::-webkit-clear-button {
+
+}
+
+[type="datetime-local"]::-webkit-datetime-edit {
+  color: white;
+
+}
+
+[class |= "grid place-items-center fixed w-screen h-screen bg-black bg-opacity-60 backdrop-blur-sm"] {
+  overflow-y: scroll;
+}
+
+.Toastify__toast-theme--light {
+  /* background-color: #211e2ce0;
+  color: white; */
+}

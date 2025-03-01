@@ -1,0 +1,41 @@
+{
+	"folders": [
+		{
+			"name": "to-do-app",
+			"path": "../../../../../../Glamostar/to-do-app"
+		},
+		{
+			"name": "app_fullstack_todolist-master",
+			"path": "C:/Users/KKKKK/Downloads/app_fullstack_todolist-master"
+		},
+		{
+			"name": "todo-app-react",
+			"path": "../../../../../TodoApp/New folder/todo-app-react"
+		},
+		{
+			"name": "test",
+			"path": "../../../../../../Glamostar/test"
+		},
+		{
+			"name": "simple-todolist",
+			"path": "../../../../../simple-todolist"
+		},
+		{
+			"name": "TodoApp",
+			"path": "../../../../../TodoApp"
+		},
+		{
+			"name": "marocco",
+			"path": "../../../../../marocco"
+		},
+		{
+			"name": "Authentication",
+			"path": "../../../../../Authentication"
+		},
+		{
+			"name": "white-hat-dao",
+			"path": "../../.."
+		}
+	],
+	"settings": {}
+}
