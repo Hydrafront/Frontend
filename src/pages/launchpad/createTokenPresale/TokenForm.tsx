@@ -31,6 +31,7 @@ import { getContractAddress } from "@/utils/func";
 import { useChainId } from "wagmi";
 import { useCreatePresaleToken } from "@/utils/contractUtils";
 import Spin2 from "@/components/spins/spin2/Spin2";
+import { useWeb3Modal } from "@web3modal/wagmi/react";
 
 const MAX_FILE_SIZE = 1024 * 1024; // 1MB
 
@@ -49,6 +50,7 @@ export interface FormType {
 }
 
 const TokenForm: React.FC = () => {
+  const { open } = useWeb3Modal();
   const chains = useChains();
   const chainId = useChainId();
   const {
@@ -521,7 +523,7 @@ const TokenForm: React.FC = () => {
             )}
           </GradientButton>
         ) : (
-          <GradientButton className="rounded-lg w-full flex gap-3 justify-center items-center text-white">
+          <GradientButton className="rounded-lg w-full flex gap-3 justify-center items-center text-white" onClick={() => open()}>
             <IconWallet color="white" />
             Connect Wallet
           </GradientButton>
