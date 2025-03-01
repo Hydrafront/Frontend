@@ -21,7 +21,7 @@ const AllPresales: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await fetchTokens();
-      setDisplayTokens(data);
+      setDisplayTokens(data || []);
     } catch (error) {
       console.error(error);
       setError("Failed to fetch tokens");
