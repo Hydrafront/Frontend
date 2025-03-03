@@ -10,11 +10,12 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setToken } from "@/store/reducers/token-slice";
 import { getTokenByAddress } from "@/store/actions/create-token.action";
 import TradingWedget from "@/components/ui/TradingWedget";
-import Spin2 from "@/components/spins/spin2/Spin2";
+import Spin1 from "@/components/spins/spin1/Spin1";
+
 const PresaleDetail: React.FC = () => {
   const dispatch = useAppDispatch();
 
-  const { type, tokenAddress } = useParams();
+  const { type, tokenAddress, chainId } = useParams();
   const { token } = useAppSelector((state) => state.token);
   useEffect(() => {
     const fetchToken = async () => {
@@ -22,12 +23,12 @@ const PresaleDetail: React.FC = () => {
       dispatch(setToken(token));
     };
     fetchToken();
-  }, [tokenAddress, dispatch]);
+  }, [tokenAddress, chainId, dispatch]);
 
   if (token.tokenAddress !== tokenAddress) {
     return (
       <div className="w-full h-full flex justify-center items-center">
-        <Spin2 />
+        <Spin1 />
       </div>
     );
   }

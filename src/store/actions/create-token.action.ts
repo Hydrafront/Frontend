@@ -23,7 +23,7 @@ export const uploadImageToPinata = async (file: File) => {
 interface TokenInfo {
   description: string;
   dex: string;
-  chainId: number;
+  chainId: string;
   logo: string;
   name: string;
   symbol: string;
@@ -70,3 +70,4 @@ export const getTokenByAddress = async (address: `0x${string}`) => {
     throw new Error("Failed to get token by address");
   }
 };
+
