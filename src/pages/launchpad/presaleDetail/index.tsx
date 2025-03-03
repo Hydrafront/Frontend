@@ -15,7 +15,7 @@ import Spin1 from "@/components/spins/spin1/Spin1";
 const PresaleDetail: React.FC = () => {
   const dispatch = useAppDispatch();
 
-  const { type, tokenAddress, chainId } = useParams();
+  const { type, tokenAddress } = useParams();
   const { token } = useAppSelector((state) => state.token);
   useEffect(() => {
     const fetchToken = async () => {
@@ -23,7 +23,7 @@ const PresaleDetail: React.FC = () => {
       dispatch(setToken(token));
     };
     fetchToken();
-  }, [tokenAddress, chainId, dispatch]);
+  }, [tokenAddress, dispatch]);
 
   if (token.tokenAddress !== tokenAddress) {
     return (
