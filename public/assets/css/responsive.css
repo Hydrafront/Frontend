@@ -1,0 +1,73 @@
+@media (max-width: 1199px) {
+    .DAODiagram {
+        display: none;
+    }
+}
+
+@media (max-width: 899px) {
+    .WHDTokenState {
+      width: 25px;
+      height: 25px;
+    }
+
+    .tokenDetailSwapIcon {
+        width: 18px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 599px) {
+    .searchCategory {
+        width: 40%;
+    }
+
+    .searchInputBox {
+        width: 60%;
+    }
+
+    .footerLogo {
+        width: 50px;
+    }
+
+    .headerLogo {
+        width: 52px;
+    }
+}
+
+@media (max-width: 499px) {
+    .searchCategory {
+        width: 100%;
+    }
+
+    .searchInputBox {
+        width: 100%;
+    }
+}
+
+@media (max-width :1400px) {
+    .unlockBrand {
+        margin-right: 30px!important;
+    }
+}
+
+.ql-toolbar {
+    border-radius: 7px 7px 0px 0px;
+    border-top: 0.2px solid var(--WHD-Secondary, #346DA1);
+    border-right: 0.2px solid var(--WHD-Secondary, #346DA1);
+    border-left: 0.2px solid var(--WHD-Secondary, #346DA1);
+    background: var(--WHD-Light-Blue, #DDDEE8);
+    margin-top: 20px;
+}
+
+.ql-container {
+    border-radius: 0px 0px 7px 7px;
+    border-right: 0.2px solid var(--WHD-Secondary, #346DA1);
+    border-bottom: 0.2px solid var(--WHD-Secondary, #346DA1);
+    border-left: 0.2px solid var(--WHD-Secondary, #346DA1);
+    background: #E6E7EE;
+    box-shadow: 5px 5px 5px 0px #C9CCDA inset, -5px -5px 5px 0px #FFF inset;
+    height: 300px;
+    min-height: 300px;
+    max-height: 300px;
+    overflow-y: auto;
+}
