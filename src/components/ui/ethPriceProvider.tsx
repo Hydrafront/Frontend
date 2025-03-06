@@ -3,7 +3,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { setEthPrice } from "@/store/reducers/eth-slice";
 import { getPriceUrl } from "@/utils/config/chainDexConfig";
 
-const POLPrice = ({
+const EthPriceProvider = ({
   chainId,
   children,
 }: {
@@ -55,4 +55,4 @@ const POLPrice = ({
   return <>{children}</>;
 };
 
-export default POLPrice;
+export default EthPriceProvider;
