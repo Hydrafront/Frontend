@@ -11,7 +11,7 @@ import { getTokenByAddress, getTransactionsByTokenAddress } from "@/store/action
 import TradingWedget from "@/components/ui/TradingWedget";
 import Spin2 from "@/components/spins/spin2/Spin2";
 import { isEmpty } from "@/utils/validation";
-import EthPriceProvider from "@/components/ui/EthPriceProvider";
+import EthPriceProvider from "@/components/ui/ethPriceProvider";
 
 const PresaleDetail: React.FC = () => {
   const dispatch = useAppDispatch();
