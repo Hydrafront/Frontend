@@ -98,8 +98,8 @@ const SellTab: React.FC<{
               token: tokenAmount,
               eth: value,
               maker: address as `0x${string}`,
-              usd: currentPrice * tokenAmount,
-              price: currentPrice,
+              usd: currentPrice * tokenAmount * currentEthPrice,
+              price: currentPrice * currentEthPrice,
               chainId: Number(chainId),
             })
           );
@@ -131,8 +131,8 @@ const SellTab: React.FC<{
               tokenAddress: tokenAddress as `0x${string}`,
               token: maxAmountToken,
               eth: value,
-              usd: expectedTokenAmount * currentPrice,
-              price: currentPrice,
+              usd: expectedTokenAmount * currentPrice * currentEthPrice,
+              price: currentPrice * currentEthPrice,
               maker: address as `0x${string}`,
               chainId: Number(chainId),
             })
@@ -355,7 +355,7 @@ const SellTab: React.FC<{
                 you spend max. {Math.ceil(maxAmountToken)} {token.symbol} (~
                 <FormatPrice
                   color="text-textDark"
-                  value={maxAmountToken * currentPrice}
+                  value={maxAmountToken * currentPrice * currentEthPrice}
                 />
                 )
               </>

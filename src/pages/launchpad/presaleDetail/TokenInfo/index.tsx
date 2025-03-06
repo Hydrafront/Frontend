@@ -26,7 +26,7 @@ interface Props {
 }
 
 const TokenInfo: React.FC<Props> = () => {
-  const { tokenAddress } = useParams();
+  const { tokenAddress, chainId } = useParams();
   const { currentPrice, refetchCurrentPrice } = useCurrentTokenPrice(
     tokenAddress as `0x${string}`
   );
@@ -34,6 +34,7 @@ const TokenInfo: React.FC<Props> = () => {
     tokenAddress as `0x${string}`
   );
   const { token } = useAppSelector((state) => state.token);
+  const { ethPrice } = useAppSelector((state) => state.eth);
 
   useWatchContractEvent({
     address: tokenAddress as `0x${string}`,
@@ -73,7 +74,7 @@ const TokenInfo: React.FC<Props> = () => {
           <BorderBox className="flex flex-col w-1/2">
             <InfoText className="text-center">PRICE</InfoText>
             <div className="text-center">
-              <FormatPrice value={currentPrice} />
+              <FormatPrice value={currentPrice * ethPrice[Number(chainId)]} />
             </div>
           </BorderBox>
           <BorderBox className="flex flex-col w-1/2">

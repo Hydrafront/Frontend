@@ -91,8 +91,8 @@ const BuyTab: React.FC<{
                   token: tokenAmount,
                   eth: value,
                   maker: address as `0x${string}`,
-                  usd: currentPrice * tokenAmount,
-                  price: currentPrice,
+                  usd: currentPrice * tokenAmount * currentEthPrice,
+                  price: currentPrice * currentEthPrice,
                   chainId: Number(chainId),
                 })
               );
@@ -139,8 +139,8 @@ const BuyTab: React.FC<{
                 token: tokenAmount,
                 eth: value,
                 maker: address as `0x${string}`,
-                usd: currentPrice * tokenAmount,
-                price: currentPrice,
+                usd: currentPrice * tokenAmount * currentEthPrice,
+                price: currentPrice * currentEthPrice,
                 chainId: Number(chainId),
               })
             );
@@ -360,7 +360,7 @@ const BuyTab: React.FC<{
                 you receive min. {Math.ceil(minTokenAmount)} {token.symbol} (~
                 <FormatPrice
                   color="text-textDark"
-                  value={minTokenAmount * currentPrice}
+                  value={minTokenAmount * currentPrice * currentEthPrice}
                 />
                 )
               </>
