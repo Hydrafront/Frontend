@@ -10,6 +10,7 @@ const POLPrice = ({
   chainId: number;
   children: React.ReactNode;
 }) => {
+    
   const dispatch = useAppDispatch();
   const priceUrl = getPriceUrl(chainId);
 
