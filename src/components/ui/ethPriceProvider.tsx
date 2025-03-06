@@ -55,4 +55,5 @@ const EthPriceProvider = ({
   return <>{children}</>;
 };
 
+
 export default EthPriceProvider;
