@@ -3,6 +3,7 @@ import { contractConfig } from "./config/contractConfig";
 import { getBytes, solidityPackedKeccak256, toUtf8Bytes, Wallet } from "ethers";
 import { useState } from "react";
 import { useEffect } from "react";
+import { TransactionType } from "@/interfaces/types";
 
 // get Signature when create a new token
 export async function generateSignature(
@@ -170,3 +171,46 @@ export const getMaxTokenAmount = (tokenAmount: number, slippage: number) => {
 // export const getNumber = (value: bigint) => {
 //   return parseFloat(formatUnits(value, 18));
 // };
+
+//aggregate transactions to candles
+export const aggregateTransactionsToCandles = (transactions: TransactionType[], intervalInSeconds = 60) => {
+  const aggregatedData: {
+    time: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+  }[] = [];
+
+  transactions.forEach(transaction => {
+    const timestamp = new Date(transaction.createdAt || new Date()).getTime() / 1000;
+    const minuteBucket = Math.floor(timestamp / intervalInSeconds) * intervalInSeconds;
+
+    // Find the candle for the given minuteBucket
+    let candle = aggregatedData.find(item => item.time === minuteBucket);
+
+    if (!candle) {
+      // If no candle exists for this minute, create a new one
+      candle = {
+        time: minuteBucket,
+        open: transaction.price,
+        high: transaction.price,
+        low: transaction.price,
+        close: transaction.price,
+        volume: transaction.token // Assuming token as the volume
+      };
+      aggregatedData.push(candle);
+    } else {
+      // Update the existing candle data
+      candle.high = Math.max(candle.high, transaction.price);
+      candle.low = Math.min(candle.low, transaction.price);
+      candle.close = transaction.price;  // Latest transaction price is the close
+      candle.volume += transaction.token; // Add to the total volume for the minute
+    }
+  });
+
+  return aggregatedData;
+}
+
+

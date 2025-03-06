@@ -148,6 +148,7 @@ const TopTraders = () => {
             ),
           },
         }}
+        rowKey={(record, index) => `trader-${index}-${record.maker.props.children}`}
         columns={columns.map(col => ({ ...col, align: col.align as AlignType }))}
         data={TopTraders}
         className="fe_c_table"

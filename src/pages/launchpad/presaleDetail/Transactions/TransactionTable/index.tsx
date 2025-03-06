@@ -109,7 +109,7 @@ const TransactionTable = () => {
             <span className="text-white text-[20px]">No transactions</span>
           </div>
         }
-        rowKey={(record) => record.txn.toString()}
+        rowKey={(record, index) => `${record.txn.toString()}-${index}`}
         components={{
           table: (props: React.TableHTMLAttributes<HTMLTableElement>) => (
             <table {...props} className="w-full h-full" />

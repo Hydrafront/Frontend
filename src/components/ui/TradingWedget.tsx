@@ -1,13 +1,31 @@
-import React, { useEffect, useRef } from "react";
-import { createChart, CrosshairMode, IChartApi } from "lightweight-charts";
+import { useEffect, useRef, useState } from "react";
+import {
+  createChart,
+  CrosshairMode,
+  IChartApi,
+  Time,
+} from "lightweight-charts";
+import { useAppSelector } from "@/store/hooks";
+import { aggregateTransactionsToCandles } from "@/utils/func";
+import { Candle } from "@/interfaces/types";
 
 const TradingWedget = () => {
   const chartRef = useRef<HTMLDivElement>(null);
+  const { transactions } = useAppSelector((state) => state.token);
+  const [candles, setCandles] = useState<Candle[]>([]);
+  const [chart, setChart] = useState<IChartApi | null>(null);
+
   useEffect(() => {
-    if (chartRef.current && !chartRef.current.innerHTML) {
-      const chart: IChartApi = createChart(chartRef.current, {
+    if (transactions.length > 0) {
+      const candles = aggregateTransactionsToCandles(transactions);
+      setCandles(candles);
+    }
+  }, [transactions]);
+
+  useEffect(() => {
+    if (chartRef.current && !chartRef.current.innerHTML && candles.length > 0) {
+      const newChart: IChartApi = createChart(chartRef.current, {
         width: chartRef.current.clientWidth,
-        height: 500,
         layout: {
           background: { color: "#1f2937" },
           textColor: "#d1d5db",
@@ -44,60 +62,47 @@ const TradingWedget = () => {
           vertAlign: "center",
         },
       });
-      const candleSeries = chart.addCandlestickSeries({
+      const candleSeries = newChart.addCandlestickSeries({
         upColor: "#26a69a",
         downColor: "#ef5350",
         borderVisible: false,
         wickUpColor: "#26a69a",
         wickDownColor: "#ef5350",
       });
-      candleSeries.setData([
-        {
-          time: "2019-04-11",
-          open: 80.01,
-          high: 96.63,
-          low: 76.64,
-          close: 81.89,
-        },
-        {
-          time: "2019-04-12",
-          open: 96.63,
-          high: 76.64,
-          low: 81.89,
-          close: 74.43,
-        },
-        {
-          time: "2019-04-13",
-          open: 76.64,
-          high: 81.89,
-          low: 74.43,
-          close: 80.01,
-        },
-        {
-          time: "2019-04-14",
-          open: 81.89,
-          high: 74.43,
-          low: 80.01,
-          close: 76.64,
-        },
-        {
-          time: "2019-04-15",
-          open: 74.43,
-          high: 80.01,
-          low: 76.64,
-          close: 81.89,
-        },
-      ]);
-      chart.timeScale().fitContent();
-      chart.priceScale("right").applyOptions({
+      candleSeries.setData(
+        candles.map((candle) => ({
+          time: candle.time as Time,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+        }))
+      );
+      newChart.priceScale("right").applyOptions({
         autoScale: false,
         scaleMargins: {
           top: 0.1,
           bottom: 0.1,
         },
       });
+      setChart(newChart);
+
+      return () => {
+        newChart.remove();
+      };
     }
-  }, []);
+  }, [candles]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (chart && chartRef.current) {
+        chart.applyOptions({ width: chartRef.current.clientWidth });
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [transactions, chart]);
   return <div ref={chartRef} className="w-full h-full"></div>;
 };
 

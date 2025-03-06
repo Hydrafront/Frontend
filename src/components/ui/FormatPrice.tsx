@@ -14,7 +14,7 @@ const FormatPrice: React.FC<{
       formattedValue = (value / 1000).toFixed(3).replace(/\.?0+$/, "") + "K";
     } else if (value < 1 && value > 0) {
       // Convert to string to analyze decimal places
-      const valueStr = value.toString();
+      const valueStr = value.toFixed(20);
       const decimalIndex = valueStr.indexOf(".");
 
       if (decimalIndex !== -1) {

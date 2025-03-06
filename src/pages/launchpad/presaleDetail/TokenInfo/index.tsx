@@ -33,7 +33,6 @@ const TokenInfo: React.FC<Props> = () => {
   const { currentMarketCap, refetchCurrentMarketCap } = useMarketCap(
     tokenAddress as `0x${string}`
   );
-
   const { token } = useAppSelector((state) => state.token);
 
   useWatchContractEvent({
