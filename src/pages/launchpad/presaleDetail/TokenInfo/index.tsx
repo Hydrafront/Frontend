@@ -13,13 +13,40 @@ import TokenBoost from "./TokenBoost";
 import TokenCommonInfo from "./TokenCommonInfo";
 import TokenSwap from "./TokenSwap";
 import { useAppSelector } from "@/store/hooks";
-import FormatNumber from "@/components/ui/FormatNumber";
+import { useCurrentTokenPrice } from "@/utils/contractUtils";
+import { useParams } from "react-router";
+import { useMarketCap } from "@/utils/contractUtils";
+import { formatUnits } from "ethers";
+import FormatPrice from "@/components/ui/FormatPrice";
+import { useWatchContractEvent } from "wagmi";
+import { tokenAbi } from "@/utils/abi/tokenAbi";
+
 interface Props {
   type?: string | undefined;
 }
 
 const TokenInfo: React.FC<Props> = () => {
+  const { tokenAddress } = useParams();
+  const { currentPrice, refetchCurrentPrice } = useCurrentTokenPrice(
+    tokenAddress as `0x${string}`
+  );
+  const { currentMarketCap, refetchCurrentMarketCap } = useMarketCap(
+    tokenAddress as `0x${string}`
+  );
+
   const { token } = useAppSelector((state) => state.token);
+
+  useWatchContractEvent({
+    address: tokenAddress as `0x${string}`,
+    abi: tokenAbi,
+    eventName: "Transfer",
+    onLogs: (logs) => {
+      console.log(logs, "-------------------------------");
+      refetchCurrentPrice();
+      refetchCurrentMarketCap();
+    },
+  });
+  if (!token) return null;
 
   return (
     <div className="overflow-y-scroll h-[100vh] pb-5 scroll-hidden">
@@ -47,13 +74,18 @@ const TokenInfo: React.FC<Props> = () => {
           <BorderBox className="flex flex-col w-1/2">
             <InfoText className="text-center">PRICE</InfoText>
             <div className="text-center">
-              <FormatNumber value={token.price} />
+              <FormatPrice value={currentPrice} />
             </div>
           </BorderBox>
           <BorderBox className="flex flex-col w-1/2">
             <InfoText className="text-center">MARKET CAP</InfoText>
             <div className="text-center">
-              <FormatNumber value={token.marketCap} doller={true} />
+              <FormatPrice
+                value={parseFloat(
+                  formatUnits((currentMarketCap as bigint) || 0, 18)
+                )}
+                doller={true}
+              />
             </div>
           </BorderBox>
         </div>

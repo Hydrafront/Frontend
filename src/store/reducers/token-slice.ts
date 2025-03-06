@@ -1,47 +1,54 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { TokenType } from "@/interfaces/types";
+import { TokenType, TransactionType } from "@/interfaces/types";
 
 interface TokenState {
-  token: TokenType;
+  tokens: TokenType[];
+  token: TokenType | undefined;
   isTransacting: boolean;
+  transactions: TransactionType[];
 }
 
 const initialState: TokenState = {
-  token: {
-    name: "",
-    symbol: "",
-    createdAt: "",
-    boost: 0,
-    logo: "",
-    banner: "",
-    tokenAddress: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-    type: "presale",
-    chainId: 0,
-    marketCap: 0,
-    description: "",
-    website: "",
-    twitter: "",
-    telegram: "",
-    discord: "",
-    transaction: 0,
-    volume: 0,
-    price: 0,
-    progress: 0,
-    decimals: 18,
-  },
+  tokens: [],
+  token: undefined,
   isTransacting: false,
+  transactions: [],
 };
 
 const TokenSlice = createSlice({
   name: "token",
   initialState: { ...initialState },
   reducers: {
+    setTokens: (state, action) => {
+      state.tokens = action.payload;
+    },
     setToken: (state, action) => {
-      state.token = action.payload;
+      state.token = { ...state.token, ...action.payload };
+    },
+    addToken: (state, action) => {
+      if (
+        !state.tokens.some(
+          (token) => token.tokenAddress === action.payload.tokenAddress
+        )
+      ) {
+        state.tokens.push(action.payload);
+      }
+    },
+    setTransactions: (state, action) => {
+      state.transactions = action.payload;
+    },
+    addTransaction: (state, action) => {
+      if (
+        !state.transactions.some(
+          (transaction) => transaction.txHash === action.payload.txHash
+        )
+      ) {
+        state.transactions.push(action.payload);
+      }
     },
   },
 });
 
-export const { setToken } = TokenSlice.actions;
+export const { setToken, setTokens, addToken, setTransactions, addTransaction } = TokenSlice.actions;
 
 export default TokenSlice.reducer;

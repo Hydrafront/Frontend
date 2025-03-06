@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import React from "react";
 
-const FormatNumber: React.FC<{
+const FormatPrice: React.FC<{
   value: number;
   doller?: boolean;
   color?: string;
@@ -20,33 +20,38 @@ const FormatNumber: React.FC<{
       if (decimalIndex !== -1) {
         const decimalPart = valueStr.substring(decimalIndex + 1);
         const countOfZeros = decimalPart.match(/^0+/);
-        const significantDigits = decimalPart.replace(/^0+/, "");
+        const significantDigits = decimalPart.replace(/^0+/, "").slice(0, 4);
 
         const zerosCount = countOfZeros ? countOfZeros[0].length : 0;
 
         // Create the formatted string with small-sized span
-        formattedValue = (
+        formattedValue = value <= 0.01 ? (
           <>
-            0.0<span className={clsx("text-xs relative top-[2px]", color)}>{zerosCount}</span>
+            0.0
+            <span className={clsx("text-xs relative top-[2px]", color)}>
+              {zerosCount}
+            </span>
             {significantDigits}
           </>
+        ) : (
+          Number(valueStr).toFixed(2)
         );
       } else {
         formattedValue = valueStr; // If no decimal, return as is
       }
     } else {
       // For negative numbers or zero, return as is
-      formattedValue = value.toString();
+      formattedValue = value % 1 === 0 ? value.toString() : value.toFixed(1);
     }
 
     return formattedValue;
   };
 
   return (
-    <div className={color}>
+    <span className={color}>
       {doller ? "$" : ""}
       {formatNumber(value)}
-    </div>
+    </span>
   );
 };
-export default FormatNumber;
+export default FormatPrice;

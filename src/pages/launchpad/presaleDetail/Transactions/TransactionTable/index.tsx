@@ -1,64 +1,52 @@
 import Table from "rc-table";
-import { IconCoin, IconExternalLink } from "@tabler/icons-react";
+import {
+  IconBrandDatabricks,
+  IconCoin,
+  IconExternalLink,
+} from "@tabler/icons-react";
 import React from "react";
-import { getCreatedBefore } from "@/utils/func";
 import HeaderDate from "./HeaderDate";
 import HeaderType from "./HeaderType";
 import HeaderUSD from "./HeaderUSD";
 import HeaderMCPepe from "./HeaderMCPepe";
 import HeaderPol from "./HeaderPol";
 import HeaderMaker from "./HeaderMaker";
-
-interface TransactionType {
-  date: React.ReactElement;
-  type: React.ReactElement;
-  usd: React.ReactElement;
-  mcpepe: React.ReactElement;
-  pol: React.ReactElement;
-  price: React.ReactElement;
-  maker: React.ReactElement;
-  // marker: {
-  //   image: string;
-  //   balance: {
-  //     total: number;
-  //     current: number;
-  //     address: string;
-  //   };
-  // };
-  txn: React.ReactElement;
-}
-
+import { useAppSelector } from "@/store/hooks";
+import FormatPrice from "@/components/ui/FormatPrice";
+import TimeAgo from "@/components/ui/TimeAgo";
 type AlignType = "left" | "center" | "right";
 
 const TransactionTable = () => {
-  const transactions: TransactionType[] = [
-    {
-      date: (
-        <div className="py-2 px-3">
-          {getCreatedBefore(new Date(2024, 2, 4))}
-        </div>
-      ),
-      type: <div className="text-green-300 py-2 px-3">BUY</div>,
-      usd: <div className="text-green-300 py-2 px-3"> 5.4</div>,
-      mcpepe: <div className="text-green-300 py-2 px-3">2342352</div>,
-      pol: <div className="text-green-300 py-2 px-3">0.023</div>,
-      price: <div className="text-green-300 py-2 px-3">0.000234</div>,
-      maker: <div className="text-green-300 py-2 px-3">0xdf...2dde</div>,
-      // marker: {
-      //   image: "/assets/images/missile.png",
-      //   balance: {
-      //     total: 1200000,
-      //     current: 100000,
-      //     address: "2340rjf9023j492hf923hf39",
-      //   },
-      // },
-      txn: (
-        <div className="cursor-hover h-full items-center flex justify-center hover:bg-lightestColor cursor-pointer">
-          <IconExternalLink size={18} />
-        </div>
-      ),
-    },
-  ];
+  const { transactions } = useAppSelector((state) => state.token);
+
+  const data = transactions.map((transaction) => ({
+    date: (
+      <div className="py-2 px-3">
+        <TimeAgo createdAt={new Date(transaction.createdAt || "")} />
+      </div>
+    ),
+    type: <div className="text-green-300 py-2 px-3">{transaction.type}</div>,
+    usd: <div className="text-green-300 py-2 px-3">{transaction.usd}</div>,
+    mcpepe: <div className="text-green-300 py-2 px-3">{Math.floor(transaction.token)}</div>,
+    pol: <div className="text-green-300 py-2 px-3">{transaction.eth}</div>,
+    price: <div className="text-green-300 py-2 px-3">
+      <FormatPrice value={transaction.price} />
+      </div>,
+    maker: <div className="text-green-300 py-2 px-3">{transaction.maker.slice(0, 6)}...{transaction.maker.slice(-4)}</div>,
+    txn: (
+      <div
+        className="cursor-hover h-full items-center flex justify-center hover:bg-lightestColor cursor-pointer"
+        onClick={() => {
+          window.open(
+            `https://amoy.polygonscan.com/tx/${transaction.txHash}`,
+            "_blank"
+          );
+        }}
+      >
+        <IconExternalLink size={18} />
+      </div>
+    ),
+  }));
 
   const columns = [
     {
@@ -115,6 +103,12 @@ const TransactionTable = () => {
   return (
     <div className="transaction-table overflow-scroll h-[350px]">
       <Table
+        emptyText={
+          <div className="text-white text-center gap-2 h-[305px] flex items-center justify-center">
+            <IconBrandDatabricks size={40} />
+            <span className="text-white text-[20px]">No transactions</span>
+          </div>
+        }
         rowKey={(record) => record.txn.toString()}
         components={{
           table: (props: React.TableHTMLAttributes<HTMLTableElement>) => (
@@ -144,7 +138,7 @@ const TransactionTable = () => {
           ...col,
           align: col.align as AlignType,
         }))}
-        data={transactions}
+        data={data}
         className="fe_c_table"
       />
     </div>

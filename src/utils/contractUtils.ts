@@ -7,7 +7,6 @@ import {
   useReadContract,
 } from "wagmi";
 import { useAccount } from "wagmi";
-import { abi } from "@/utils/config/abi";
 import { getContractAddress } from "./func";
 import {
   formatUnits,
@@ -16,6 +15,7 @@ import {
 } from "viem";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
+import { tokenAbi, factoryAbi } from "@/utils/abi";
 
 //-----------------Create Presale Token-----------------
 export const useCreatePresaleToken = () => {
@@ -34,7 +34,7 @@ export const useCreatePresaleToken = () => {
     name: string,
     symbol: string,
     nonce: number,
-    signature: `0x${string}`,
+    signature: `0x${string}`
     // initialBuy: number
   ) => {
     if (!publicClient) {
@@ -57,7 +57,7 @@ export const useCreatePresaleToken = () => {
       let hash;
       try {
         hash = await writeContractAsync({
-          abi,
+          abi: factoryAbi,
           address: getContractAddress(chainId),
           functionName: "createHydrapadPresaleToken",
           args: [name, symbol, BigInt(nonce), signature],
@@ -144,33 +144,6 @@ export const useUserBalance = (
   };
 };
 
-export const useCurrentPrice = (tokenAddress: `0x${string}`) => {
-  const { data: accumulatedPOL } = useReadContract({
-    address: tokenAddress,
-    abi: abi,
-    functionName: "getAccumulatedPOL",
-  });
-
-  const { data: remainingTokens } = useReadContract({
-    address: tokenAddress,
-    abi: abi,
-    functionName: "getRemainingTokens",
-  });
-
-  if (!accumulatedPOL || !remainingTokens) {
-    return { price: 1, accumulatedPOL, remainingTokens };
-  }
-  const formattedAccumulatedPOL = parseFloat(formatUnits(accumulatedPOL, 18));
-  const formattedRemainingTokens = parseFloat(formatUnits(remainingTokens, 18));
-  const price = formattedAccumulatedPOL / formattedRemainingTokens;
-
-  return {
-    price,
-    accumulatedPOL: formattedAccumulatedPOL,
-    remainingTokens: formattedRemainingTokens,
-  };
-};
-
 //-----------------Buy Token-----------------
 
 export const useBuyToken = (tokenAddress: `0x${string}`) => {
@@ -179,13 +152,15 @@ export const useBuyToken = (tokenAddress: `0x${string}`) => {
   const { address } = useAccount();
 
   const buyGivenIn = async (minTokenAmount: bigint, amountPrice: bigint) => {
+    console.log(minTokenAmount, amountPrice);
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
     try {
+      console.log(tokenAddress, minTokenAmount, amountPrice, "buyGivenIn");
       const txHash = await writeContractAsync({
         address: getContractAddress(chainId),
-        abi: abi,
+        abi: factoryAbi,
         functionName: "buyGivenIn",
         args: [tokenAddress, minTokenAmount],
         value: amountPrice,
@@ -202,7 +177,7 @@ export const useBuyToken = (tokenAddress: `0x${string}`) => {
     try {
       const txHash = await writeContractAsync({
         address: getContractAddress(chainId),
-        abi: abi,
+        abi: factoryAbi,
         functionName: "buyGivenOut",
         args: [tokenAddress, amountToken, maxPriceAmount],
         value: maxPriceAmount,
@@ -227,7 +202,7 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
     try {
       const txHash = await writeContractAsync({
         address: getContractAddress(chainId),
-        abi: abi,
+        abi: factoryAbi,
         functionName: "sellGivenIn",
         args: [tokenAddress, amountToken, amountPOLMin],
       });
@@ -242,10 +217,10 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
     }
     try {
       const txHash = await writeContractAsync({
-      address: getContractAddress(chainId),
-      abi: abi,
-      functionName: "sellGivenOut",
-      args: [tokenAddress, amountTokenMax, amountPOL],
+        address: getContractAddress(chainId),
+        abi: factoryAbi,
+        functionName: "sellGivenOut",
+        args: [tokenAddress, amountTokenMax, amountPOL],
       });
       return txHash;
     } catch (error) {
@@ -307,7 +282,7 @@ export const addTokenToWallet = async ({
       },
     });
     if (wasAdded) {
-      toast.success("Token added successfully!");
+      toast.success("Token is added to wallet!");
       await window.ethereum?.request({
         method: "wallet_requestPermissions",
         params: [{ eth_accounts: {} }],
@@ -318,4 +293,78 @@ export const addTokenToWallet = async ({
   } catch (error) {
     toast.error("Error occurred while adding token to wallet!");
   }
+};
+
+//-----------------Current Token Price-----------------
+export function useCurrentTokenPrice(tokenAddress: `0x${string}`) {
+  const { data: accumulatedPOL, refetch: refetchAccumulatedPOL } =
+    useReadContract({
+      address: tokenAddress,
+      abi: tokenAbi,
+      functionName: "getAccumulatedPOL",
+    });
+  const { data: remainingTokens, refetch: refetchRemainingTokens } =
+    useReadContract({
+      address: tokenAddress,
+      abi: tokenAbi,
+      functionName: "getRemainingTokens",
+    });
+
+  let currentPrice;
+  if (accumulatedPOL && remainingTokens) {
+    currentPrice =
+      parseFloat(formatUnits(accumulatedPOL as bigint, 18)) /
+      parseFloat(formatUnits(remainingTokens as bigint, 18));
+  } else {
+    currentPrice = 0;
+  }
+
+  const refetchCurrentPrice = useCallback(() => {
+    refetchAccumulatedPOL();
+    refetchRemainingTokens();
+  }, [refetchAccumulatedPOL, refetchRemainingTokens]);
+
+  return {
+    accumulatedPOL,
+    remainingTokens,
+    currentPrice: currentPrice || 0,
+    refetchRemainingTokens,
+    refetchAccumulatedPOL,
+    refetchCurrentPrice,
+  };
+}
+
+//-----------------Current Token Market Cap-----------------
+export function useMarketCap(tokenAddress: `0x${string}`) {
+  const { data: currentMarketCap, refetch: refetchCurrentMarketCap } =
+    useReadContract({
+      address: tokenAddress,
+      abi: tokenAbi,
+      functionName: "getMarketCap",
+    });
+  const { data: minMarketCap } = useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "getMarketCapMin",
+  });
+  const { data: maxMarketCap } = useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "getMarketCapMax",
+  });
+  return {
+    currentMarketCap: currentMarketCap || 0,
+    minMarketCap,
+    maxMarketCap,
+    refetchCurrentMarketCap,
+  };
+}
+
+export const useFeeBPS = (tokenAddress: `0x${string}`) => {
+  const { data: feeBPS } = useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "getFeeBPS",
+  });
+  return { fee: Number(formatUnits((feeBPS as bigint) || BigInt(0), 2)) };
 };

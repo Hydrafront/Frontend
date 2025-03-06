@@ -7,28 +7,27 @@ import TokenInfo from "./TokenInfo";
 import Transactions from "./Transactions";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setToken } from "@/store/reducers/token-slice";
-import { getTokenByAddress } from "@/store/actions/create-token.action";
+import { getTokenByAddress, getTransactionsByTokenAddress } from "@/store/actions/token.action";
 import TradingWedget from "@/components/ui/TradingWedget";
-import Spin1 from "@/components/spins/spin1/Spin1";
+import Spin2 from "@/components/spins/spin2/Spin2";
+import { isEmpty } from "@/utils/validation";
 
 const PresaleDetail: React.FC = () => {
   const dispatch = useAppDispatch();
-
   const { type, tokenAddress } = useParams();
+
+  
+  
   const { token } = useAppSelector((state) => state.token);
   useEffect(() => {
-    const fetchToken = async () => {
-      const token = await getTokenByAddress(tokenAddress as `0x${string}`);
-      dispatch(setToken(token));
-    };
-    fetchToken();
+    dispatch(getTokenByAddress(tokenAddress as `0x${string}`));
+    dispatch(getTransactionsByTokenAddress(tokenAddress as `0x${string}`));
   }, [tokenAddress, dispatch]);
 
-  if (token.tokenAddress !== tokenAddress) {
+  if (isEmpty(token)) {
     return (
       <div className="w-full h-full flex justify-center items-center">
-        <Spin1 />
+        <Spin2 />
       </div>
     );
   }

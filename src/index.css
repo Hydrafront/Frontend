@@ -344,7 +344,10 @@ h6 {
   overflow-y: scroll;
 }
 
-.Toastify__toast-theme--light {
+[class |= "Toastify__toast"] {
+  z-index: 10000!important;
+}
+.Toastify-theme--light {
   /* background-color: #211e2ce0;
   color: white; */
 }

@@ -10,9 +10,8 @@ import { IconMedal2 } from "@tabler/icons-react";
 import { useState } from "react";
 import TransactionTable from "./TransactionTable";
 import ScrollOnDrag from "@/components/ui/ScrollOnDrag";
-import TopTraders from "../TopTrader";
+import TopTraders from "./TopTrader";
 import clsx from "clsx";
-
 const Transactions: React.FC = () => {
   const [selected, setSelected] = useState<string>("1");
 

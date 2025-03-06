@@ -28,7 +28,7 @@ export const config = defaultWagmiConfig({
   projectId,
   metadata,
   transports: {
-    [polygonAmoy.id]: http(),
+    [polygonAmoy.id]: http("https://polygon-amoy.g.alchemy.com/v2/CIQZ8kkdzYO_oLFlpmxmZDJP7GOxxEPT"),
   },
 });
 

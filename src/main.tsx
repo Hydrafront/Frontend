@@ -16,20 +16,23 @@ import { router } from "./router";
 import { Provider as ReduxProvider } from "react-redux";
 import { store } from "./store/store";
 import { ToastContainer } from "react-toastify";
+import SocketProvider from "./SocketProvider";
 
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ToastContainer />
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <ReduxProvider store={store}>
-          <ThemeProvider>
-            <RouterProvider router={router} />
-          </ThemeProvider>
-        </ReduxProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <ReduxProvider store={store}>
+      <SocketProvider>
+        <ToastContainer />
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider>
+              <RouterProvider router={router} />
+            </ThemeProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </SocketProvider>
+    </ReduxProvider>
   </React.StrictMode>
 );

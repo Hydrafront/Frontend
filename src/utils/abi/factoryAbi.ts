@@ -1,4 +1,4 @@
-export const abi = [
+export const factoryAbi = [
   {
     inputs: [
       { internalType: "uint256", name: "totalSupply", type: "uint256" },
@@ -741,4 +741,4 @@ export const abi = [
     type: "function",
   },
   { stateMutability: "payable", type: "receive" },
-] as const;
+];

@@ -12,14 +12,21 @@ import { IconShieldHalfFilled } from "@tabler/icons-react";
 import { useParams } from "react-router-dom";
 import { useAccount } from "wagmi";
 import { getMaxTokenAmount } from "@/utils/func";
-import { getMinPriceAmount } from "@/utils/func";
+import { getMinEthAmount } from "@/utils/func";
 import { useEffect, useState } from "react";
-import { useCurrentPrice, useSellToken } from "@/utils/contractUtils";
+import {
+  useCurrentTokenPrice,
+  useFeeBPS,
+  useSellToken,
+} from "@/utils/contractUtils";
 import { toast } from "react-toastify";
 import { parseUnits } from "viem";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import IconText from "@/components/common/IconText";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
+import { saveTransactionAction } from "@/store/actions/token.action";
+import FormatPrice from "@/components/ui/FormatPrice";
+
 const SellTab: React.FC<{
   openFeeDialog: () => void;
   balance: number;
@@ -29,22 +36,23 @@ const SellTab: React.FC<{
   const { token } = useAppSelector((state) => state.token);
   const [slippage, setSlippage] = useState<number>(5);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { open } = useWeb3Modal();
-  const { price: currentPrice } = useCurrentPrice(
-    tokenAddress as `0x${string}`
-  );
+  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
   const { sellGivenIn, sellGivenOut } = useSellToken(
     tokenAddress as `0x${string}`
   );
+  const { fee } = useFeeBPS(tokenAddress as `0x${string}`);
   const [value, setValue] = useState<number>(0);
   const [tokenAmount, setTokenAmount] = useState<number>(0);
   const [swapped, setSwapped] = useState<boolean>(false);
-  const [minAmountPrice, setMinAmountPrice] = useState<number>(0);
+  const [minEthAmount, setMinEthAmount] = useState<number>(0);
   const [maxAmountToken, setMaxAmountToken] = useState<number>(0);
   const [transactionLoading, setTransactionLoading] = useState<boolean>(false);
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
-    setMinAmountPrice(getMinPriceAmount(tokenAmount * currentPrice, slippage));
+    setMinEthAmount(getMinEthAmount(tokenAmount * currentPrice, slippage));
     setMaxAmountToken(getMaxTokenAmount(value / currentPrice, slippage));
   }, [tokenAmount, value, slippage, currentPrice]);
 
@@ -62,61 +70,103 @@ const SellTab: React.FC<{
   };
 
   const handleAction = async () => {
-    if (isEmpty(value) || isEmpty(tokenAmount)) {
-      toast.error("Missing required infomation");
-      return;
-    }
     setTransactionLoading(true);
     if (!swapped) {
-      const expectedPrice = tokenAmount * currentPrice;
-      const minAmountPrice = getMinPriceAmount(expectedPrice, slippage);
-      setMinAmountPrice(minAmountPrice);
-      try {
-        await sellGivenIn(
-          parseUnits(tokenAmount.toString(), 18),
-          parseUnits(minAmountPrice.toString(), 18)
-        );
-      } catch (error) {
-        toast.error("Error occurred while selling token!");
-      } finally {
-        setTransactionLoading(false);
-      }
-    } else {
-      if (isEmpty(tokenAmount) || isEmpty(value)) {
+      if (isEmpty(tokenAmount)) {
         toast.error("Missing required infomation");
         return;
+      } else {
+        const expectedPrice = tokenAmount * currentPrice;
+        const minEthAmount = getMinEthAmount(expectedPrice, slippage);
+        setMinEthAmount(minEthAmount * (1 - fee / 100));
+        try {
+          const txHash = await sellGivenIn(
+            parseUnits(tokenAmount.toString(), token?.decimals || 18),
+            parseUnits(
+              (minEthAmount * (1 - fee / 100)).toString(),
+              token?.decimals || 18
+            )
+          );
+          toast.success("Token sold successfully!");
+          dispatch(
+            saveTransactionAction({
+              txHash,
+              type: "Sell",
+              tokenAddress: tokenAddress as `0x${string}`,
+              token: tokenAmount,
+              eth: value,
+              maker: address as `0x${string}`,
+              usd: currentPrice * tokenAmount,
+              price: currentPrice,
+              chainId: Number(chainId),
+            })
+          );
+        } catch (error) {
+          console.error(error);
+          toast.error("Error occurred while selling token!");
+        } finally {
+          setTransactionLoading(false);
+        }
       }
-      const expectedTokenAmount = value / currentPrice;
-      const maxAmountToken = getMaxTokenAmount(expectedTokenAmount, slippage);
-      setMaxAmountToken(maxAmountToken);
-      try {
-        await sellGivenOut(
-          parseUnits(maxAmountToken.toString(), 18),
-          parseUnits(value.toString(), 18)
-        );
-      } catch (error) {
-        toast.error("Error occurred while selling token!");
-      } finally {
-        setTransactionLoading(false);
+    } else {
+      if (isEmpty(value)) {
+        toast.error("Missing required infomation");
+        return;
+      } else {
+        const expectedTokenAmount = (value * (1 + fee / 100)) / currentPrice;
+        const maxAmountToken = getMaxTokenAmount(expectedTokenAmount, slippage);
+        setMaxAmountToken(maxAmountToken);
+        try {
+          const txHash = await sellGivenOut(
+            parseUnits(maxAmountToken.toString(), 18),
+            parseUnits((value * (1 + fee / 100)).toString(), 18)
+          );
+          toast.success("Token sold successfully!");
+          dispatch(
+            saveTransactionAction({
+              txHash,
+              type: "Sell",
+              tokenAddress: tokenAddress as `0x${string}`,
+              token: maxAmountToken,
+              eth: value,
+              usd: expectedTokenAmount * currentPrice,
+              price: currentPrice,
+              maker: address as `0x${string}`,
+              chainId: Number(chainId),
+            })
+          );
+        } catch (error) {
+          toast.error("Error occurred while selling token!");
+        } finally {
+          setTransactionLoading(false);
+        }
       }
     }
   };
 
   useEffect(() => {
     if (!swapped) {
-      if (tokenBalance < tokenAmount) {
-        setErrorMessage("Insufficient token balance");
-      } else {
-        setErrorMessage("");
+      if (tokenBalance < minEthAmount) {
+        return setErrorMessage("Insufficient token balance");
       }
+      if (minEthAmount !== 0 && minEthAmount < 0.01) {
+        return setErrorMessage(
+          "Minimum sell amount is 0.01" + getUnit(Number(chainId))
+        );
+      }
+      setErrorMessage("");
     } else {
-      if (tokenBalance < maxAmountToken) {
-        setErrorMessage("Insufficient token balance");
-      } else {
-        setErrorMessage("");
+      if (tokenBalance < value) {
+        return setErrorMessage("Insufficient token balance");
       }
+      if (value !== 0 && value < 0.01) {
+        return setErrorMessage(
+          "Minimum sell amount is 0.01" + getUnit(Number(chainId))
+        );
+      }
+      setErrorMessage("");
     }
-  }, [tokenBalance, tokenAmount, swapped, maxAmountToken]);
+  }, [tokenBalance, minEthAmount, swapped, value, chainId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
@@ -139,6 +189,9 @@ const SellTab: React.FC<{
   const handleConnectWallet = () => {
     open();
   };
+
+  if (!token) return null;
+
   return (
     <div className="flex flex-col gap-3">
       <div className="border border-borderColor rounded-md">
@@ -202,13 +255,13 @@ const SellTab: React.FC<{
           )}
         </div>
         <div className="flex gap-[1px]">
-          {[10, 20, 25, 50, 75, 100].map((item) => (
+          {[0.1, 0.25, 0.5, 1, 2, 5].map((item) => (
             <button
               key={item}
               onClick={() => setValue(item)}
               className="text-[12px] py-1 bg-lighterColor w-1/6 hover:bg-lightestColor transition"
             >
-              {item}%
+              {item}
             </button>
           ))}
         </div>
@@ -287,18 +340,28 @@ const SellTab: React.FC<{
           <InfoText className="text-center">
             {!swapped ? (
               <>
-                you receive min. {minAmountPrice} {getUnit(Number(chainId))}{" "}
-                (~$0)
+                you receive min. {minEthAmount.toFixed(3)}{" "}
+                {getUnit(Number(chainId))} (~
+                <FormatPrice
+                  color="text-textDark"
+                  value={minEthAmount * currentPrice}
+                />
+                )
               </>
             ) : (
               <>
-                you spend max. {maxAmountToken} {token.symbol} (~$0)
+                you spend max. {Math.ceil(maxAmountToken)} {token.symbol} (~
+                <FormatPrice
+                  color="text-textDark"
+                  value={maxAmountToken * currentPrice}
+                />
+                )
               </>
             )}
           </InfoText>
           <div className="flex gap-1 items-center justify-center">
             <span className="text-[11px] text-textDark">
-              Priority fee: 0 {getUnit(Number(chainId))}
+              Priority fee: {fee}%
             </span>
             <IconShieldHalfFilled size={16} color="grey" />
           </div>

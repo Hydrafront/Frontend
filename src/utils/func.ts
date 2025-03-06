@@ -1,6 +1,8 @@
 import Duration from "duration";
 import { contractConfig } from "./config/contractConfig";
 import { getBytes, solidityPackedKeccak256, toUtf8Bytes, Wallet } from "ethers";
+import { useState } from "react";
+import { useEffect } from "react";
 
 // get Signature when create a new token
 export async function generateSignature(
@@ -67,7 +69,20 @@ export const getDuration = (date1: Date, date2: Date = new Date()) => {
 
 //get duration from certain date to now
 export const getCreatedBefore = (createdAt: Date) => {
-  let createdBefore: string = "";
+  const getDuration = (createdAt: Date) => {
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - createdAt.getTime()) / 1000);
+    
+    return {
+      years: Math.floor(diff / (3600 * 24 * 365)),
+      months: Math.floor(diff / (3600 * 24 * 30)),
+      days: Math.floor(diff / (3600 * 24)),
+      hours: Math.floor(diff / 3600),
+      minutes: Math.floor(diff / 60),
+      seconds: diff,
+    };
+  };
+
   const duration = getDuration(createdAt);
   const obj = {
     years: duration.years,
@@ -77,14 +92,28 @@ export const getCreatedBefore = (createdAt: Date) => {
     minutes: duration.minutes,
     seconds: duration.seconds,
   };
+
   for (const key of Object.keys(obj)) {
-    const value = duration[key as keyof Duration];
+    const value = obj[key as keyof typeof obj];
     if (value > 0) {
-      createdBefore = value + " " + key[0];
-      break;
+      return `${value} ${key[0]}`;
     }
   }
-  return createdBefore;
+  return "Just now";
+};
+
+export const useTimeAgo = (createdAt: Date) => {
+  const [timeAgo, setTimeAgo] = useState(getCreatedBefore(createdAt));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeAgo(getCreatedBefore(createdAt));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [createdAt]);
+
+  return timeAgo;
 };
 
 //number format with 1 decimal place
@@ -122,17 +151,22 @@ export const generatePinGroupName = ({
 };
 
 //-----------------Slippage Buy Token-----------------
-export const getMinTokenAmount = (amountToken: number, slippage: number) => {
-  return (amountToken * (100 - slippage)) / 100;
+export const getMinTokenAmount = (tokenAmount: number, slippage: number) => {
+  return (tokenAmount * (100 - slippage)) / 100;
 };
-export const getMaxPriceAmount = (amountPOL: number, slippage: number) => {
-  return (amountPOL * (100 + slippage)) / 100;
+export const getMaxEthAmount = (ethAmount: number, slippage: number) => {
+  return (ethAmount * (100 + slippage)) / 100;
 };
 
 //-----------------Slippage Sell Token-----------------
-export const getMinPriceAmount = (amountPrice: number, slippage: number) => {
-  return (amountPrice * (100 - slippage)) / 100;
+export const getMinEthAmount = (ethAmount: number, slippage: number) => {
+  return (ethAmount * (100 - slippage)) / 100;
 };
-export const getMaxTokenAmount = (amountToken: number, slippage: number) => {
-  return (amountToken * (100 + slippage)) / 100;
+export const getMaxTokenAmount = (tokenAmount: number, slippage: number) => {
+  return (tokenAmount * (100 + slippage)) / 100;
 };
+
+//get price nubmer
+// export const getNumber = (value: bigint) => {
+//   return parseFloat(formatUnits(value, 18));
+// };

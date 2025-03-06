@@ -14,7 +14,7 @@ const InfoDrawer: React.FC = () => {
     <div className="block lg:hidden">
       <button
         onClick={handleOpen}
-        className="fixed right-0 top-[50%] border-2 border-green-500 z-[9999] bg-[#0000007a] hover:shadow-defaultShadow transition-all p-3 rounded-l-full"
+        className="fixed right-0 top-[50%] border-2 border-green-500 z-[99] bg-[#0000007a] hover:shadow-defaultShadow transition-all p-3 rounded-l-full"
       >
         <IconArrowLeft />
       </button>

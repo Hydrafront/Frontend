@@ -24,7 +24,7 @@ import { Chain } from "viem";
 import {
   createTokenInfo,
   uploadImageToPinata,
-} from "@/store/actions/create-token.action";
+} from "@/store/actions/token.action";
 import { generateSignature } from "@/utils/func";
 import { isEmpty } from "@/utils/validation";
 import { getContractAddress } from "@/utils/func";
@@ -32,6 +32,7 @@ import { useChainId } from "wagmi";
 import { useCreatePresaleToken } from "@/utils/contractUtils";
 import Spin2 from "@/components/spins/spin2/Spin2";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
+import { createTokenEmit } from "@/socket/token";
 
 const MAX_FILE_SIZE = 1024 * 1024; // 1MB
 
@@ -146,7 +147,6 @@ const TokenForm: React.FC = () => {
     // create presale token
     let tokenAddress: `0x${string}` | undefined = undefined;
     try {
-      console.log(import.meta.env.VITE_PRIVATE_KEY);
       const { signature } = await generateSignature(
         form.name,
         form.symbol,
@@ -162,16 +162,15 @@ const TokenForm: React.FC = () => {
         form.name,
         form.symbol,
         nonce,
-        signature as `0x${string}`,
+        signature as `0x${string}`
         // form.initialBuy
       );
 
-      console.log(receipt)
       tokenAddress = receipt?.logs[0].address;
       console.log("token created on blockchain", tokenAddress);
 
       if (tokenAddress && form.logo && form.banner) {
-        await createTokenInfo(tokenAddress as `0x${string}`, {
+        const { token } = await createTokenInfo(tokenAddress as `0x${string}`, {
           price: 0,
           marketCap: 1000,
           type: "presale",
@@ -188,6 +187,7 @@ const TokenForm: React.FC = () => {
           telegram: form.telegram,
           discord: form.discord,
         });
+        createTokenEmit(token);
       } else {
         throw new Error("Token address or image upload failed");
       }
@@ -281,22 +281,22 @@ const TokenForm: React.FC = () => {
       </div>
       <div className="mb-5 flex flex-wrap">
         {getDex(selectedChain.id)?.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => setSelectedDex(item)}
-              className={clsx(
-                "text-[18px] bg-lighterColor rounded-lg w-1/2 text-center flex py-4 hover:bg-lightestColor border-2 justify-center items-center gap-3",
-                selectedDex === item && "border-green-500"
-              )}
-            >
-              <img
-                src={`/assets/images/dexs/Uniswap.png`}
-                alt="chain-icon"
-                className="w-9"
-              />
-              {item}
-            </button>
-          ))}
+          <button
+            key={index}
+            onClick={() => setSelectedDex(item)}
+            className={clsx(
+              "text-[18px] bg-lighterColor rounded-lg w-1/2 text-center flex py-4 hover:bg-lightestColor border-2 justify-center items-center gap-3",
+              selectedDex === item && "border-green-500"
+            )}
+          >
+            <img
+              src={`/assets/images/dexs/Uniswap.png`}
+              alt="chain-icon"
+              className="w-9"
+            />
+            {item}
+          </button>
+        ))}
       </div>
       <div className="mb-5">
         <LabelText>Token Name</LabelText>
@@ -523,7 +523,10 @@ const TokenForm: React.FC = () => {
             )}
           </GradientButton>
         ) : (
-          <GradientButton className="rounded-lg w-full flex gap-3 justify-center items-center text-white" onClick={() => open()}>
+          <GradientButton
+            className="rounded-lg w-full flex gap-3 justify-center items-center text-white"
+            onClick={() => open()}
+          >
             <IconWallet color="white" />
             Connect Wallet
           </GradientButton>

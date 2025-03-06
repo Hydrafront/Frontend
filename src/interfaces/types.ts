@@ -20,3 +20,15 @@ export interface TokenType {
   createdAt: string;
   decimals: number;
 }
+export interface TransactionType {
+  txHash: string;
+  type: string;
+  tokenAddress: `0x${string}`;
+  token: number;
+  eth: number;
+  usd: number;
+  price: number;
+  maker: `0x${string}`;
+  chainId: number;
+  createdAt?: string;
+}

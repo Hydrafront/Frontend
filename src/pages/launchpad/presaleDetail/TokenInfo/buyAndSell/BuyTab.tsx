@@ -1,12 +1,7 @@
 import IconText from "@/components/common/IconText";
 import InfoText from "@/components/common/InfoText";
 import { getChainName, getUnit } from "@/utils/config/chainDexConfig";
-import {
-  addTokenToWallet,
-  useBuyToken,
-  useGetTokenAddress,
-} from "@/utils/contractUtils";
-import { useCurrentPrice } from "@/utils/contractUtils";
+import { addTokenToWallet, useBuyToken } from "@/utils/contractUtils";
 import { isEmpty } from "@/utils/validation";
 import { Button, Input } from "@material-tailwind/react";
 import {
@@ -19,23 +14,23 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getMinTokenAmount } from "@/utils/func";
-import { getMaxPriceAmount } from "@/utils/func";
+import { getMaxEthAmount } from "@/utils/func";
 import { toast } from "react-toastify";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
+import { useCurrentTokenPrice } from "@/utils/contractUtils";
+import { saveTransactionAction } from "@/store/actions/token.action";
+import { useFeeBPS } from "@/utils/contractUtils";
+import FormatPrice from "@/components/ui/FormatPrice";
 
 const BuyTab: React.FC<{
   openFeeDialog: () => void;
   balance: number;
   tokenBalance: number;
 }> = ({ openFeeDialog, balance }) => {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { tokenAddress, chainId } = useParams();
-  const { price: currentPrice } = useCurrentPrice(
-    tokenAddress as `0x${string}`
-  );
-  const { getTokenAddress } = useGetTokenAddress();
   const { open } = useWeb3Modal();
   const [value, setValue] = useState<number>(0.1);
   const [tokenAmount, setTokenAmount] = useState<number>(0);
@@ -43,17 +38,19 @@ const BuyTab: React.FC<{
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [slippage, setSlippage] = useState<number>(10);
   const [minTokenAmount, setMinTokenAmount] = useState<number>(0);
-  const [maxPriceAmount, setMaxPriceAmount] = useState<number>(0);
+  const [maxEthAmount, setMaxEthAmount] = useState<number>(0);
   const [transactionLoading, setTransactionLoading] = useState<boolean>(false);
-  const { token } = useAppSelector((state) => state.token);
+  const dispatch = useAppDispatch();
   const { buyGivenIn, buyGivenOut } = useBuyToken(
     tokenAddress as `0x${string}`
   );
-  // const { remainingTokens } = useCurrentPrice(tokenAddress as `0x${string}`);
+  const { token } = useAppSelector((state) => state.token);
+  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
+  const { fee } = useFeeBPS(tokenAddress as `0x${string}`);
 
   useEffect(() => {
     setMinTokenAmount(getMinTokenAmount(value / currentPrice, slippage));
-    setMaxPriceAmount(getMaxPriceAmount(tokenAmount * currentPrice, slippage));
+    setMaxEthAmount(getMaxEthAmount(tokenAmount * currentPrice, slippage));
   }, [tokenAmount, value, slippage, currentPrice]);
 
   useEffect(() => {
@@ -61,59 +58,96 @@ const BuyTab: React.FC<{
   }, [value, currentPrice]);
 
   const handleAction = async () => {
-    if (isEmpty(value) || isEmpty(tokenAmount)) {
-      toast.error("Please enter the amount to buy.");
-      return;
-    }
     setTransactionLoading(true);
     if (!swapped) {
-      const expectedTokenAmount = value / currentPrice;
-      const minTokenAmount = getMinTokenAmount(expectedTokenAmount, slippage);
-      setMinTokenAmount(minTokenAmount);
-      try {
-        const txHash = await buyGivenIn(
-          parseUnits(minTokenAmount.toString(), 18),
-          parseUnits(value.toString(), 18)
-        );
-        toast.success("Token purchased successfully!");
-        const tokenAddress = await getTokenAddress(txHash, "buy");
+      if (isEmpty(value)) {
+        toast.error("Missing required infomation");
+      } else {
+        const expectedTokenAmount = (value * (1 - fee / 100)) / currentPrice;
+        const minTokenAmount = getMinTokenAmount(expectedTokenAmount, slippage);
+        setMinTokenAmount(minTokenAmount);
         try {
-          await addTokenToWallet({
-            tokenAddress: tokenAddress as `0x${string}`,
-            tokenSymbol: token.symbol,
-            tokenImage: token.logo,
-            tokenDecimals: token.decimals,
-          });
+          const txHash = await buyGivenIn(
+            parseUnits(minTokenAmount.toString(), 18),
+            parseUnits(value.toString(), 18)
+          );
+          toast.success("Token purchased successfully!");
+          // const tokenAddress = await getTokenAddress(txHash, "buy");
+          if (token) {
+            try {
+              await addTokenToWallet({
+                tokenAddress: tokenAddress as `0x${string}`,
+                tokenSymbol: token.symbol,
+                tokenImage: token.logo,
+                tokenDecimals: token.decimals,
+              });
+              dispatch(
+                saveTransactionAction({
+                  txHash,
+                  type: "Buy",
+                  tokenAddress: tokenAddress as `0x${string}`,
+                  token: tokenAmount,
+                  eth: value,
+                  maker: address as `0x${string}`,
+                  usd: currentPrice * tokenAmount,
+                  price: currentPrice,
+                  chainId: Number(chainId),
+                })
+              );
+            } catch (error) {
+              toast.error("Error occurred while adding token to wallet!");
+              console.error(
+                "Error occurred while adding token to wallet:",
+                error
+              );
+            }
+          }
         } catch (error) {
-          toast.error("Error occurred while adding token to wallet!");
-          console.error("Error occurred while adding token to wallet:", error);
+          toast.error("Error occurred while buying token!");
+        } finally {
+          setTransactionLoading(false);
         }
-      } catch (error) {
-        toast.error("Error occurred while buying token!");
-      } finally {
-        setTransactionLoading(false);
       }
     } else {
-      const expectedPrice = tokenAmount * currentPrice;
-      const maxPriceAmount = getMaxPriceAmount(expectedPrice, slippage);
-      setMaxPriceAmount(maxPriceAmount);
-      try {
-        const txHash = await buyGivenOut(
-          parseUnits(tokenAmount.toString(), 18),
-          parseUnits(maxPriceAmount.toString(), 18)
-        );
-        const tokenAddress = await getTokenAddress(txHash, "sell");
-        await addTokenToWallet({
-          tokenAddress: tokenAddress as `0x${string}`,
-          tokenSymbol: token.symbol,
-          tokenImage: token.logo,
-          tokenDecimals: token.decimals,
-        });
-        toast.success("Token purchased successfully!");
-      } catch (error) {
-        toast.error("Error occurred while buying token!");
-      } finally {
-        setTransactionLoading(false);
+      if (isEmpty(tokenAmount)) {
+        toast.error("Missing required infomation");
+      } else {
+        const expectedPrice = tokenAmount * currentPrice;
+        const maxEthAmount = getMaxEthAmount(expectedPrice, slippage);
+        setMaxEthAmount(maxEthAmount * (1 + fee / 100));
+        try {
+          const txHash = await buyGivenOut(
+            parseUnits(tokenAmount.toString(), 18),
+            parseUnits((maxEthAmount * (1 + fee / 100)).toString(), 18)
+          );
+          toast.success("Token purchased successfully!");
+          if (token) {
+            await addTokenToWallet({
+              tokenAddress: tokenAddress as `0x${string}`,
+              tokenSymbol: token.symbol,
+              tokenImage: token.logo,
+              tokenDecimals: token.decimals,
+            });
+            toast.success("Token is added to wallet!");
+            dispatch(
+              saveTransactionAction({
+                txHash,
+                type: "Buy",
+                tokenAddress: tokenAddress as `0x${string}`,
+                token: tokenAmount,
+                eth: value,
+                maker: address as `0x${string}`,
+                usd: currentPrice * tokenAmount,
+                price: currentPrice,
+                chainId: Number(chainId),
+              })
+            );
+          }
+        } catch (error) {
+          toast.error("Error occurred while buying token!");
+        } finally {
+          setTransactionLoading(false);
+        }
       }
     }
   };
@@ -121,18 +155,26 @@ const BuyTab: React.FC<{
   useEffect(() => {
     if (!swapped) {
       if (balance < value) {
-        setErrorMessage("Insufficient balance");
-      } else {
-        setErrorMessage("");
+        return setErrorMessage("Insufficient balance");
       }
+      if (value !== 0 && value < 0.01) {
+        return setErrorMessage(
+          "Minimum buy amount is 0.01" + getUnit(Number(chainId))
+        );
+      }
+      setErrorMessage("");
     } else {
-      if (balance < maxPriceAmount) {
-        setErrorMessage("Insufficient balance");
-      } else {
-        setErrorMessage("");
+      if (balance < maxEthAmount) {
+        return setErrorMessage("Insufficient balance");
       }
+      if (maxEthAmount !== 0 && maxEthAmount < 0.01) {
+        return setErrorMessage(
+          "Minimum buy amount is 0.01" + getUnit(Number(chainId))
+        );
+      }
+      setErrorMessage("");
     }
-  }, [balance, value, maxPriceAmount, swapped]);
+  }, [balance, value, maxEthAmount, swapped, chainId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
@@ -164,6 +206,8 @@ const BuyTab: React.FC<{
   const handleConnectWallet = () => {
     open();
   };
+
+  if (!token) return null;
 
   return (
     <div className="flex flex-col gap-3">
@@ -311,17 +355,28 @@ const BuyTab: React.FC<{
           <InfoText className="text-center">
             {!swapped ? (
               <>
-                you receive min. {minTokenAmount} {token.symbol} (~$0)
+                you receive min. {Math.ceil(minTokenAmount)} {token.symbol} (~
+                <FormatPrice
+                  color="text-textDark"
+                  value={minTokenAmount * currentPrice}
+                />
+                )
               </>
             ) : (
               <>
-                you spend max. {maxPriceAmount} {getUnit(Number(chainId))} (~$0)
+                you spend max. {maxEthAmount.toFixed(3)}{" "}
+                {getUnit(Number(chainId))} (~
+                <FormatPrice
+                  color="text-textDark"
+                  value={maxEthAmount * currentPrice}
+                />
+                )
               </>
             )}
           </InfoText>
           <div className="flex gap-1 items-center justify-center">
             <span className="text-[11px] text-textDark">
-              Priority fee: 0 {getUnit(Number(chainId))}
+              Priority fee: {fee} %
             </span>
             <IconShieldHalfFilled size={16} color="grey" />
           </div>

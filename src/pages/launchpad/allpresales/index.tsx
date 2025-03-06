@@ -3,12 +3,12 @@ import Toolbar from "./toolbar";
 import NFTList from "./list";
 import BitRivals from "../TrendingBar";
 import NFTTable from "./table";
-import { fetchTokens } from "@/store/actions/create-token.action";
-import { TokenType } from "@/interfaces/types";
+import { fetchTokens } from "@/store/actions/token.action";
+import { useAppDispatch } from "@/store/hooks";
 
 const AllPresales: React.FC = () => {
+  const dispatch = useAppDispatch();
   const [style, setStyle] = useState<string>("apps");
-  const [displayTokens, setDisplayTokens] = useState<TokenType[]>([]);
   const [tab, setTab] = useState<string>("all_presales");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -20,10 +20,8 @@ const AllPresales: React.FC = () => {
   const getTokens = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchTokens();
-      setDisplayTokens(data || []);
+      dispatch(fetchTokens());
     } catch (error) {
-      console.error(error);
       setError("Failed to fetch tokens");
     } finally {
       setIsLoading(false);
@@ -36,11 +34,7 @@ const AllPresales: React.FC = () => {
 
       <Toolbar style={style} setStyle={setStyle} tab={tab} setTab={setTab} />
       {style === "apps" ? (
-        <NFTList
-          displayTokens={displayTokens}
-          isLoading={isLoading}
-          error={error}
-        />
+        <NFTList isLoading={isLoading} error={error} />
       ) : (
         <NFTTable />
       )}

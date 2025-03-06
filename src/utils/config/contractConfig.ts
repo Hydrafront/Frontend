@@ -1,4 +1,4 @@
-import { abi } from "./abi";
+import { factoryAbi } from "../abi/factoryAbi";
 
 export const contractConfig = {
   "137": {
@@ -13,7 +13,7 @@ export const contractConfig = {
   },
 };
 
-export const contracts = {
+export const factoryContract = {
   address: import.meta.env.VITE_AMOY_CONTRACT_ADDRESS,
-  abi: abi,
+  abi: factoryAbi,
 } as const;
