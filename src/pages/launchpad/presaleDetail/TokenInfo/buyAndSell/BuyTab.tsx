@@ -47,6 +47,8 @@ const BuyTab: React.FC<{
   const { token } = useAppSelector((state) => state.token);
   const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
   const { fee } = useFeeBPS(tokenAddress as `0x${string}`);
+  const { ethPrice } = useAppSelector((state) => state.eth);
+  const currentEthPrice = ethPrice[Number(chainId)];
 
   useEffect(() => {
     setMinTokenAmount(getMinTokenAmount(value / currentPrice, slippage));
@@ -368,7 +370,7 @@ const BuyTab: React.FC<{
                 {getUnit(Number(chainId))} (~
                 <FormatPrice
                   color="text-textDark"
-                  value={maxEthAmount * currentPrice}
+                  value={maxEthAmount * currentEthPrice}
                 />
                 )
               </>

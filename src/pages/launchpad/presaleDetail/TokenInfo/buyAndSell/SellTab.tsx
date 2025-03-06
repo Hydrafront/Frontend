@@ -50,6 +50,8 @@ const SellTab: React.FC<{
   const [maxAmountToken, setMaxAmountToken] = useState<number>(0);
   const [transactionLoading, setTransactionLoading] = useState<boolean>(false);
   const dispatch = useAppDispatch();
+  const { ethPrice } = useAppSelector((state) => state.eth);
+  const currentEthPrice = ethPrice[Number(chainId)];
 
   useEffect(() => {
     setMinEthAmount(getMinEthAmount(tokenAmount * currentPrice, slippage));
@@ -344,7 +346,7 @@ const SellTab: React.FC<{
                 {getUnit(Number(chainId))} (~
                 <FormatPrice
                   color="text-textDark"
-                  value={minEthAmount * currentPrice}
+                  value={minEthAmount * currentEthPrice}
                 />
                 )
               </>

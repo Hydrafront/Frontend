@@ -1,8 +1,11 @@
 import BoltIcon from "@/components/icons/BoltIcon";
 import LeafIcon from "@/components/icons/LeafIcon";
+import { useAppSelector } from "@/store/hooks";
+import { getUnit } from "@/utils/config/chainDexConfig";
 import { getCreatedBefore } from "@/utils/func";
 import { IconFlame, IconLayersSubtract } from "@tabler/icons-react";
 import copy from "copy-to-clipboard";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const TokenHeader = ({
@@ -22,12 +25,20 @@ const TokenHeader = ({
   banner: string;
   tokenAddress: string;
 }) => {
+  const { ethPrice } = useAppSelector((state) => state.eth);
+  const { chainId } = useParams();
+
   const handleCopy = () => {
     copy(tokenAddress);
     toast.success("Address copied to clipboard!");
   };
   return (
     <>
+      <div className="flex justify-center gap-2 pt-2 items-center">
+        <span className="text-greenColor">1 {getUnit(Number(chainId))}</span>
+        <span className="text-white">=</span>
+        <span className="text-white">${ethPrice[Number(chainId)]}</span>
+      </div>
       <div className="p-2 flex justify-center gap-2 items-center">
         <div className="cursor-pointer text-white flex gap-1 items-center text-[18px]">
           {symbol}
