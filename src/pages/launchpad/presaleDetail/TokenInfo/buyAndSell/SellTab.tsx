@@ -1,5 +1,4 @@
 import {
-  IconAdjustmentsHorizontal,
   IconTransfer,
   IconWallet,
 } from "@tabler/icons-react";
@@ -32,7 +31,7 @@ const SellTab: React.FC<{
   openFeeDialog: () => void;
   balance: number;
   tokenBalance: number;
-}> = ({ openFeeDialog, tokenBalance }) => {
+}> = ({  tokenBalance }) => {
   const { chainId, tokenAddress } = useParams();
   const { token } = useAppSelector((state) => state.token);
   const [slippage, setSlippage] = useState<number>(5);

@@ -5,7 +5,6 @@ import clsx from "clsx";
 import IconText from "@/components/common/IconText";
 import BoltIcon from "@/components/icons/BoltIcon";
 import { useNavigate } from "react-router";
-import Pagination from "@/components/common/Pagination";
 import { useAppSelector } from "@/store/hooks";
 import { getChainLogo, getUnit } from "@/utils/config/chainDexConfig";
 import FormatPrice from "@/components/ui/FormatPrice";

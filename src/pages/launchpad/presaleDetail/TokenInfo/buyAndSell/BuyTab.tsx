@@ -31,7 +31,7 @@ const BuyTab: React.FC<{
   openFeeDialog: () => void;
   balance: number;
   tokenBalance: number;
-}> = ({ openFeeDialog, balance }) => {
+}> = ({  balance }) => {
   const { isConnected, address } = useAccount();
   const { tokenAddress, chainId } = useParams();
   const { open } = useWeb3Modal();
