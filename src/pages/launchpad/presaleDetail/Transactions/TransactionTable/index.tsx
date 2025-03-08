@@ -8,16 +8,18 @@ import React from "react";
 import HeaderDate from "./HeaderDate";
 import HeaderType from "./HeaderType";
 import HeaderUSD from "./HeaderUSD";
-import HeaderMCPepe from "./HeaderMCPepe";
 import HeaderPol from "./HeaderPol";
 import HeaderMaker from "./HeaderMaker";
 import { useAppSelector } from "@/store/hooks";
 import FormatPrice from "@/components/ui/FormatPrice";
 import TimeAgo from "@/components/ui/TimeAgo";
+import HeaderToken from "./HeaderToken";
+import clsx from "clsx";
 type AlignType = "left" | "center" | "right";
 
 const TransactionTable = () => {
   const { transactions } = useAppSelector((state) => state.token);
+  const { token } = useAppSelector((state) => state.token);
 
   const data = transactions.map((transaction) => ({
     date: (
@@ -25,14 +27,16 @@ const TransactionTable = () => {
         <TimeAgo createdAt={new Date(transaction.createdAt || "")} />
       </div>
     ),
-    type: <div className="text-green-300 py-2 px-3">{transaction.type}</div>,
-    usd: <div className="text-green-300 py-2 px-3">{transaction.usd}</div>,
-    mcpepe: <div className="text-green-300 py-2 px-3">{Math.floor(transaction.token)}</div>,
-    pol: <div className="text-green-300 py-2 px-3">{transaction.eth}</div>,
-    price: <div className="text-green-300 py-2 px-3">
-      <FormatPrice value={transaction.price} />
+    type: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>{transaction.type}</div>,
+    usd: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>
+      <FormatPrice value={transaction.usd} color={transaction.type === "Buy" ? "text-green-300" : "text-red-300"} />
+    </div>,
+    token: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>{Math.floor(transaction.token)}</div>,
+    pol: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>{transaction.eth}</div>,
+    price: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>
+      <FormatPrice value={transaction.price} color={transaction.type === "Buy" ? "text-green-300" : "text-red-300"} />
       </div>,
-    maker: <div className="text-green-300 py-2 px-3">{transaction.maker.slice(0, 6)}...{transaction.maker.slice(-4)}</div>,
+    maker: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>{transaction.maker.slice(0, 6)}...{transaction.maker.slice(-4)}</div>,
     txn: (
       <div
         className="cursor-hover h-full items-center flex justify-center hover:bg-lightestColor cursor-pointer"
@@ -65,8 +69,8 @@ const TransactionTable = () => {
       align: "end",
     },
     {
-      title: <HeaderMCPepe />,
-      dataIndex: "mcpepe",
+      title: <HeaderToken name={token?.symbol || ""} />,
+      dataIndex: "token",
       align: "end",
     },
     {

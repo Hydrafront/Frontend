@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import { createTokenListener, saveTransactionListener } from "./socket/token";
+import { createTokenListener, saveTransactionListener, updateTokenInfoListener } from "./socket/token";
 import { TokenType, TransactionType } from "./interfaces/types";
 import { useAppDispatch } from "./store/hooks";
-import { addToken, addTransaction } from "./store/reducers/token-slice";
+import { addToken, addTransaction, updateTokenList } from "./store/reducers/token-slice";
 
 const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -17,7 +17,10 @@ const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     saveTransactionListener((transaction: TransactionType) => {
       dispatch(addTransaction(transaction));
     });
-  }, []);
+    updateTokenInfoListener((tokenInfo: TokenType) => {
+      dispatch(updateTokenList(tokenInfo));
+    });
+  }, [dispatch]);
 
   return <>{children}</>;
 };

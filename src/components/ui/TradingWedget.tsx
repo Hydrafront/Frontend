@@ -23,7 +23,7 @@ const TradingWedget = () => {
   }, [transactions]);
 
   useEffect(() => {
-    if (chartRef.current && !chartRef.current.innerHTML && candles.length > 0) {
+    if (chartRef.current && !chartRef.current.innerHTML && candles.length >= 0) {
       const newChart: IChartApi = createChart(chartRef.current, {
         width: chartRef.current.clientWidth,
         layout: {

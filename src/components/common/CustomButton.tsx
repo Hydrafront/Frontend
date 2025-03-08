@@ -1,7 +1,8 @@
+import { ButtonProps } from "@material-tailwind/react";
 import clsx from "clsx";
 import React from "react";
 
-interface Props {
+interface Props extends ButtonProps {
   className?: string;
   children: React.ReactNode;
 }

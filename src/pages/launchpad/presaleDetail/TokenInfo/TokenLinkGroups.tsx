@@ -54,8 +54,9 @@ const TokenLinkGroups = ({
       onPointerLeaveCapture={undefined}
       className="flex w-full -mt-5 justify-center"
     >
-      {linkArr.slice(0, 1).map((link, index) => (
+      {linkArr.slice(0, 2).map((link, index) => (
         <Button
+          onClick={() => window.open(link.link, "_blank")}
           key={index}
           placeholder={undefined}
           onPointerEnterCapture={undefined}
@@ -75,6 +76,10 @@ const TokenLinkGroups = ({
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
           className="p-2"
+          onClick={() => {
+            const tokenInfo = document.getElementById("common-token-info");
+            tokenInfo?.scrollIntoView({ behavior: "smooth" });
+          }}
         >
           <IconDots size={16} />
         </Button>
@@ -85,6 +90,10 @@ const TokenLinkGroups = ({
         onPointerEnterCapture={undefined}
         onPointerLeaveCapture={undefined}
         className="p-2"
+        onClick={() => {
+          const tokenInfo = document.getElementById("common-token-info");
+          tokenInfo?.scrollIntoView({ behavior: "smooth" });
+        }}
       >
         <IconArrowDown size={16} />
       </Button>

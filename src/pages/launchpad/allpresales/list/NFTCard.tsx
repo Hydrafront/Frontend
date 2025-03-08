@@ -1,6 +1,5 @@
 import BoltIcon from "@/components/icons/BoltIcon";
 import LeafIcon from "@/components/icons/LeafIcon";
-import { getCreatedBefore, numberFormat } from "@/utils/func";
 import { Card, CardBody } from "@material-tailwind/react";
 import { IconTransfer } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
@@ -9,7 +8,8 @@ import LinkIcon from "@/components/ui/LinkIcon";
 import TokenProgressbar from "@/components/common/TokenProgressbar";
 import { TokenType } from "@/interfaces/types";
 import { getChainName } from "@/utils/config/chainDexConfig";
-
+import FormatPrice from "@/components/ui/FormatPrice";
+import TimeAgo from "@/components/ui/TimeAgo";
 export interface NFTCardType extends TokenType {}
 
 const NFTCard: React.FC<NFTCardType> = (props) => {
@@ -71,23 +71,23 @@ const NFTCard: React.FC<NFTCardType> = (props) => {
             <span className="text-[13px] text-greenColor mx-3">
               {props.progress}%
             </span>
-            <span className="text-[13px]">${numberFormat(props.price)}K</span>
+            <span className="text-[13px]"><FormatPrice value={props.price} /></span>
           </div>
           <div className="flex items-center">
             <div className="flex items-center">
               <IconTransfer size={16} className="mr-1" />
               <span className="text-[13px]">
-                {props.transaction} / ${numberFormat(props.volume)} vol
+                {props.transactionCount} txns / <FormatPrice value={props.volume} /> vol
               </span>
             </div>
           </div>
         </div>
-        <TokenProgressbar value={70} className="my-2" />
+        <TokenProgressbar value={props.progress} className="my-2" />
         <div className="flex justify-between">
           <div className="flex items-center">
             <LeafIcon width={16} className="mr-1" />
             <span className="text-[13px] text-greenColor">
-              {getCreatedBefore(new Date(props.createdAt))}
+              <TimeAgo createdAt={new Date(props.createdAt || "")} />
             </span>
           </div>
           <div className="flex items-center">
@@ -113,10 +113,14 @@ const NFTCard: React.FC<NFTCardType> = (props) => {
             )}
           </div>
         </div>
-        <div className="flex items-center mr-2 absolute top-2 right-2">
-          <BoltIcon />
-          <span className="text-[13px] text-orangeColor">{props.boost}</span>
-        </div>
+        {
+          props.boost > 0 && (
+            <div className="flex items-center mr-2 absolute top-2 right-2">
+              <BoltIcon />
+              <span className="text-[13px] text-orangeColor">{props.boost}</span>
+            </div>
+          )
+        }
       </CardBody>
     </Card>
   );

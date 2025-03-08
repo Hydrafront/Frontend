@@ -14,11 +14,6 @@ import { useAccount } from "wagmi";
 import { getMaxTokenAmount } from "@/utils/func";
 import { getMinEthAmount } from "@/utils/func";
 import { useEffect, useState } from "react";
-import {
-  useCurrentTokenPrice,
-  useFeeBPS,
-  useSellToken,
-} from "@/utils/contractUtils";
 import { toast } from "react-toastify";
 import { parseUnits } from "viem";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -26,6 +21,12 @@ import IconText from "@/components/common/IconText";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { saveTransactionAction } from "@/store/actions/token.action";
 import FormatPrice from "@/components/ui/FormatPrice";
+import {
+  useAmountInAndFee,
+  useAmountOutAndFee,
+  useCurrentTokenPrice,
+  useSellToken,
+} from "@/utils/contractUtils";
 
 const SellTab: React.FC<{
   openFeeDialog: () => void;
@@ -42,31 +43,63 @@ const SellTab: React.FC<{
   const { sellGivenIn, sellGivenOut } = useSellToken(
     tokenAddress as `0x${string}`
   );
-  const { fee } = useFeeBPS(tokenAddress as `0x${string}`);
   const [value, setValue] = useState<number>(0);
   const [tokenAmount, setTokenAmount] = useState<number>(0);
   const [swapped, setSwapped] = useState<boolean>(false);
   const [minEthAmount, setMinEthAmount] = useState<number>(0);
   const [maxAmountToken, setMaxAmountToken] = useState<number>(0);
   const [transactionLoading, setTransactionLoading] = useState<boolean>(false);
+  const [priorityFee, setPriorityFee] = useState<number>(0);
   const dispatch = useAppDispatch();
   const { ethPrice } = useAppSelector((state) => state.eth);
   const currentEthPrice = ethPrice[Number(chainId)];
+  const { accumulatedPOL, remainingTokens } = useCurrentTokenPrice(
+    tokenAddress as `0x${string}`
+  );
+
+  const { amountIn, amountInfee } = useAmountInAndFee(
+    tokenAddress as `0x${string}`,
+    parseUnits(tokenAmount.toString(), token?.decimals || 18),
+    parseUnits(accumulatedPOL?.toString() || "0", 18),
+    parseUnits(remainingTokens?.toString() || "0", 18),
+    false
+  );
+  const { amountOut, amountOutFee } = useAmountOutAndFee(
+    tokenAddress as `0x${string}`,
+    parseUnits(tokenAmount.toString(), token?.decimals || 18),
+    parseUnits(accumulatedPOL?.toString() || "0", 18),
+    parseUnits(remainingTokens?.toString() || "0", 18),
+    false
+  );
 
   useEffect(() => {
-    setMinEthAmount(getMinEthAmount(tokenAmount * currentPrice, slippage));
-    setMaxAmountToken(getMaxTokenAmount(value / currentPrice, slippage));
-  }, [tokenAmount, value, slippage, currentPrice]);
+    if (!swapped) {
+      if (amountIn !== 0) {
+        setMinEthAmount(getMinEthAmount(amountIn, slippage));
+        setPriorityFee(amountInfee);
+      }
+    } else {
+      if (amountOut !== 0) {
+        setMaxAmountToken(getMaxTokenAmount(amountOut, slippage));
+        setPriorityFee(amountOutFee);
+      }
+    }
+  }, [slippage, amountIn, amountOut, swapped, amountInfee, amountOutFee]);
 
-  useEffect(() => {
-    setValue(tokenAmount * currentPrice);
-  }, [tokenAmount, currentPrice]);
+  // useEffect(() => {
+  //   if (!swapped) {
+  //     const newValue = tokenAmount * (currentPrice || 0);
+  //     setValue(isFinite(newValue) ? newValue : 0);
+  //   }
+  // }, [tokenAmount, currentPrice, swapped]);
 
   const handleSwap = (swapped: boolean) => () => {
     if (!swapped) {
-      setTokenAmount(value / currentPrice);
+      const newTokenAmount = currentPrice ? value / currentPrice : 0;
+      setTokenAmount(isFinite(newTokenAmount) ? newTokenAmount : 0);
     } else {
-      setValue(tokenAmount * currentPrice);
+      const newValue = tokenAmount * (currentPrice || 0);
+      setValue(isFinite(newValue) ? newValue : 0);
     }
     setSwapped(swapped);
   };
@@ -78,16 +111,13 @@ const SellTab: React.FC<{
         toast.error("Missing required infomation");
         return;
       } else {
-        const expectedPrice = tokenAmount * currentPrice;
-        const minEthAmount = getMinEthAmount(expectedPrice, slippage);
-        setMinEthAmount(minEthAmount * (1 - fee / 100));
         try {
           const txHash = await sellGivenIn(
-            parseUnits(tokenAmount.toString(), token?.decimals || 18),
             parseUnits(
-              (minEthAmount * (1 - fee / 100)).toString(),
+              (maxAmountToken).toString(),
               token?.decimals || 18
-            )
+            ),
+            parseUnits((minEthAmount + amountInfee).toString(), token?.decimals || 18)
           );
           toast.success("Token sold successfully!");
           dispatch(
@@ -115,13 +145,10 @@ const SellTab: React.FC<{
         toast.error("Missing required infomation");
         return;
       } else {
-        const expectedTokenAmount = (value * (1 + fee / 100)) / currentPrice;
-        const maxAmountToken = getMaxTokenAmount(expectedTokenAmount, slippage);
-        setMaxAmountToken(maxAmountToken);
         try {
           const txHash = await sellGivenOut(
-            parseUnits(maxAmountToken.toString(), 18),
-            parseUnits((value * (1 + fee / 100)).toString(), 18)
+            parseUnits((maxAmountToken - amountOutFee).toString(), 18),
+            parseUnits((value).toString(), 18)
           );
           toast.success("Token sold successfully!");
           dispatch(
@@ -131,7 +158,7 @@ const SellTab: React.FC<{
               tokenAddress: tokenAddress as `0x${string}`,
               token: maxAmountToken,
               eth: value,
-              usd: expectedTokenAmount * currentPrice * currentEthPrice,
+              usd: maxAmountToken * currentPrice * currentEthPrice,
               price: currentPrice * currentEthPrice,
               maker: address as `0x${string}`,
               chainId: Number(chainId),
@@ -325,7 +352,7 @@ const SellTab: React.FC<{
             </>
           )}
         </Button>
-        <Button
+        {/* <Button
           placeholder={undefined}
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
@@ -333,7 +360,7 @@ const SellTab: React.FC<{
           onClick={openFeeDialog}
         >
           <IconAdjustmentsHorizontal size={16} />
-        </Button>
+        </Button> */}
       </div>
       {!isEmpty(errorMessage) ? (
         <span className="text-red-500 text-center">{errorMessage}</span>
@@ -363,7 +390,7 @@ const SellTab: React.FC<{
           </InfoText>
           <div className="flex gap-1 items-center justify-center">
             <span className="text-[11px] text-textDark">
-              Priority fee: {fee}%
+              Priority fee: {(priorityFee).toFixed(4)} {!swapped ? getUnit(Number(chainId)) : token.symbol}
             </span>
             <IconShieldHalfFilled size={16} color="grey" />
           </div>

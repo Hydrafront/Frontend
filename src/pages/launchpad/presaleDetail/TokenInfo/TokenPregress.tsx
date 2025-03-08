@@ -7,7 +7,7 @@ const TokenPregress: React.FC<{ value: number }> = ({ value }) => {
     <BorderBox>
       <p>
         <InfoText>Progress: </InfoText>
-        <span className="text-green-400">68.6%</span>
+        <span className="text-green-400">{value}%</span>
       </p>
       <TokenProgressbar value={value} />
     </BorderBox>

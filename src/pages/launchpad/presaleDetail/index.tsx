@@ -11,11 +11,10 @@ import { getTokenByAddress, getTransactionsByTokenAddress } from "@/store/action
 import TradingWedget from "@/components/ui/TradingWedget";
 import Spin2 from "@/components/spins/spin2/Spin2";
 import { isEmpty } from "@/utils/validation";
-import EthPriceProvider from "@/components/ui/ethPriceProvider";
 
 const PresaleDetail: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { type, tokenAddress, chainId } = useParams();
+  const { type, tokenAddress } = useParams();
 
   
   
@@ -33,7 +32,7 @@ const PresaleDetail: React.FC = () => {
     );
   }
   return (
-    <EthPriceProvider chainId={Number(chainId)}>
+    <>
       {/* <div className="flex 2xl:h-[calc(100vh-85px)] xl:h-[calc(100vh-83px)] sm:h-[calc(100vh-80px)] h-[calc(100vh-63px)] justify-between"> */}
       <div className="flex justify-between h-full">
         <div className="w-full h-full flex flex-col overflow-hidden border-borderColor border-r">
@@ -58,7 +57,7 @@ const PresaleDetail: React.FC = () => {
         </div>
         <InfoDrawer />
       </div>
-    </EthPriceProvider>
+    </>
   );
 };
 export default PresaleDetail;

@@ -7,7 +7,7 @@ import IconInput from "@/components/common/IconInput";
 import IconText from "@/components/common/IconText";
 import CustomDialogHeader from "@/components/common/CustomDialogHeader";
 
-const HeaderMCPepe = () => {
+const HeaderToken = ({ name }: { name: string }) => {
   const dispatch = useAppDispatch();
 
   const handleClick = () => {
@@ -16,7 +16,7 @@ const HeaderMCPepe = () => {
         children: (
           <>
             <CustomDialogHeader>
-              <h6 className="mb-0 flex-1">Filter Amount MCPEPE</h6>
+              <h6 className="mb-0 flex-1">Filter Amount {name}</h6>
             </CustomDialogHeader>
             <DialogBody
               placeholder={undefined}
@@ -28,13 +28,13 @@ const HeaderMCPepe = () => {
                 <IconInput
                   type="number"
                   placeholder="Min"
-                  icon={<span>MCPEPE</span>}
+                  icon={<span>{name}</span>}
                   side="right"
                 />
                 <IconInput
                   type="number"
                   placeholder="Max"
-                  icon={<span>MCPEPE</span>}
+                  icon={<span>{name}</span>}
                   side="right"
                 />
               </div>
@@ -75,7 +75,7 @@ const HeaderMCPepe = () => {
   return (
     <div>
       <FilterHeader
-        title="MCPEPE"
+        title={name}
         className="min-w-32 cursor-pointer justify-end"
         onClick={handleClick}
       />
@@ -83,4 +83,4 @@ const HeaderMCPepe = () => {
   );
 };
 
-export default HeaderMCPepe;
+export default HeaderToken;

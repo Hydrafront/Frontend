@@ -6,17 +6,20 @@ import IconText from "@/components/common/IconText";
 import BoltIcon from "@/components/icons/BoltIcon";
 import { useNavigate } from "react-router";
 import Pagination from "@/components/common/Pagination";
+import { useAppSelector } from "@/store/hooks";
+import { getChainLogo, getUnit } from "@/utils/config/chainDexConfig";
+import FormatPrice from "@/components/ui/FormatPrice";
+import TimeAgo from "@/components/ui/TimeAgo";
+type AlignType = "left" | "center" | "right";
 
-type AlignType = 'left' | 'center' | 'right';
-
-interface TransactionType {
+interface TableType {
   token: React.ReactElement;
   progress: React.ReactElement;
   mcap: React.ReactElement;
   age: React.ReactElement;
   txns: React.ReactElement;
   volume: React.ReactElement;
-  makers: React.ReactElement;
+  makerCount: React.ReactElement;
   _5M: React.ReactElement;
   _1H: React.ReactElement;
   _6H: React.ReactElement;
@@ -24,50 +27,120 @@ interface TransactionType {
 }
 
 const NFTTable = () => {
-  const data: TransactionType[] = [
-    {
+  const { tokens } = useAppSelector((state) => state.token);
+
+  const data: TableType[] = tokens.map((item, index) => {
+    return {
       token: (
         <div className="py-2 px-3 flex items-center min-w-[160px] md:min-w-[350px] border-l border-r border-borderColor bg-lightColor token-first-item">
           <span className="text-textDark mr-3 text-tedar hidden md:block">
-            #1
+            #{index + 1}
           </span>
           <div>
             <img
-              src="/assets/images/chains/Polygon.png"
+              src={getChainLogo(item.chainId)}
               alt="chain-logo"
               className="w-[20px]"
             />
           </div>
           <div>
             <img
-              src="/assets/images/avatars/dog.jpg"
+              src={item.logo}
               alt="token-avatar"
               className="w-9 h-8 ml-2 rounded-md"
             />
           </div>
-          <span className="text-white ml-2">FUC</span>
-          <span className="text-textDark text-[12px]">/POL</span>
-          <span className="tex-sm text-white ml-2 whitespace-nowrap hidden md:block">
-            Fluffy Unicom Co
+          <span className="text-white ml-2">{item.symbol}</span>
+          <span className="text-textDark text-[12px]">
+            /{getUnit(item.chainId)}
           </span>
-          <IconText className="text-orangeColor ml-2 hidden md:flex">
-            <BoltIcon width={12} />
-            <span className="text-orangeColor -ml-2">130</span>
-          </IconText>
+          <span className="tex-sm text-white ml-2 whitespace-nowrap hidden md:block">
+            {item.description}
+          </span>
+          {item.boost > 0 && (
+            <IconText className="text-orangeColor ml-2 hidden md:flex">
+              <BoltIcon width={12} />
+              <span className="text-orangeColor -ml-2">{item.boost}</span>
+            </IconText>
+          )}
         </div>
       ),
-      progress: <span className="text-white">93.23%</span>,
-      mcap: <span className="text-white">$51K</span>,
-      age: <span className="text-white">10h</span>,
-      txns: <span className="text-white">7878</span>,
-      volume: <span className="text-white">$23K</span>,
-      makers: <span className="text-white">217</span>,
-      _5M: <span className="text-greenColor">23%</span>,
-      _1H: <span className="text-greenColor">23%</span>,
-      _6H: <span className="text-greenColor">23%</span>,
-      _24H: <span className="text-greenColor">23%</span>,
-    },
-  ];
+      progress: <span className="text-white">{item.progress}%</span>,
+      mcap: (
+        <span className="text-white">
+          <FormatPrice value={item.marketCap} />
+        </span>
+      ),
+      age: (
+        <span className="text-white">
+          <TimeAgo createdAt={new Date(item.createdAt)} />
+        </span>
+      ),
+      txns: <span className="text-white">{item.transactionCount}</span>,
+      volume: (
+        <span className="text-white">
+          <FormatPrice value={item.volume} />
+        </span>
+      ),
+      makerCount: <span className="text-white">{item.makerCount}</span>,
+      _5M: (
+        <span
+          className={clsx(
+            "text-greenColor",
+            item._5M > 0
+              ? "text-greenColor"
+              : item._5M < 0
+              ? "text-red-400"
+              : "text-white"
+          )}
+        >
+          {item._5M}%
+        </span>
+      ),
+      _1H: (
+        <span
+          className={clsx(
+            "text-greenColor",
+            item._1H > 0
+              ? "text-greenColor"
+              : item._1H < 0
+              ? "text-red-400"
+              : "text-white"
+          )}
+        >
+          {item._1H}%
+        </span>
+      ),
+      _6H: (
+        <span
+          className={clsx(
+            "text-greenColor",
+            item._6H > 0
+              ? "text-greenColor"
+              : item._6H < 0
+              ? "text-red-400"
+              : "text-white"
+          )}
+        >
+          {item._6H}%
+        </span>
+      ),
+      _24H: (
+        <span
+          className={clsx(
+            "text-greenColor",
+            item._24H > 0
+              ? "text-greenColor"
+              : item._24H < 0
+              ? "text-red-400"
+              : "text-white"
+          )}
+        >
+          {item._24H}%
+        </span>
+      ),
+    };
+  });
 
   const columns = [
     {
@@ -108,7 +181,7 @@ const NFTTable = () => {
     },
     {
       title: <SortHeader title="MAKERS" className="justify-end" />,
-      dataIndex: "makers",
+      dataIndex: "makerCount",
       align: "right" as AlignType,
     },
     {
@@ -139,48 +212,43 @@ const NFTTable = () => {
     navigate("/detail/Polygon/sdfsdfsdfsdfsdfsdfsdfdsfdf/presale");
   };
   return (
-    <>
-      <div className="token-table overflow-x-scroll -mx-4">
-        <Table
-          components={{
-            table: (props: React.TableHTMLAttributes<HTMLTableElement>) => (
-              <table {...props} className="w-full h-full" />
+    <div className="mb-10 token-table overflow-x-scroll -mx-4">
+      <Table
+        components={{
+          table: (props: React.TableHTMLAttributes<HTMLTableElement>) => (
+            <table {...props} className="w-full h-full" />
+          ),
+          body: {
+            cell: (props: React.TdHTMLAttributes<HTMLTableCellElement>) => (
+              <td {...props} className="token-td text-sm px-3" />
             ),
-            body: {
-              cell: (props: React.TdHTMLAttributes<HTMLTableCellElement>) => (
-                <td {...props} className="token-td text-sm px-3" />
-              ),
-              row: (props: React.HTMLAttributes<HTMLTableRowElement>) => (
-                <tr
-                  {...props}
-                  className="token-tr bg-lightColor transition cursor-pointer"
-                  onClick={handleClick}
-                />
-              ),
-            },
-            header: {
-              cell: (
-                props: React.ThHTMLAttributes<HTMLTableHeaderCellElement>
-              ) => (
-                <th
-                  {...props}
-                  className="bg-lightestColor text-white min-w-12 py-2"
-                />
-              ),
-              wrapper: (
-                props: React.HTMLAttributes<HTMLTableSectionElement>
-              ) => <thead {...props} className="sticky -top-[1px]" />,
-            },
-          }}
-          columns={columns}
-          data={data}
-          className="fe_c_table"
-        />
-      </div>
-      <div className="w-full my-10 flex justify-center">
-        <Pagination pageCount={5} />
-      </div>
-    </>
+            row: (props: React.HTMLAttributes<HTMLTableRowElement>) => (
+              <tr
+                {...props}
+                className="token-tr bg-lightColor transition cursor-pointer"
+                onClick={handleClick}
+              />
+            ),
+          },
+          header: {
+            cell: (
+              props: React.ThHTMLAttributes<HTMLTableHeaderCellElement>
+            ) => (
+              <th
+                {...props}
+                className="bg-lightestColor text-white min-w-12 py-2"
+              />
+            ),
+            wrapper: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+              <thead {...props} className="sticky -top-[1px]" />
+            ),
+          },
+        }}
+        columns={columns}
+        data={data}
+        className="fe_c_table"
+      />
+    </div>
   );
 };
 

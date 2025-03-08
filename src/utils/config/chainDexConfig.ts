@@ -10,6 +10,7 @@ export const supportedChains = [
     name: "Polygon Amoy",
     unit: "POL",
     id: 80002,
+    logo: "/assets/images/chains/Polygon Amoy.png",
     priceUrl: "wss://stream.binance.com:9443/ws/polusdt@trade",
     rpcUrl: " https://rpc-amoy.polygon.technology/",
     dexes: ["Uniswap"],
@@ -29,3 +30,7 @@ export const getPriceUrl = (chainId: number) => {
   return supportedChains.find((chain) => chain.id === chainId)?.priceUrl;
 };
 
+export const getChainLogo = (chainId: number) => {
+  return supportedChains.find((chain) => chain.id === chainId)?.logo;
+};
+  

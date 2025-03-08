@@ -29,7 +29,7 @@ const InfoDrawer: React.FC = () => {
         <div className="flex justify-start pt-2 pb-1 pl-2">
           <button
             onClick={handleOpen}
-            className="border border-borderColor rounded-md p-1"
+            className="border border-borderColor absolute top-2 right-2 rounded-md p-1"
           >
             <IconX size={20} color="white" />
           </button>

@@ -4,6 +4,7 @@ import { getBytes, solidityPackedKeccak256, toUtf8Bytes, Wallet } from "ethers";
 import { useState } from "react";
 import { useEffect } from "react";
 import { TransactionType } from "@/interfaces/types";
+import queryString from "query-string";
 
 // get Signature when create a new token
 export async function generateSignature(
@@ -73,7 +74,7 @@ export const getCreatedBefore = (createdAt: Date) => {
   const getDuration = (createdAt: Date) => {
     const now = new Date();
     const diff = Math.floor((now.getTime() - createdAt.getTime()) / 1000);
-    
+
     return {
       years: Math.floor(diff / (3600 * 24 * 365)),
       months: Math.floor(diff / (3600 * 24 * 30)),
@@ -118,8 +119,18 @@ export const useTimeAgo = (createdAt: Date) => {
 };
 
 //number format with 1 decimal place
-export const numberFormat = (number: number) => {
-  return (number / 1000).toFixed(1);
+export const numberFormat = (num: number) => {
+  if (num < 1000) return num.toString();
+  const units = ["K", "M", "B", "T"];
+  let unitIndex = 0;
+  let formattedNum = num;
+
+  while (formattedNum >= 1000 && unitIndex < units.length) {
+    formattedNum /= 1000;
+    unitIndex++;
+  }
+
+  return `${formattedNum.toFixed(1)}${units[unitIndex - 1]}`;
 };
 
 //get contract address by chainId
@@ -173,7 +184,10 @@ export const getMaxTokenAmount = (tokenAmount: number, slippage: number) => {
 // };
 
 //aggregate transactions to candles
-export const aggregateTransactionsToCandles = (transactions: TransactionType[], intervalInSeconds = 60) => {
+export const aggregateTransactionsToCandles = (
+  transactions: TransactionType[],
+  intervalInSeconds = 60
+) => {
   const aggregatedData: {
     time: number;
     open: number;
@@ -183,12 +197,14 @@ export const aggregateTransactionsToCandles = (transactions: TransactionType[], 
     volume: number;
   }[] = [];
 
-  transactions.forEach(transaction => {
-    const timestamp = new Date(transaction.createdAt || new Date()).getTime() / 1000;
-    const minuteBucket = Math.floor(timestamp / intervalInSeconds) * intervalInSeconds;
+  transactions.forEach((transaction) => {
+    const timestamp =
+      new Date(transaction.createdAt || new Date()).getTime() / 1000;
+    const minuteBucket =
+      Math.floor(timestamp / intervalInSeconds) * intervalInSeconds;
 
     // Find the candle for the given minuteBucket
-    let candle = aggregatedData.find(item => item.time === minuteBucket);
+    let candle = aggregatedData.find((item) => item.time === minuteBucket);
 
     if (!candle) {
       // If no candle exists for this minute, create a new one
@@ -198,19 +214,38 @@ export const aggregateTransactionsToCandles = (transactions: TransactionType[], 
         high: transaction.price,
         low: transaction.price,
         close: transaction.price,
-        volume: transaction.token // Assuming token as the volume
+        volume: transaction.token, // Assuming token as the volume
       };
       aggregatedData.push(candle);
     } else {
       // Update the existing candle data
       candle.high = Math.max(candle.high, transaction.price);
       candle.low = Math.min(candle.low, transaction.price);
-      candle.close = transaction.price;  // Latest transaction price is the close
+      candle.close = transaction.price; // Latest transaction price is the close
       candle.volume += transaction.token; // Add to the total volume for the minute
     }
   });
 
   return aggregatedData;
-}
+};
 
+export const setUrlSearchParams = (
+  params: Record<string, string | undefined>
+) => {
+  const url = new URL(window.location.href);
+  const searchParams = queryString.parse(url.search);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined) {
+      delete searchParams[key];
+    } else {
+      searchParams[key] = value;
+    }
+  });
+  url.search = queryString.stringify(searchParams);
+  window.history.pushState({}, "", url.toString());
+};
 
+export const getUrlSearchParams = () => {
+  const url = new URL(window.location.href);
+  return queryString.parse(url.search);
+};

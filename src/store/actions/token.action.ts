@@ -1,7 +1,7 @@
 import { PinataSDK } from "pinata-web3";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { setToken, setTokens, setTransactions } from "../reducers/token-slice";
+import { setToken, setTokens, setTransactions, setTokenCount } from "../reducers/token-slice";
 import { ThunkAction } from "redux-thunk";
 import { RootState } from "../store";
 import { AnyAction } from "redux";
@@ -38,6 +38,7 @@ interface TokenInfo {
   creator: `0x${string}`;
   type: string;
   banner: string;
+  progress: number;
   website: string;
   twitter: string;
   telegram: string;
@@ -48,6 +49,7 @@ export const createTokenInfo = async (
   tokenAddress: `0x${string}`,
   info: TokenInfo
 ) => {
+  console.log(info, "info");
   try {
     const res = await axios.post(`${BASE_URL}/create`, {
       tokenAddress,
@@ -60,10 +62,14 @@ export const createTokenInfo = async (
 };
 
 export const fetchTokens =
-  (): ThunkAction<void, RootState, unknown, AnyAction> => async (dispatch) => {
+  (
+    parsed: Record<string, string>
+  ): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async (dispatch) => {
     try {
-      const res = await axios.get(`${BASE_URL}/get-all`);
-      dispatch(setTokens(res.data));
+      const res = await axios.post(`${BASE_URL}/get`, parsed);
+      dispatch(setTokens(res.data.tokens));
+      dispatch(setTokenCount(res.data.tokenCount));
     } catch (error) {
       throw new Error("Failed to fetch tokens");
     }
@@ -85,7 +91,9 @@ export const getTransactionsByTokenAddress =
   (address: `0x${string}`): ThunkAction<void, RootState, unknown, AnyAction> =>
   async (dispatch) => {
     try {
-      const res = await axios.get(`${BASE_URL}/get-transactions-by-address/${address}`);
+      const res = await axios.get(
+        `${BASE_URL}/get-transactions-by-address/${address}`
+      );
       dispatch(setTransactions(res.data));
       return res.data;
     } catch (error) {

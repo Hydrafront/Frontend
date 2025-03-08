@@ -11,12 +11,18 @@ export interface TokenType {
   twitter: string;
   telegram: string;
   discord: string;
-  transaction: number;
+  transactionCount: number;
   marketCap: number;
   volume: number;
+  makerCount: number;
   price: number;
   progress: number;
+  _5M: number;
+  _1H: number;
+  _6H: number;
+  _24H: number;
   boost: number;
+  creator: string;
   createdAt: string;
   decimals: number;
 }
@@ -40,3 +46,4 @@ export interface Candle {
   low: number;
   close: number;
 }
+

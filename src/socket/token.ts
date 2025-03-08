@@ -23,9 +23,18 @@ export const createTokenListener = (func: (token: TokenType) => void) => {
   });
 };
 
-export const saveTransactionListener = (func: (transaction: TransactionType) => void) => {
+export const saveTransactionListener = (
+  func: (transaction: TransactionType) => void
+) => {
   socket.on("save-transaction", (transaction: TransactionType) => {
-    console.log("save-transaction", transaction);
     func(transaction);
+  });
+};
+
+export const updateTokenInfoListener = (
+  func: (tokenInfo: TokenType) => void
+) => {
+  socket.on("update-token-info", (tokenInfo) => {
+    func(tokenInfo);
   });
 };

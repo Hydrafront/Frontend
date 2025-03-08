@@ -1,4 +1,3 @@
-import Pagination from "@/components/common/Pagination";
 import NFTCard from "./NFTCard";
 import { TokenType } from "@/interfaces/types";
 import { AnimationOnScroll } from "react-animation-on-scroll";
@@ -15,7 +14,7 @@ const NFTList: React.FC<PropsType> = ({ isLoading, error }) => {
   const { tokens } = useAppSelector((state) => state.token);
 
   return (
-    <div className="pb-10 -mx-2">
+    <div className="mb-10 -mx-2">
       <div className="flex flex-wrap mb-6">
         {isLoading && (
           <div className="w-full flex justify-center h-[300px] items-center">
@@ -42,11 +41,7 @@ const NFTList: React.FC<PropsType> = ({ isLoading, error }) => {
             </div>
           ))}
       </div>
-      {tokens.length > 0 && (
-        <div className="w-full flex justify-center">
-          <Pagination pageCount={5} />
-        </div>
-      )}
+      
     </div>
   );
 };

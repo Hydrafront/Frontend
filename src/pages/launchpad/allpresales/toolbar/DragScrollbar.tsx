@@ -4,7 +4,11 @@ import AdIcon from "@/components/icons/AdIcon";
 import BoltIcon from "@/components/icons/BoltIcon";
 import LeafIcon from "@/components/icons/LeafIcon";
 import ScrollOnDrag from "@/components/ui/ScrollOnDrag";
-import { List, ListItem } from "@material-tailwind/react";
+import { useAppDispatch } from "@/store/hooks";
+import { setFilters } from "@/store/reducers/token-slice";
+import { supportedChains } from "@/utils/config/chainDexConfig";
+import { getUrlSearchParams, setUrlSearchParams } from "@/utils/func";
+import { List, ListItem, useAccordion } from "@material-tailwind/react";
 import {
   IconChartBar,
   IconCheck,
@@ -17,25 +21,43 @@ import clsx from "clsx";
 import React, { useState } from "react";
 
 const DragScrollbar: React.FC = () => {
-  const [chain, setChain] = useState<string>("all");
+  const dispatch = useAppDispatch();
   const [sort, setSort] = useState<string>("Trending");
   const [subSort, setSubsort] = useState<string>("");
+  const [boosted, setBoosted] = useState<boolean>(false);
+  const [ads, setAds] = useState<boolean>(false);
+  const { chainId } = getUrlSearchParams();
 
-  const handleChangeChain = (value: string) => () => {
-    setChain(value);
+  const handleChangeChain = (chainId: string | undefined) => () => {
+    dispatch(setFilters({ chainId: chainId || undefined }));
+    setUrlSearchParams({ chainId: chainId || undefined });
+    // setChainId(chainId);
   };
 
   const handleChangeSort = (value: string) => () => {
     setSort(value);
-    if (value === "Top") setSubsort("progress");
-    if (value === "Rising") setSubsort("5M");
-    if (value === "Finalized") setSubsort("trending");
+    if (value === "Top") {
+      setSubsort("progress");
+      dispatch(setFilters({ sort: "progress" }));
+      setUrlSearchParams({ sort: "progress" });
+    } else if (value === "Rising") {
+      setSubsort("_5M");
+      dispatch(setFilters({ sort: "_5M" }));
+      setUrlSearchParams({ sort: "_5M" });
+    } else if (value === "Trending") {
+      dispatch(setFilters({ sort: "trending" }));
+      setUrlSearchParams({ sort: "trending" });
+    } else if (value === "New") {
+      dispatch(setFilters({ sort: "createdAt" }));
+      setUrlSearchParams({ sort: "createdAt" });
+    }
   };
 
   const handleChangeSubSort = (value: string) => {
     setSubsort(value);
+    dispatch(setFilters({ sort: value }));
+    setUrlSearchParams({ sort: value });
   };
-
   const SortButton = ({
     name,
     icon,
@@ -94,12 +116,31 @@ const DragScrollbar: React.FC = () => {
     options,
   }) => {
     const dividerOption = ["Any", "≤3d"];
+    const [selected, setSelected] = useState<string | undefined>(undefined);
+
+    const handleClick = (value: string) => () => {
+      const key = () => {
+        if (name === "DEX") {
+          return "dex";
+        } else if (name === "Age") {
+          return "age";
+        } else if (name === "Min progress") {
+          return "minProgress";
+        } else if (name === "Max progress") {
+          return "maxProgress";
+        }
+        return name.toLowerCase();
+      };
+      setSelected(value);
+      dispatch(setFilters({ [key()]: value === "Any" ? undefined : value }));
+      setUrlSearchParams({ [key()]: value === "Any" ? undefined : value });
+    };
     return (
       <CustomPopover
         trigger={
           <button className="border-borderColor border rounded-md px-3 flex gap-2 items-center whitespace-nowrap">
             <IconFilterFilled size={16} />
-            {name}
+            {name} {selected && selected !== "Any" ? `(${selected})` : ""}
           </button>
         }
       >
@@ -116,6 +157,8 @@ const DragScrollbar: React.FC = () => {
                 onPointerEnterCapture={undefined}
                 onPointerLeaveCapture={undefined}
                 className="text-[14px] px-6 rounded-none py-1 whitespace-nowrap"
+                onClick={handleClick(item)}
+                selected={selected === item}
               >
                 {item}
               </ListItem>
@@ -129,27 +172,42 @@ const DragScrollbar: React.FC = () => {
     );
   };
 
+  const handleBoosted = () => {
+    setBoosted(!boosted);
+    dispatch(setFilters({ boosted: boosted ? undefined : "true" }));
+    setUrlSearchParams({ boosted: boosted ? undefined : "true" });
+  };
+
+  const handleAds = () => {
+    setAds(!ads);
+    dispatch(setFilters({ ads: ads ? undefined : "true" }));
+    setUrlSearchParams({ ads: ads ? undefined : "true" });
+  };
+
   return (
     <ScrollOnDrag className="flex pb-4 pt-1 cursor-move">
       <div className="flex p-[1px] bg-lighterColor rounded-md">
         <div
           className={clsx(
             "rounded-l-lg cursor-pointer whitespace-nowrap px-3 text-sm py-2 bg-bgColor hover:bg-lighterColor",
-            chain === "all" && "bg-lighterColor"
+            chainId === undefined && "bg-lighterColor"
           )}
-          onClick={handleChangeChain("all")}
+          onClick={handleChangeChain(undefined)}
         >
           All chains
         </div>
-        <div
-          className={clsx(
-            "cursor-pointer px-3 py-2 bg-bgColor whitespace-nowrap text-sm hover:bg-lighterColor",
-            chain === "polygon" && "bg-lighterColor"
-          )}
-          onClick={handleChangeChain("polygon")}
-        >
-          Polygon
-        </div>
+        {supportedChains.map((chain) => (
+          <div
+            key={chain.id}
+            className={clsx(
+              "cursor-pointer px-3 py-2 bg-bgColor whitespace-nowrap text-sm hover:bg-lighterColor",
+              chainId === chain.id.toString() && "bg-lighterColor"
+            )}
+            onClick={handleChangeChain(chain.id.toString())}
+          >
+            {chain.name}
+          </div>
+        ))}
         {/* <div
           className={clsx(
             "rounded-r-lg cursor-pointer whitespace-nowrap px-3 py-2 text-sm bg-bgColor hover:bg-lighterColor",
@@ -180,10 +238,10 @@ const DragScrollbar: React.FC = () => {
             <IconTrendingUp color={sort === "Rising" ? "black" : "white"} />
           ),
           options: [
-            { label: "5M", value: "5M" },
-            { label: "1H", value: "1H" },
-            { label: "6H", value: "6H" },
-            { label: "24H", value: "24H" },
+            { label: "5M", value: "_5M" },
+            { label: "1H", value: "_1H" },
+            { label: "6H", value: "_6H" },
+            { label: "24H", value: "_24H" },
           ],
         })}
         {SortButton({
@@ -234,15 +292,35 @@ const DragScrollbar: React.FC = () => {
           options={["Any", "10%", "25%", "50%", "75%", "90%"]}
         />
         <div className="flex">
-          <CustomButton className="rounded-r-none">
+          <CustomButton
+            className={clsx("rounded-r-none", boosted && "bg-lightColor")}
+            onClick={handleBoosted}
+          >
             <BoltIcon />
-            <span className="text-white -ml-2 hidden md:block">Boosted</span>
-            <IconCheck size={16} />
+            <span
+              className={clsx(
+                "-ml-2 hidden md:block",
+                boosted ? "text-orangeColor" : "text-white"
+              )}
+            >
+              Boosted
+            </span>
+            <IconCheck size={16} color={boosted ? "orange" : "white"} />
           </CustomButton>
-          <CustomButton className="rounded-l-none">
+          <CustomButton
+            className={clsx("rounded-l-none", ads && "bg-lightColor")}
+            onClick={handleAds}
+          >
             <AdIcon fill="#00D26C" />
-            <span className="text-white hidden md:block">Ads</span>
-            <IconCheck size={16} />
+            <span
+              className={clsx(
+                "hidden md:block",
+                ads ? "text-greenColor" : "text-white"
+              )}
+            >
+              Ads
+            </span>
+            <IconCheck size={16} color={ads ? "green" : "white"} />
           </CustomButton>
         </div>
       </div>

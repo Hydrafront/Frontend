@@ -1,5 +1,6 @@
 import BoltIcon from "@/components/icons/BoltIcon";
 import LeafIcon from "@/components/icons/LeafIcon";
+import TimeAgo from "@/components/ui/TimeAgo";
 import { useAppSelector } from "@/store/hooks";
 import { getUnit } from "@/utils/config/chainDexConfig";
 import { getCreatedBefore } from "@/utils/func";
@@ -54,7 +55,7 @@ const TokenHeader = ({
         <div className="flex items-center">
           <LeafIcon width={16} />
           <span className="text-[13px] text-green-600">
-            {getCreatedBefore(new Date(createdAt))}
+            <TimeAgo createdAt={new Date(createdAt || "")} />
           </span>
         </div>
         <div className="flex items-center">

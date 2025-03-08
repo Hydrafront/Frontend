@@ -29,10 +29,13 @@ import { generateSignature } from "@/utils/func";
 import { isEmpty } from "@/utils/validation";
 import { getContractAddress } from "@/utils/func";
 import { useChainId } from "wagmi";
-import { useCreatePresaleToken } from "@/utils/contractUtils";
+import { useCreatePresaleToken, useProgressBPS } from "@/utils/contractUtils";
 import Spin2 from "@/components/spins/spin2/Spin2";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { createTokenEmit } from "@/socket/token";
+import { useAppSelector } from "@/store/hooks";
+import { useCurrentTokenPrice } from "@/utils/contractUtils";
+import { useMarketCap } from "@/utils/contractUtils";
 
 const MAX_FILE_SIZE = 1024 * 1024; // 1MB
 
@@ -59,16 +62,26 @@ const TokenForm: React.FC = () => {
     isLoading: isContractLoading,
     UserRejectedRequestError,
   } = useCreatePresaleToken();
+  const { ethPrice } = useAppSelector((state) => state.eth);
   const { isConnected, address } = useAccount();
   const [selectedChain, setSelectedChain] = useState<Chain>(chains[0]);
   const [selectedDex, setSelectedDex] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [creationStep, setCreationStep] = useState<
-    "idle" | "uploading" | "creating" | "completed" | "error"
+  "idle" | "uploading" | "creating" | "completed" | "error"
   >("idle");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const contractAddress = getContractAddress(selectedChain.id);
+  const { currentPrice } = useCurrentTokenPrice(
+    contractAddress as `0x${string}`
+  );
+  const { currentMarketCap } = useMarketCap(
+    contractAddress as `0x${string}`
+  );
+  const { progressBPS } = useProgressBPS(
+    contractAddress as `0x${string}`
+  );
 
   useEffect(() => {
     setSelectedDex(getDex(chains[0].id)?.[0]);
@@ -170,9 +183,8 @@ const TokenForm: React.FC = () => {
       console.log("token created on blockchain", tokenAddress);
 
       if (tokenAddress && form.logo && form.banner) {
+        
         const { token } = await createTokenInfo(tokenAddress as `0x${string}`, {
-          price: 0,
-          marketCap: 1000,
           type: "presale",
           creator: address as `0x${string}`,
           description: form.description,
@@ -180,7 +192,10 @@ const TokenForm: React.FC = () => {
           chainId: selectedChain.id,
           name: form.name,
           symbol: form.symbol,
+          progress: progressBPS,
           logo: form.logo as string,
+          price: currentPrice * Number(ethPrice[Number(chainId)]),
+          marketCap: currentMarketCap as number,
           banner: form.banner as string,
           website: form.website,
           twitter: form.twitter,

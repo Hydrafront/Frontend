@@ -23,7 +23,7 @@ const CustomPopover: React.FC<Props> = ({ trigger, children, ...props }) => {
     >
       <PopoverHandler>{trigger}</PopoverHandler>
       <PopoverContent 
-        className="p-1 bg-lightColor rounded-md border-borderColor min-w-[150px] flex z-[9999] max-h-[300px] overflow-y-scroll"
+        className="p-1 bg-lightColor rounded-md border-borderColor min-w-[150px] flex z-[9999] overflow-y-scroll"
         placeholder={undefined}
         onPointerEnterCapture={undefined}
         onPointerLeaveCapture={undefined}

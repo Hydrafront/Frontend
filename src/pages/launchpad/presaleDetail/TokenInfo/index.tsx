@@ -12,14 +12,15 @@ import TokenWarningText from "./TokenWarningText";
 import TokenBoost from "./TokenBoost";
 import TokenCommonInfo from "./TokenCommonInfo";
 import TokenSwap from "./TokenSwap";
-import { useAppSelector } from "@/store/hooks";
-import { useCurrentTokenPrice } from "@/utils/contractUtils";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useCurrentTokenPrice, useProgressBPS } from "@/utils/contractUtils";
 import { useParams } from "react-router";
 import { useMarketCap } from "@/utils/contractUtils";
-import { formatUnits } from "ethers";
 import FormatPrice from "@/components/ui/FormatPrice";
 import { useWatchContractEvent } from "wagmi";
 import { tokenAbi } from "@/utils/abi/tokenAbi";
+import socket from "@/socket/token";
+import { setToken } from "@/store/reducers/token-slice";
 
 interface Props {
   type?: string | undefined;
@@ -35,6 +36,10 @@ const TokenInfo: React.FC<Props> = () => {
   );
   const { token } = useAppSelector((state) => state.token);
   const { ethPrice } = useAppSelector((state) => state.eth);
+  const { progressBPS, refetchProgressBPS } = useProgressBPS(
+    tokenAddress as `0x${string}`
+  );
+  const dispatch = useAppDispatch();
 
   useWatchContractEvent({
     address: tokenAddress as `0x${string}`,
@@ -44,6 +49,20 @@ const TokenInfo: React.FC<Props> = () => {
       console.log(logs, "-------------------------------");
       refetchCurrentPrice();
       refetchCurrentMarketCap();
+      refetchProgressBPS();
+      dispatch(
+        setToken({
+          progress: progressBPS,
+          price: (currentPrice as number) * ethPrice[Number(chainId)],
+          marketCap: (currentMarketCap as number) * ethPrice[Number(chainId)],
+        })
+      );
+      socket.emit("update-token-info", {
+        tokenAddress: tokenAddress as `0x${string}`,
+        progress: progressBPS,
+        price: (currentPrice as number) * ethPrice[Number(chainId)],
+        marketCap: (currentMarketCap as number) * ethPrice[Number(chainId)],
+      });
     },
   });
   if (!token) return null;
@@ -80,10 +99,8 @@ const TokenInfo: React.FC<Props> = () => {
           <BorderBox className="flex flex-col w-1/2">
             <InfoText className="text-center">MARKET CAP</InfoText>
             <div className="text-center">
-              <FormatPrice
-                value={parseFloat(
-                  formatUnits((currentMarketCap as bigint) || 0, 18)
-                )}
+              <FormatPrice 
+                value={currentMarketCap * ethPrice[Number(chainId)]}
                 doller={true}
               />
             </div>

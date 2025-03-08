@@ -6,6 +6,8 @@ interface TokenState {
   token: TokenType | undefined;
   isTransacting: boolean;
   transactions: TransactionType[];
+  filters: Record<string, string>;
+  tokenCount: number;
 }
 
 const initialState: TokenState = {
@@ -13,6 +15,8 @@ const initialState: TokenState = {
   token: undefined,
   isTransacting: false,
   transactions: [],
+  filters: {},
+  tokenCount: 0,
 };
 
 const TokenSlice = createSlice({
@@ -46,9 +50,32 @@ const TokenSlice = createSlice({
         state.transactions.push(action.payload);
       }
     },
+    updateTokenList: (state, action) => {
+      state.tokens = state.tokens.filter((token) => {
+        if (token.tokenAddress === action.payload.tokenAddress) {
+          return { ...token, ...action.payload };
+        }
+        return token;
+      });
+    },
+    setFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    setTokenCount: (state, action) => {
+      state.tokenCount = action.payload;
+    },
   },
 });
 
-export const { setToken, setTokens, addToken, setTransactions, addTransaction } = TokenSlice.actions;
+export const {
+  setToken,
+  setTokens,
+  addToken,
+  setTransactions,
+  addTransaction,
+  updateTokenList,
+  setFilters,
+  setTokenCount,
+} = TokenSlice.actions;
 
 export default TokenSlice.reducer;

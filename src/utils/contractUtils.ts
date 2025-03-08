@@ -152,12 +152,10 @@ export const useBuyToken = (tokenAddress: `0x${string}`) => {
   const { address } = useAccount();
 
   const buyGivenIn = async (minTokenAmount: bigint, amountPrice: bigint) => {
-    console.log(minTokenAmount, amountPrice);
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
     try {
-      console.log(tokenAddress, minTokenAmount, amountPrice, "buyGivenIn");
       const txHash = await writeContractAsync({
         address: getContractAddress(chainId),
         abi: factoryAbi,
@@ -353,9 +351,12 @@ export function useMarketCap(tokenAddress: `0x${string}`) {
     functionName: "getMarketCapMax",
   });
   return {
-    currentMarketCap: currentMarketCap || 0,
-    minMarketCap,
-    maxMarketCap,
+    currentMarketCap:
+      Number(formatUnits((currentMarketCap as bigint) || BigInt(0), 18)) || 0,
+    minMarketCap:
+      Number(formatUnits((minMarketCap as bigint) || BigInt(0), 18)) || 0,
+    maxMarketCap:
+      Number(formatUnits((maxMarketCap as bigint) || BigInt(0), 18)) || 0,
     refetchCurrentMarketCap,
   };
 }
@@ -367,4 +368,59 @@ export const useFeeBPS = (tokenAddress: `0x${string}`) => {
     functionName: "getFeeBPS",
   });
   return { fee: Number(formatUnits((feeBPS as bigint) || BigInt(0), 2)) };
+};
+
+export const useProgressBPS = (tokenAddress: `0x${string}`) => {
+  const { data: progressBPS, refetch: refetchProgressBPS } = useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "getProgressBPS",
+  });
+  return {
+    progressBPS: Number(formatUnits((progressBPS as bigint) || BigInt(0), 2)),
+    refetchProgressBPS,
+  };
+};
+
+export const useAmountOutAndFee = (
+  tokenAddress: `0x${string}`,
+  amountIn: bigint,
+  remainingIn: bigint,
+  remainingOut: bigint,
+  inIsPOL: boolean,
+) => {
+  const { data, refetch: refetchAmountOut } = useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "getAmountOutAndFee",
+    args: [amountIn, remainingIn, remainingOut, inIsPOL,
+    ],
+  }) as { data: [bigint, bigint] | undefined; refetch: () => void };
+  return {
+    amountOutFee: Number(formatUnits(data?.[1] || BigInt(0), 18)),
+    amountOut: Number(formatUnits(data?.[0] || BigInt(0), 18)),
+    refetchAmountOut,
+  };
+};
+
+export const useAmountInAndFee = (
+  tokenAddress: `0x${string}`,
+  amountOut: bigint,
+  remainingIn: bigint,
+  remainingOut: bigint,
+  inIsPOL: boolean,
+) => {
+  const { data, refetch: refetchAmountIn } = useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "getAmountInAndFee",
+    args: [amountOut, remainingIn, remainingOut, inIsPOL,
+    ],
+  }) as { data: [bigint, bigint] | undefined; refetch: () => void };
+
+  return {
+    amountInfee: Number(formatUnits(data?.[1] || BigInt(0), 18)),
+    amountIn: Number(formatUnits(data?.[0] || BigInt(0), 18)),
+    refetchAmountIn,
+  };
 };

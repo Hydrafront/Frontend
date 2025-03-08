@@ -16,7 +16,7 @@ export default function Footer() {
   const dispatch = useAppDispatch();
 
   return (
-    <div className="bg-bgColor relative z-[99]">
+    <div className="bg-bgColor relative">
       <div className="w-full lg:w-[93.2vw] mx-auto h-[1.2vw] border-t border-borderColor relative">
         <div className="w-[1px] h-[1.69705vw] bg-borderColor absolute -top-[0.24853vw] -left-[0.6vw] rotate-45 lg-max:hidden" />
         <div className="w-[1px] h-[1.69705vw] bg-borderColor absolute -top-[0.24853vw] -right-[0.6vw] -rotate-45 lg-max:hidden" />
