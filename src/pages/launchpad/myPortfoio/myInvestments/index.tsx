@@ -8,7 +8,7 @@ const MyInvestments: React.FC = () => {
   return (
     <div className="py-5">
       <Steps step={step} setStep={setStep} />
-      <InvestmentList step={step} />
+      <InvestmentList />
     </div>
   )
 }

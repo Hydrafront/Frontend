@@ -2,7 +2,7 @@ import BorderBox from "@/components/common/BorderBox";
 import InfoText from "@/components/common/InfoText";
 import TokenProgressbar from "@/components/common/TokenProgressbar";
 
-const TokenPregress: React.FC<{ value: number }> = ({ value }) => {
+const TokenPregress: React.FC<{ value?: number }> = ({ value = 0 }) => {
   return (
     <BorderBox>
       <p>

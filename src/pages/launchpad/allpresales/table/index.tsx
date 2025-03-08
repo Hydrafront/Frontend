@@ -56,7 +56,7 @@ const NFTTable = () => {
           <span className="tex-sm text-white ml-2 whitespace-nowrap hidden md:block">
             {item.description}
           </span>
-          {item.boost > 0 && (
+          {(item.boost ?? 0) > 0 && (
             <IconText className="text-orangeColor ml-2 hidden md:flex">
               <BoltIcon width={12} />
               <span className="text-orangeColor -ml-2">{item.boost}</span>
@@ -86,10 +86,10 @@ const NFTTable = () => {
         <span
           className={clsx(
             "text-greenColor",
-            item._5M > 0
-              ? "text-greenColor"
-              : item._5M < 0
-              ? "text-red-400"
+            (item._5M ?? 0) > 0
+              ? "text-green-500"
+              : (item._5M ?? 0) < 0
+              ? "text-red-500"
               : "text-white"
           )}
         >
@@ -100,10 +100,10 @@ const NFTTable = () => {
         <span
           className={clsx(
             "text-greenColor",
-            item._1H > 0
-              ? "text-greenColor"
-              : item._1H < 0
-              ? "text-red-400"
+            (item._1H ?? 0) > 0
+              ? "text-green-500"
+              : (item._1H ?? 0) < 0
+              ? "text-red-500"
               : "text-white"
           )}
         >
@@ -114,10 +114,10 @@ const NFTTable = () => {
         <span
           className={clsx(
             "text-greenColor",
-            item._6H > 0
-              ? "text-greenColor"
-              : item._6H < 0
-              ? "text-red-400"
+            (item._6H ?? 0) > 0
+              ? "text-green-500"
+              : (item._6H ?? 0) < 0
+              ? "text-red-500"
               : "text-white"
           )}
         >
@@ -128,10 +128,10 @@ const NFTTable = () => {
         <span
           className={clsx(
             "text-greenColor",
-            item._24H > 0
-              ? "text-greenColor"
-              : item._24H < 0
-              ? "text-red-400"
+            (item._24H ?? 0) > 0
+              ? "text-green-500"
+              : (item._24H ?? 0) < 0
+              ? "text-red-500"
               : "text-white"
           )}
         >

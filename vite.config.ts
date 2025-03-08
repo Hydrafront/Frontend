@@ -17,6 +17,14 @@ export default defineConfig(({ mode }) => {
     define: {
       'import.meta.env.VITE_WS_TOKEN': JSON.stringify(env.VITE_WS_TOKEN || "")
     },
-    envPrefix: 'VITE_'
+    envPrefix: 'VITE_',
+    build: {
+      rollupOptions: {
+        onwarn(warning, warn) {
+          if (warning.code === 'PURE_COMMENT_HAS_INVALID_ANNOTATION') return;
+          warn(warning);
+        }
+      }
+    }
   };
 });

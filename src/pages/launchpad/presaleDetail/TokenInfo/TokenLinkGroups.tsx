@@ -10,17 +10,18 @@ import {
 } from "@tabler/icons-react";
 
 interface TokenLinkGroupsProps {
-  website: string;
-  twitter: string;
-  telegram: string;
-  discord: string;
+  website?: string;
+  twitter?: string;
+  telegram?: string;
+  discord?: string;
 }
-const TokenLinkGroups = ({
-  website,
-  twitter,
-  telegram,
-  discord,
-}: TokenLinkGroupsProps) => {
+
+const TokenLinkGroups: React.FC<TokenLinkGroupsProps> = ({
+  website = "",
+  twitter = "",
+  telegram = "",
+  discord = ""
+}) => {
   const linkArr = [];
   if (website)
     linkArr.push({

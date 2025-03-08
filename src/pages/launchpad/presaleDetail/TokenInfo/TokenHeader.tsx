@@ -3,7 +3,6 @@ import LeafIcon from "@/components/icons/LeafIcon";
 import TimeAgo from "@/components/ui/TimeAgo";
 import { useAppSelector } from "@/store/hooks";
 import { getUnit } from "@/utils/config/chainDexConfig";
-import { getCreatedBefore } from "@/utils/func";
 import { IconFlame, IconLayersSubtract } from "@tabler/icons-react";
 import copy from "copy-to-clipboard";
 import { useParams } from "react-router-dom";
@@ -13,18 +12,18 @@ const TokenHeader = ({
   // name,
   symbol,
   createdAt,
-  boost,
+  boost = 0,
   logo,
-  banner,
-  tokenAddress,
+  banner = "",
+  tokenAddress = "",
 }: {
   name: string;
   symbol: string;
   createdAt: string;
-  boost: number;
+  boost?: number;
   logo: string;
-  banner: string;
-  tokenAddress: string;
+  banner?: string;
+  tokenAddress?: string;
 }) => {
   const { ethPrice } = useAppSelector((state) => state.eth);
   const { chainId } = useParams();

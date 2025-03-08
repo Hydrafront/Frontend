@@ -9,12 +9,11 @@ const chains = supportedChains.map((chain) => ({
   priceUrl: getPriceUrl(chain.id),
 }));
 
-const EthPriceProvider = ({
-  children,
-}: {
-  chainId: number;
+interface PriceEthProviderProps {
   children: React.ReactNode;
-}) => {
+}
+
+const PriceEthProvider: React.FC<PriceEthProviderProps> = ({ children }) => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -55,4 +54,4 @@ const EthPriceProvider = ({
   return <>{children}</>;
 };
 
-export default EthPriceProvider;
+export default PriceEthProvider;

@@ -113,14 +113,12 @@ const NFTCard: React.FC<NFTCardType> = (props) => {
             )}
           </div>
         </div>
-        {
-          props.boost > 0 && (
-            <div className="flex items-center mr-2 absolute top-2 right-2">
-              <BoltIcon />
-              <span className="text-[13px] text-orangeColor">{props.boost}</span>
-            </div>
-          )
-        }
+        {(props.boost ?? 0) > 0 && (
+          <div className="flex items-center mr-2 absolute top-2 right-2">
+            <BoltIcon />
+            <span className="text-[13px] text-orangeColor">{props.boost}</span>
+          </div>
+        )}
       </CardBody>
     </Card>
   );

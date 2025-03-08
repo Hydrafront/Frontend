@@ -8,7 +8,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { setFilters } from "@/store/reducers/token-slice";
 import { supportedChains } from "@/utils/config/chainDexConfig";
 import { getUrlSearchParams, setUrlSearchParams } from "@/utils/func";
-import { List, ListItem, useAccordion } from "@material-tailwind/react";
+import { List, ListItem } from "@material-tailwind/react";
 import {
   IconChartBar,
   IconCheck,

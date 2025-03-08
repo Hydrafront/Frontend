@@ -29,7 +29,7 @@ const TokenAddresses = () => {
             <div>
               <IconCopy size={14} />
             </div>
-            {token?.creator.slice(0, 6)}...{token?.creator.slice(-4)}
+            {token?.creator?.slice(0, 6)}...{token?.creator?.slice(-4)}
           </button>
           <div className="flex items-center gap-2">
             {/* <span className="text-sm">EXP</span> */}
@@ -49,7 +49,7 @@ const TokenAddresses = () => {
             <div>
               <IconCopy size={14} />
             </div>
-            {token?.tokenAddress.slice(0, 6)}...{token?.tokenAddress.slice(-4)}
+            {token?.tokenAddress?.slice(0, 6)}...{token?.tokenAddress?.slice(-4)}
           </button>
           <div className="flex items-center gap-2">
             {/* <span className="text-sm">EXP</span> */}

@@ -1,16 +1,13 @@
-import { presaleData } from "@/utils/config/common";
-import Steps from "../allpresales/Steps";
-import PresaleCard, { PresaleCardType } from "./PresaleCard";
-import { useState } from "react";
+// import Steps from "../allpresales/Steps";
+// import { useState } from "react";
 
 // Add type assertion to presaleData
-const typedPresaleData = presaleData as unknown as PresaleCardType[];
 
 const ManagePresale: React.FC = () => {
-  const [step, setStep] = useState<string>("Live");
+  // const [step, setStep] = useState<string>("Live");
   return (
     <div className="bg-lightColor rounded-lg p-6 m-3 h-[calc(100vh-180px)] overflow-y-scroll">
-      <h5 className="mb-5">PRESALE PAGE</h5>
+      {/* <h5 className="mb-5">PRESALE PAGE</h5>
       <p className="mb-5">List of all Projects Launched</p>
       <Steps step={step} setStep={setStep} />
       <div className="flex flex-wrap -mx-5">
@@ -21,7 +18,7 @@ const ManagePresale: React.FC = () => {
               <PresaleCard {...item} />
             </div>
           ))}
-      </div>
+      </div> */}
     </div>
   )
 }
