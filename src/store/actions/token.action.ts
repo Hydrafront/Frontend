@@ -13,7 +13,7 @@ const pinata = new PinataSDK({
   pinataGateway: "https://gateway.pinata.cloud",
 });
 
-const BASE_URL = `${import.meta.env.VITE_SERVER_URL}/api/token`;
+export const BASE_URL = `${import.meta.env.VITE_SERVER_URL}/api/token`;
 
 export const uploadImageToPinata = async (file: File) => {
   try {

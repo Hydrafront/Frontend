@@ -31,7 +31,7 @@ const BuyTab: React.FC<{
   openFeeDialog: () => void;
   balance: number;
   tokenBalance: number;
-}> = ({  balance }) => {
+}> = ({ balance }) => {
   const { isConnected, address } = useAccount();
   const { tokenAddress, chainId } = useParams();
   const { open } = useWeb3Modal();
@@ -109,7 +109,7 @@ const BuyTab: React.FC<{
         try {
           const txHash = await buyGivenIn(
             parseUnits(minTokenAmount.toString(), 18),
-            parseUnits(((value + amountOutFee)).toString(), 18)
+            parseUnits((value + amountOutFee).toString(), 18)
           );
           toast.success("Token purchased successfully!");
           // const tokenAddress = await getTokenAddress(txHash, "buy");
@@ -155,7 +155,7 @@ const BuyTab: React.FC<{
         try {
           const txHash = await buyGivenOut(
             parseUnits((tokenAmount - amountInfee).toString(), 18),
-            parseUnits((maxEthAmount).toString(), 18)
+            parseUnits(maxEthAmount.toString(), 18)
           );
           toast.success("Token purchased successfully!");
           if (token) {
@@ -377,7 +377,9 @@ const BuyTab: React.FC<{
         </Button> */}
       </div>
       {!isEmpty(errorMessage) ? (
-        <span className="text-red-500 text-center">{errorMessage}</span>
+        isConnected && (
+          <span className="text-red-500 text-center">{errorMessage}</span>
+        )
       ) : (
         <>
           <InfoText className="text-center">
@@ -404,7 +406,8 @@ const BuyTab: React.FC<{
           </InfoText>
           <div className="flex gap-1 items-center justify-center">
             <span className="text-[11px] text-textDark">
-              Priority fee: {priorityFee} {!swapped ? getUnit(Number(chainId)) : token.symbol}
+              Priority fee: {priorityFee}{" "}
+              {!swapped ? getUnit(Number(chainId)) : token.symbol}
             </span>
             <IconShieldHalfFilled size={16} color="grey" />
           </div>

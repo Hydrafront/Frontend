@@ -8,9 +8,10 @@ import Transactions from "./Transactions";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getTokenByAddress, getTransactionsByTokenAddress } from "@/store/actions/token.action";
-import TradingWedget from "@/components/ui/TradingWedget";
+import TradingViewChart from "@/components/ui/TradingViewChart";
 import Spin2 from "@/components/spins/spin2/Spin2";
 import { isEmpty } from "@/utils/validation";
+import { getUnit } from "@/utils/config/chainDexConfig";
 
 const PresaleDetail: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -45,7 +46,7 @@ const PresaleDetail: React.FC = () => {
                 </div>
               ) : (
                 <div className="h-full border-2 border-borderColor">
-                  <TradingWedget />
+                  <TradingViewChart symbol={`${token?.symbol}/${getUnit(token?.chainId as number)}`} interval="60" containerId="tv_chart_container" />
                 </div>
               )}
             </div>
