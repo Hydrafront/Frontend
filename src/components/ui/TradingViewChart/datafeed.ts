@@ -146,7 +146,7 @@ export default {
   searchSymbols: async (
     userInput: string,
     exchange: string,
-    symbolType: string,
+    _symbolType: string,
     onResultReadyCallback: (symbols: TradingSymbol[]) => void
   ) => {
     console.log("[searchSymbols]: Method call");
@@ -209,8 +209,8 @@ export default {
   getBars: async (
     symbolInfo: TradingSymbol,
     resolution: string,
-    from: number,
-    to: number,
+    _from: number,
+    _to: number,
     onHistoryCallback: (bars: Bar[], response: HistoryResponse) => void,
     onErrorCallback: (error: string) => void
   ) => {
