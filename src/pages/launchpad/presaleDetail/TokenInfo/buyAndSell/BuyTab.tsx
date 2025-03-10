@@ -406,7 +406,7 @@ const BuyTab: React.FC<{
           </InfoText>
           <div className="flex gap-1 items-center justify-center">
             <span className="text-[11px] text-textDark">
-              Priority fee: {priorityFee}{" "}
+              Priority fee: {priorityFee.toFixed(4)}{" "}
               {!swapped ? getUnit(Number(chainId)) : token.symbol}
             </span>
             <IconShieldHalfFilled size={16} color="grey" />

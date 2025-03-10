@@ -65,7 +65,7 @@ const SellTab: React.FC<{
   );
   const { amountOut, amountOutFee } = useAmountOutAndFee(
     tokenAddress as `0x${string}`,
-    parseUnits(tokenAmount.toString(), token?.decimals || 18),
+    parseUnits(value.toString(), token?.decimals || 18),
     parseUnits(accumulatedPOL?.toString() || "0", 18),
     parseUnits(remainingTokens?.toString() || "0", 18),
     false

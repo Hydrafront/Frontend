@@ -32,7 +32,9 @@ interface TradingViewWidget {
   remove: () => void;
   onChartReady: (callback: () => void) => void;
   activeChart: () => {
-    getPriceScale: (position: string) => { applyOptions: (options: { mode: number }) => void };
+    getPriceScale: (position: string) => {
+      applyOptions: (options: { mode: number }) => void;
+    };
     setNeedsUpdate: () => void;
   };
 }
@@ -53,7 +55,6 @@ const TradingViewChart = ({
   const chartRef = useRef(null);
 
   useEffect(() => {
-    console.log(window.TradingView); // Check what's available in the window object
     if (
       !window.TradingView ||
       typeof window.TradingView.widget !== "function"
@@ -80,7 +81,7 @@ const TradingViewChart = ({
           { text: "5d", resolution: "1W", description: "5 Days" },
           { text: "1d", resolution: "1", description: "1 Day" },
           { text: "1m", resolution: "1", description: "1 Minute" },
-      ],
+        ],
         theme: "dark",
         custom_css_url: "/static/charting_library/static/black.css",
         allow_symbol_change: true,
@@ -91,24 +92,14 @@ const TradingViewChart = ({
         // enabled_features: ["study_templates"],
 
         overrides: {
-          "overlayIndicator.properties.scaleMode": 1, // Logarithmic scale mode
-          // Enable & Customize Price Scale
-          "scalesProperties.mode": 1, // 1 = Logarithmic Scale (0 = Normal Scale)
-          "scalesProperties.showPriceScale": true, // Ensures price scale is visible
-          "scalesProperties.priceScalePosition": "right", // Show scale on right
-          "scalesProperties.priceScaleLocation": "right", // Set to right (default)
-          "scalesProperties.borderColor": "#333333", // Border for price scale
-          "scalesProperties.showStudyLastValue": true, // Show last indicator value
-
           // Customizing Last Price Line
           "mainSeriesProperties.lastValueVisible": true, // Show last price
           "mainSeriesProperties.priceLineVisible": true, // Show horizontal price line
 
           "paneProperties.background": "#171B26", // Dark background
+          "scalesProperties.textColor": "#FFFFFF", // White text for axis labels
           "paneProperties.vertGridProperties.color": "#222631", // Grid color
           "paneProperties.horzGridProperties.color": "#222631",
-          "scalesProperties.textColor": "#FFFFFF", // White text for axis labels
-
           // Candle Colors
           "mainSeriesProperties.candleStyle.upColor": "#00C176", // Green for up
           "mainSeriesProperties.candleStyle.downColor": "#FF3B30", // Red for down
@@ -128,13 +119,12 @@ const TradingViewChart = ({
         debug: true,
         debug_broker: "broker-only",
       });
-      console.log(widget);
       widget.onChartReady(() => {
         const chart = widget.activeChart();
-        setTimeout(() => {
-          chart.getPriceScale("right").applyOptions({ mode: 1 }); // Log scale
-        }, 1000);
-        chart.setNeedsUpdate(); 
+        chart.getPriceScale("right").applyOptions({
+          mode: 1,
+        }); // Log scale
+        chart.setNeedsUpdate();
       });
 
       return () => widget && widget.remove();

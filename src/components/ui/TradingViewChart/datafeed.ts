@@ -186,7 +186,7 @@ export default {
     }
     // Symbol information object
     const symbolInfo = {
-      ticker: symbolItem.full_name + "sdf",
+      ticker: symbolItem.full_name,
       name: symbolItem.symbol,
       description: symbolItem.description,
       type: symbolItem.type,

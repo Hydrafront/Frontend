@@ -4,7 +4,7 @@ import {
   IconCoin,
   IconExternalLink,
 } from "@tabler/icons-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import HeaderDate from "./HeaderDate";
 import HeaderType from "./HeaderType";
 import HeaderUSD from "./HeaderUSD";
@@ -15,28 +15,99 @@ import FormatPrice from "@/components/ui/FormatPrice";
 import TimeAgo from "@/components/ui/TimeAgo";
 import HeaderToken from "./HeaderToken";
 import clsx from "clsx";
+import { TransactionType } from "@/interfaces/types";
+
 type AlignType = "left" | "center" | "right";
 
 const TransactionTable = () => {
   const { transactions } = useAppSelector((state) => state.token);
   const { token } = useAppSelector((state) => state.token);
+  const [sortedTxns, setSortedTxns] = useState<TransactionType[]>([]);
 
-  const data = transactions.map((transaction) => ({
+  useEffect(() => {
+    if (transactions.length > 0) {
+      const sortedTxns = [...transactions];
+      sortedTxns.sort(
+        (a, b) =>
+          new Date(b.createdAt || "").getTime() -
+          new Date(a.createdAt || "").getTime()
+      );
+      setSortedTxns(sortedTxns);
+    }
+  }, [transactions]);
+
+  const data = sortedTxns.map((transaction) => ({
     date: (
       <div className="py-2 px-3">
         <TimeAgo createdAt={new Date(transaction.createdAt || "")} />
       </div>
     ),
-    type: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>{transaction.type}</div>,
-    usd: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>
-      <FormatPrice value={transaction.usd} color={transaction.type === "Buy" ? "text-green-300" : "text-red-300"} />
-    </div>,
-    token: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>{Math.floor(transaction.token)}</div>,
-    pol: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>{transaction.eth}</div>,
-    price: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>
-      <FormatPrice value={transaction.price} color={transaction.type === "Buy" ? "text-green-300" : "text-red-300"} />
-      </div>,
-    maker: <div className={clsx("py-2 px-3", transaction.type === "Buy" ? "text-green-300" : "text-red-300")}>{transaction.maker.slice(0, 6)}...{transaction.maker.slice(-4)}</div>,
+    type: (
+      <div
+        className={clsx(
+          "py-2 px-3",
+          transaction.type === "Buy" ? "text-green-300" : "text-red-300"
+        )}
+      >
+        {transaction.type}
+      </div>
+    ),
+    usd: (
+      <div
+        className={clsx(
+          "py-2 px-3",
+          transaction.type === "Buy" ? "text-green-300" : "text-red-300"
+        )}
+      >
+        <FormatPrice
+          value={transaction.usd}
+          color={transaction.type === "Buy" ? "text-green-300" : "text-red-300"}
+        />
+      </div>
+    ),
+    token: (
+      <div
+        className={clsx(
+          "py-2 px-3",
+          transaction.type === "Buy" ? "text-green-300" : "text-red-300"
+        )}
+      >
+        {Math.floor(transaction.token)}
+      </div>
+    ),
+    pol: (
+      <div
+        className={clsx(
+          "py-2 px-3",
+          transaction.type === "Buy" ? "text-green-300" : "text-red-300"
+        )}
+      >
+        {transaction.eth}
+      </div>
+    ),
+    price: (
+      <div
+        className={clsx(
+          "py-2 px-3",
+          transaction.type === "Buy" ? "text-green-300" : "text-red-300"
+        )}
+      >
+        <FormatPrice
+          value={transaction.price}
+          color={transaction.type === "Buy" ? "text-green-300" : "text-red-300"}
+        />
+      </div>
+    ),
+    maker: (
+      <div
+        className={clsx(
+          "py-2 px-3",
+          transaction.type === "Buy" ? "text-green-300" : "text-red-300"
+        )}
+      >
+        {transaction.maker.slice(0, 6)}...{transaction.maker.slice(-4)}
+      </div>
+    ),
     txn: (
       <div
         className="cursor-hover h-full items-center flex justify-center hover:bg-lightestColor cursor-pointer"
