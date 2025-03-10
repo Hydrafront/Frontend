@@ -26,7 +26,7 @@ export async function makeApiRequest(path: string) {
 }
 
 // Generates a symbol ID from a pair of the coins
-export function generateSymbol(exchange: string, fromSymbol: string, toSymbol: string) {
+export function generateSymbol(_exchange: string, fromSymbol: string, toSymbol: string) {
     const short = `${fromSymbol}/${toSymbol}`;
     return {
         short,

@@ -80,7 +80,7 @@ export function subscribeOnStream(
     resolution: string,
     onRealtimeCallback: (bar: Bar) => void,
     subscriberUID: string,
-    onResetCacheNeededCallback: () => void,
+    _onResetCacheNeededCallback: () => void,
     lastDailyBar: Bar
 ) {
     const parsedSymbol = parseFullSymbol(symbolInfo.full_name);
