@@ -52,7 +52,17 @@ const resolutionMap = {
 // DatafeedConfiguration implementation
 const configurationData = {
   // Represents the resolutions for bars supported by your datafeed
-  supported_resolutions: ["1s", "1", "5", "15", "60", "240", "1D", "1W", "1M"],
+  supported_resolutions: ["1s", "15s", "30s", "1", "3", "5", "15", "30", "60", "120", "240", "480", "720", "1D", "3D", "1W", "1M"],
+  custom_intervals: {
+    "1": "1 Min",
+    "5": "5 Min",
+    "15": "15 Min",
+    "60": "1 Hour",
+    "240": "4 Hours",
+    "1D": "1 Day",
+    "1W": "1 Week",
+    "1M": "1 Month",
+  },
   // The `exchanges` arguments are used for the `searchSymbols` method if a user selects the exchange
   exchanges: [
     {

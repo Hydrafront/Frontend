@@ -36,7 +36,10 @@ const TokenCommonInfo = () => {
       link: token?.discord,
     });
   return (
-    <div className="mt-10 border border-borderColor rounded-md pb-5" id="common-token-info">
+    <div
+      className="mt-10 border border-borderColor rounded-md pb-5"
+      id="common-token-info"
+    >
       <div className="flex flex-col -mt-6 items-center gap-1 mb-3">
         <img
           src={token?.logo}
@@ -61,7 +64,9 @@ const TokenCommonInfo = () => {
           </Button>
         ))}
       </div>
-      <p className="text-center">{token?.description}</p>
+      <div className="w-full">
+        <p className="text-center">{token?.description}</p>
+      </div>
     </div>
   );
 };
