@@ -1,7 +1,4 @@
-import {
-  IconTransfer,
-  IconWallet,
-} from "@tabler/icons-react";
+import { IconTransfer, IconWallet } from "@tabler/icons-react";
 
 import InfoText from "@/components/common/InfoText";
 import { getChainName, getUnit } from "@/utils/config/chainDexConfig";
@@ -23,15 +20,17 @@ import FormatPrice from "@/components/ui/FormatPrice";
 import {
   useAmountInAndFee,
   useAmountOutAndFee,
+  useApproveToken,
   useCurrentTokenPrice,
   useSellToken,
+  useTokenAllowance,
 } from "@/utils/contractUtils";
 
 const SellTab: React.FC<{
   openFeeDialog: () => void;
-  balance: number;
+  balance: number | undefined;
   tokenBalance: number;
-}> = ({  tokenBalance }) => {
+}> = ({ balance, tokenBalance }) => {
   const { chainId, tokenAddress } = useParams();
   const { token } = useAppSelector((state) => state.token);
   const [slippage, setSlippage] = useState<number>(5);
@@ -48,6 +47,7 @@ const SellTab: React.FC<{
   const [minEthAmount, setMinEthAmount] = useState<number>(0);
   const [maxAmountToken, setMaxAmountToken] = useState<number>(0);
   const [transactionLoading, setTransactionLoading] = useState<boolean>(false);
+  const [isApproved, setIsApproved] = useState<boolean>(false);
   const [priorityFee, setPriorityFee] = useState<number>(0);
   const dispatch = useAppDispatch();
   const { ethPrice } = useAppSelector((state) => state.eth);
@@ -70,6 +70,18 @@ const SellTab: React.FC<{
     parseUnits(remainingTokens?.toString() || "0", 18),
     false
   );
+
+  const { data: allowance } = useTokenAllowance(
+    tokenAddress as `0x${string}`,
+    address as `0x${string}`
+  );
+  const { approveToken } = useApproveToken(tokenAddress as `0x${string}`);
+
+  useEffect(() => {
+    if (allowance !== undefined && address) {
+      setIsApproved(allowance > 0);
+    }
+  }, [allowance, address]);
 
   useEffect(() => {
     if (!swapped) {
@@ -104,34 +116,56 @@ const SellTab: React.FC<{
   };
 
   const handleAction = async () => {
-    setTransactionLoading(true);
     if (!swapped) {
       if (isEmpty(tokenAmount)) {
         toast.error("Missing required infomation");
         return;
       } else {
         try {
-          const txHash = await sellGivenIn(
-            parseUnits(
-              (maxAmountToken).toString(),
-              token?.decimals || 18
-            ),
-            parseUnits((minEthAmount + amountInfee).toString(), token?.decimals || 18)
-          );
-          toast.success("Token sold successfully!");
-          dispatch(
-            saveTransactionAction({
-              txHash,
-              type: "Sell",
-              tokenAddress: tokenAddress as `0x${string}`,
-              token: tokenAmount,
-              eth: value,
-              maker: address as `0x${string}`,
-              usd: currentPrice * tokenAmount * currentEthPrice,
-              price: currentPrice * currentEthPrice,
-              chainId: Number(chainId),
-            })
-          );
+          if (!isApproved) {
+            try {
+              setTransactionLoading(true);
+              await approveToken(
+                parseUnits(maxAmountToken.toString(), token?.decimals || 18)
+              );
+              toast.success("Token approved successfully!");
+              setIsApproved(true);
+            } catch (error) {
+              toast.error("Error approving token!");
+            } finally {
+              setTransactionLoading(false);
+            }
+          } else {
+            try {
+              setTransactionLoading(true);
+              const txHash = await sellGivenIn(
+                parseUnits(maxAmountToken.toString(), token?.decimals || 18),
+                parseUnits(
+                  (minEthAmount + amountInfee).toString(),
+                  token?.decimals || 18
+                ),
+                parseUnits(priorityFee.toString(), token?.decimals || 18)
+              );
+              toast.success("Token sold successfully!");
+              dispatch(
+                saveTransactionAction({
+                  txHash,
+                  type: "Sell",
+                  tokenAddress: tokenAddress as `0x${string}`,
+                  token: tokenAmount,
+                  eth: value,
+                  maker: address as `0x${string}`,
+                  usd: currentPrice * tokenAmount * currentEthPrice,
+                  price: currentPrice * currentEthPrice,
+                  chainId: Number(chainId),
+                })
+              );
+            } catch (error) {
+              toast.error("Error occurred while selling token!");
+            } finally {
+              setTransactionLoading(false);
+            }
+          }
         } catch (error) {
           console.error(error);
           toast.error("Error occurred while selling token!");
@@ -145,24 +179,40 @@ const SellTab: React.FC<{
         return;
       } else {
         try {
-          const txHash = await sellGivenOut(
-            parseUnits((maxAmountToken - amountOutFee).toString(), 18),
-            parseUnits((value).toString(), 18)
-          );
-          toast.success("Token sold successfully!");
-          dispatch(
-            saveTransactionAction({
-              txHash,
-              type: "Sell",
-              tokenAddress: tokenAddress as `0x${string}`,
-              token: maxAmountToken,
-              eth: value,
-              usd: maxAmountToken * currentPrice * currentEthPrice,
-              price: currentPrice * currentEthPrice,
-              maker: address as `0x${string}`,
-              chainId: Number(chainId),
-            })
-          );
+          if (!isApproved) {
+            try {
+              setTransactionLoading(true);
+              await approveToken(
+                parseUnits(maxAmountToken.toString(), token?.decimals || 18)
+              );
+              toast.success("Token approved successfully!");
+              setIsApproved(true);
+            } catch (error) {
+              toast.error("Error approving token!");
+            } finally {
+              setTransactionLoading(false);
+            }
+          } else {
+            setTransactionLoading(true);
+            const txHash = await sellGivenOut(
+              parseUnits((maxAmountToken - amountOutFee).toString(), 18),
+              parseUnits(value.toString(), 18)
+            );
+            toast.success("Token sold successfully!");
+            dispatch(
+              saveTransactionAction({
+                txHash,
+                type: "Sell",
+                tokenAddress: tokenAddress as `0x${string}`,
+                token: maxAmountToken,
+                eth: value,
+                usd: maxAmountToken * currentPrice * currentEthPrice,
+                price: currentPrice * currentEthPrice,
+                maker: address as `0x${string}`,
+                chainId: Number(chainId),
+              })
+            );
+          }
         } catch (error) {
           toast.error("Error occurred while selling token!");
         } finally {
@@ -173,28 +223,40 @@ const SellTab: React.FC<{
   };
 
   useEffect(() => {
-    if (!swapped) {
-      if (tokenBalance < minEthAmount) {
-        return setErrorMessage("Insufficient token balance");
+    if (balance !== undefined) {
+      if (!swapped) {
+        if (tokenBalance < tokenAmount) {
+          return setErrorMessage("Insufficient token balance");
+        }
+        if (tokenAmount !== 0 && tokenAmount * currentPrice < 0.01) {
+          return setErrorMessage(
+            "Minimum sell amount is 0.01" + getUnit(Number(chainId))
+          );
+        }
+        setErrorMessage("");
+      } else {
+        if (value !== 0 && tokenBalance < maxAmountToken) {
+          return setErrorMessage("Insufficient token balance");
+        }
+        if (Number(value) !== 0 && Number(value) < 0.01) {
+          return setErrorMessage(
+            "Minimum sell amount is 0.01" + getUnit(Number(chainId))
+          );
+        }
+        setErrorMessage("");
       }
-      if (minEthAmount !== 0 && minEthAmount < 0.01) {
-        return setErrorMessage(
-          "Minimum sell amount is 0.01" + getUnit(Number(chainId))
-        );
-      }
-      setErrorMessage("");
-    } else {
-      if (tokenBalance < value) {
-        return setErrorMessage("Insufficient token balance");
-      }
-      if (value !== 0 && value < 0.01) {
-        return setErrorMessage(
-          "Minimum sell amount is 0.01" + getUnit(Number(chainId))
-        );
-      }
-      setErrorMessage("");
     }
-  }, [tokenBalance, minEthAmount, swapped, value, chainId]);
+  }, [
+    tokenBalance,
+    minEthAmount,
+    swapped,
+    value,
+    chainId,
+    balance,
+    tokenAmount,
+    currentPrice,
+    maxAmountToken,
+  ]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
@@ -341,7 +403,11 @@ const SellTab: React.FC<{
           ) : (
             <>
               {isConnected ? (
-                "SELL"
+                isApproved ? (
+                  "SELL"
+                ) : (
+                  "APPROVE"
+                )
               ) : (
                 <IconText>
                   <IconWallet size={16} color="white" />
@@ -389,7 +455,8 @@ const SellTab: React.FC<{
           </InfoText>
           <div className="flex gap-1 items-center justify-center">
             <span className="text-[11px] text-textDark">
-              Priority fee: {(priorityFee).toFixed(4)} {!swapped ? getUnit(Number(chainId)) : token.symbol}
+              Priority fee: {priorityFee.toFixed(4)}{" "}
+              {!swapped ? getUnit(Number(chainId)) : token.symbol}
             </span>
             <IconShieldHalfFilled size={16} color="grey" />
           </div>

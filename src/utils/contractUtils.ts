@@ -188,12 +188,54 @@ export const useBuyToken = (tokenAddress: `0x${string}`) => {
   return { buyGivenIn, buyGivenOut, buyError };
 };
 
+//-----------------Token Allowance-----------------
+export function useTokenAllowance(
+  tokenAddress: `0x${string}`,
+  owner: `0x${string}`
+) {
+  const chainId = useChainId();
+  return useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "allowance",
+    args: [owner, getContractAddress(Number(chainId))],
+  }) as { data: bigint | undefined };
+}
+
+//-----------------Approve Token-----------------
+export const useApproveToken = (tokenAddress: `0x${string}`) => {
+  const chainId = useChainId();
+  const { writeContractAsync, error: approveError } = useWriteContract();
+  const { address } = useAccount();
+  const approveToken = async (amount: bigint) => {
+    if (!address || !tokenAddress) {
+      throw new Error("Missing required information");
+    }
+    try {
+      const txHash = await writeContractAsync({
+        address: tokenAddress,
+        abi: tokenAbi,
+        functionName: "approve",
+        args: [getContractAddress(Number(chainId)), amount],
+      });
+      return txHash;
+    } catch (error) {
+      throw new Error("Error approving token:", { cause: error });
+    }
+  };
+  return { approveToken, approveError };
+};
+
 //-----------------Sell Token-----------------
 export const useSellToken = (tokenAddress: `0x${string}`) => {
   const chainId = useChainId();
   const { writeContractAsync, error: buyError } = useWriteContract();
   const { address } = useAccount();
-  const sellGivenIn = async (amountToken: bigint, amountPOLMin: bigint) => {
+  const sellGivenIn = async (
+    amountToken: bigint,
+    amountPOLMin: bigint,
+    fee: bigint
+  ) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
@@ -203,6 +245,7 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
         abi: factoryAbi,
         functionName: "sellGivenIn",
         args: [tokenAddress, amountToken, amountPOLMin],
+        value: fee,
       });
       return txHash;
     } catch (error) {
@@ -218,7 +261,7 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
         address: getContractAddress(chainId),
         abi: factoryAbi,
         functionName: "sellGivenOut",
-        args: [tokenAddress, amountTokenMax, amountPOL],
+        args: [tokenAddress, amountPOL, amountTokenMax],
       });
       return txHash;
     } catch (error) {
@@ -387,14 +430,13 @@ export const useAmountOutAndFee = (
   amountIn: bigint,
   remainingIn: bigint,
   remainingOut: bigint,
-  inIsPOL: boolean,
+  inIsPOL: boolean
 ) => {
   const { data, refetch: refetchAmountOut } = useReadContract({
     address: tokenAddress,
     abi: tokenAbi,
     functionName: "getAmountOutAndFee",
-    args: [amountIn, remainingIn, remainingOut, inIsPOL,
-    ],
+    args: [amountIn, remainingIn, remainingOut, inIsPOL],
   }) as { data: [bigint, bigint] | undefined; refetch: () => void };
   return {
     amountOutFee: Number(formatUnits(data?.[1] || BigInt(0), 18)),
@@ -408,14 +450,13 @@ export const useAmountInAndFee = (
   amountOut: bigint,
   remainingIn: bigint,
   remainingOut: bigint,
-  inIsPOL: boolean,
+  inIsPOL: boolean
 ) => {
   const { data, refetch: refetchAmountIn } = useReadContract({
     address: tokenAddress,
     abi: tokenAbi,
     functionName: "getAmountInAndFee",
-    args: [amountOut, remainingIn, remainingOut, inIsPOL,
-    ],
+    args: [amountOut, remainingIn, remainingOut, inIsPOL],
   }) as { data: [bigint, bigint] | undefined; refetch: () => void };
 
   return {
@@ -423,4 +464,38 @@ export const useAmountInAndFee = (
     amountIn: Number(formatUnits(data?.[0] || BigInt(0), 18)),
     refetchAmountIn,
   };
+};
+
+//-----------------Uniswap V2 Router-----------------
+export const useUniswapV2Router = () => {
+  const chainId = useChainId();
+  const { data: uniswapV2Router } = useReadContract({
+    address: getContractAddress(chainId),
+    abi: factoryAbi,
+    functionName: "getUniswapV2Router",
+  });
+  return { uniswapV2Router };
+};
+
+//-----------------Add Liquidity-----------------
+export const useAddLiquidity = (tokenAddress: `0x${string}`) => {
+  const { writeContractAsync, error: addLiquidityError } = useWriteContract();
+  const { address } = useAccount();
+  const addLiquidity = async (amountTokenDesired: bigint, amountTokenMin: bigint, amountETHMin: bigint) => {
+    if (!address || !tokenAddress) {
+      throw new Error("Missing required information");
+    }
+    try {
+      const txHash = await writeContractAsync({
+        address: tokenAddress,
+        abi: tokenAbi,
+        functionName: "addLiquidity",
+        args: [amountTokenDesired, amountTokenMin, amountETHMin],
+      });
+      return txHash;
+    } catch (error) {
+      throw new Error("Error adding liquidity:", { cause: error });
+    }
+  };
+  return { addLiquidity, addLiquidityError };
 };

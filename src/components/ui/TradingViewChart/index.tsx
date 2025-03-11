@@ -9,8 +9,15 @@ interface TradingViewWidgetConfig {
   library_path: string;
   auto_size?: boolean;
   height?: string;
+  disabled_features?: string[];
   width?: string;
   locale?: string;
+  favorites?: {
+    intervals: string[];
+    indicators: string[];
+    drawingTools: string[];
+    chartTypes: string[];
+  };
   theme?: string;
   custom_css_url?: string;
   allow_symbol_change?: boolean;
@@ -86,9 +93,17 @@ const TradingViewChart = ({
         custom_css_url: "/static/charting_library/static/black.css",
         allow_symbol_change: true,
         hide_top_toolbar: false,
+        disabled_features: ["symbol_search"],
         hide_side_toolbar: false,
         toolbar_bg: "#131722",
         datafeed: CustomDataFeed,
+        favorites: {
+          intervals: ["1s", "1", "5", "15", "60", "240", "1D", "1W", "1M"],
+          indicators: ["Awesome Oscillator", "Bollinger Bands"],
+          drawingTools: ["LineToolBrush", "LineToolCallout", "LineToolCircle"],
+          chartTypes: ["Area", "Candles"],
+        },
+
         // enabled_features: ["study_templates"],
 
         overrides: {
@@ -138,6 +153,7 @@ const TradingViewChart = ({
       <div
         ref={chartRef}
         id={containerId}
+        className="tv-chart-container"
         style={{ height: "600px", width: "100%" }}
       />
     </ErrorBoundary>

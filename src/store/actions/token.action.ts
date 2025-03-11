@@ -28,7 +28,10 @@ export const uploadImageToPinata = async (file: File) => {
 
 interface TokenInfo {
   description: string;
-  dex: string;
+  dex: {
+    name: string;
+    address: `0x${string}`;
+  };
   chainId: number;
   logo: string;
   name: string;

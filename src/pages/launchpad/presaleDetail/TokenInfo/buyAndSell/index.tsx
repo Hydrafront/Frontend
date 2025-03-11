@@ -35,7 +35,7 @@ const TokenBuyAndSell = () => {
     balance: fetchedBalance,
     tokenBalance: fetchedTokenBalance,
   } = useUserBalance(address as `0x${string}`, tokenAddress as `0x${string}`);
-  const [balance, setBalance] = useState<number>(0);
+  const [balance, setBalance] = useState<number | undefined>(undefined);
   const [tokenBalance, setTokenBalance] = useState<number>(0);
 
   const fetchAllData = useCallback(() => {

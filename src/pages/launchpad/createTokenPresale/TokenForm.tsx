@@ -29,13 +29,17 @@ import { generateSignature } from "@/utils/func";
 import { isEmpty } from "@/utils/validation";
 import { getContractAddress } from "@/utils/func";
 import { useChainId } from "wagmi";
-import { useCreatePresaleToken, useProgressBPS } from "@/utils/contractUtils";
+import {
+  useCreatePresaleToken,
+  useProgressBPS,
+  useUniswapV2Router,
+  useCurrentTokenPrice,
+  useMarketCap,
+} from "@/utils/contractUtils";
 import Spin2 from "@/components/spins/spin2/Spin2";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { createTokenEmit } from "@/socket/token";
 import { useAppSelector } from "@/store/hooks";
-import { useCurrentTokenPrice } from "@/utils/contractUtils";
-import { useMarketCap } from "@/utils/contractUtils";
 
 const MAX_FILE_SIZE = 1024 * 1024; // 1MB
 
@@ -65,10 +69,16 @@ const TokenForm: React.FC = () => {
   const { ethPrice } = useAppSelector((state) => state.eth);
   const { isConnected, address } = useAccount();
   const [selectedChain, setSelectedChain] = useState<Chain>(chains[0]);
-  const [selectedDex, setSelectedDex] = useState<string | undefined>();
+  const [selectedDex, setSelectedDex] = useState<
+    | {
+        name: string;
+        address: `0x${string}` | undefined;
+      }
+    | undefined
+  >();
   const [isLoading, setIsLoading] = useState(false);
   const [creationStep, setCreationStep] = useState<
-  "idle" | "uploading" | "creating" | "completed" | "error"
+    "idle" | "uploading" | "creating" | "completed" | "error"
   >("idle");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
@@ -76,16 +86,19 @@ const TokenForm: React.FC = () => {
   const { currentPrice } = useCurrentTokenPrice(
     contractAddress as `0x${string}`
   );
-  const { currentMarketCap } = useMarketCap(
-    contractAddress as `0x${string}`
-  );
-  const { progressBPS } = useProgressBPS(
-    contractAddress as `0x${string}`
-  );
+  const { currentMarketCap } = useMarketCap(contractAddress as `0x${string}`);
+  const { progressBPS } = useProgressBPS(contractAddress as `0x${string}`);
+
+  const { uniswapV2Router } = useUniswapV2Router();
 
   useEffect(() => {
-    setSelectedDex(getDex(chains[0].id)?.[0]);
-  }, [chains]);
+    setSelectedDex(
+      getDex(selectedChain.id)?.[0] as {
+        name: string;
+        address: `0x${string}` | undefined;
+      }
+    );
+  }, []);
 
   const { form, setForm, handleChange } = useForm<FormType>({
     name: "",
@@ -105,7 +118,6 @@ const TokenForm: React.FC = () => {
     try {
       if (chainId !== value?.id) {
         setSelectedChain(value);
-        toast.success("Switched to " + value.name);
       }
     } catch (error) {
       console.error(error);
@@ -141,6 +153,15 @@ const TokenForm: React.FC = () => {
       ...prev,
       [imageType]: undefined,
     }));
+  };
+
+  const handleSelectDex = (dex: string) => {
+    if (dex === "Uniswap") {
+      setSelectedDex({
+        name: "Uniswap",
+        address: uniswapV2Router as `0x${string}`,
+      });
+    }
   };
 
   const handleCreatePresale = async () => {
@@ -183,12 +204,14 @@ const TokenForm: React.FC = () => {
       console.log("token created on blockchain", tokenAddress);
 
       if (tokenAddress && form.logo && form.banner) {
-        
         const { token } = await createTokenInfo(tokenAddress as `0x${string}`, {
           type: "presale",
           creator: address as `0x${string}`,
           description: form.description,
-          dex: selectedDex as string,
+          dex: {
+            name: selectedDex?.name || "",
+            address: selectedDex?.address as `0x${string}`,
+          },
           chainId: selectedChain.id,
           name: form.name,
           symbol: form.symbol,
@@ -298,10 +321,10 @@ const TokenForm: React.FC = () => {
         {getDex(selectedChain.id)?.map((item, index) => (
           <button
             key={index}
-            onClick={() => setSelectedDex(item)}
+            onClick={() => handleSelectDex(item.name)}
             className={clsx(
               "text-[18px] bg-lighterColor rounded-lg w-1/2 text-center flex py-4 hover:bg-lightestColor border-2 justify-center items-center gap-3",
-              selectedDex === item && "border-green-500"
+              selectedDex?.name === item.name && "border-green-500"
             )}
           >
             <img
@@ -309,7 +332,7 @@ const TokenForm: React.FC = () => {
               alt="chain-icon"
               className="w-9"
             />
-            {item}
+            {item.name}
           </button>
         ))}
       </div>

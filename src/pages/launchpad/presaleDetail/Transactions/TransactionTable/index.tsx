@@ -82,7 +82,7 @@ const TransactionTable = () => {
           transaction.type === "Buy" ? "text-green-300" : "text-red-300"
         )}
       >
-        {transaction.eth}
+        {transaction.eth.toFixed(4)}
       </div>
     ),
     price: (

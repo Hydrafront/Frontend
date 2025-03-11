@@ -1,11 +1,11 @@
 // chainDexConfig.js
 export const supportedChains = [
-//   {
-//     name: "Polygon POS",
-//     chainId: 137,
-//     rpcUrl: "https://polygon-rpc.com",
-//     dexes: ["Uniswap"],
-//   },
+  //   {
+  //     name: "Polygon POS",
+  //     chainId: 137,
+  //     rpcUrl: "https://polygon-rpc.com",
+  //     dexes: ["Uniswap"],
+  //   },
   {
     name: "Polygon Amoy",
     unit: "POL",
@@ -13,7 +13,12 @@ export const supportedChains = [
     logo: "/assets/images/chains/Polygon Amoy.png",
     priceUrl: "wss://stream.binance.com:9443/ws/polusdt@trade",
     rpcUrl: " https://rpc-amoy.polygon.technology/",
-    dexes: ["Uniswap"],
+    dexes: [
+      {
+        name: "Uniswap",
+        address: "0xD4d332B3f56A5686E257f08e4Be982a9c1ed5fFb",
+      },
+    ],
   },
 ];
 
@@ -33,4 +38,3 @@ export const getPriceUrl = (chainId: number) => {
 export const getChainLogo = (chainId: number) => {
   return supportedChains.find((chain) => chain.id === chainId)?.logo;
 };
-  

@@ -143,22 +143,22 @@ export default {
     setTimeout(() => callback(configurationData));
   },
 
-  searchSymbols: async (
-    userInput: string,
-    exchange: string,
-    _symbolType: string,
-    onResultReadyCallback: (symbols: TradingSymbol[]) => void
-  ) => {
-    console.log("[searchSymbols]: Method call");
-    const symbols = await getAllSymbols();
-    const newSymbols = symbols.filter((symbol) => {
-      const isExchangeValid = exchange === "" || symbol.exchange === exchange;
-      const isFullSymbolContainsInput =
-        symbol.full_name.toLowerCase().indexOf(userInput.toLowerCase()) !== -1;
-      return isExchangeValid && isFullSymbolContainsInput;
-    });
-    onResultReadyCallback(newSymbols);
-  },
+  // searchSymbols: async (
+  //   userInput: string,
+  //   exchange: string,
+  //   _symbolType: string,
+  //   onResultReadyCallback: (symbols: TradingSymbol[]) => void
+  // ) => {
+  //   console.log("[searchSymbols]: Method call");
+  //   const symbols = await getAllSymbols();
+  //   const newSymbols = symbols.filter((symbol) => {
+  //     const isExchangeValid = exchange === "" || symbol.exchange === exchange;
+  //     const isFullSymbolContainsInput =
+  //       symbol.full_name.toLowerCase().indexOf(userInput.toLowerCase()) !== -1;
+  //     return isExchangeValid && isFullSymbolContainsInput;
+  //   });
+  //   onResultReadyCallback(newSymbols);
+  // },
 
   resolveSymbol: async (
     symbolName: string,

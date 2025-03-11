@@ -24,7 +24,7 @@ iframe {
 }
 
 .space-single {
-  background-color: #151a3a;
+  /* background-color: #151a3a; */
   cursor: pointer;
 }
 
@@ -87,4 +87,32 @@ iframe {
 }
 .pane-legend-line {
   font-size: 14px !important;
+}
+.feature-no-touch .header-chart-panel .button.disabled:active,
+.feature-touch .header-chart-panel .button.disabled:active,
+.header-chart-panel .button.disabled,
+.header-chart-panel .button.disabled.active {
+  background-color: transparent !important;
+}
+.favored-list-container span {
+  background-color: transparent !important;
+  border: none !important;
+}
+body.chart-page svg  {
+  fill: #ffffffcc !important;
+}
+body.chart-page .apply-common-tooltip {
+  color: #ffffffcc !important;
+}
+body.chart-page .apply-common-tooltip .apply-common-tooltip-title {
+  color: #ffffffcc !important;
+}
+body.chart-page .apply-common-tooltip .apply-common-tooltip-title {
+  color: #ffffffcc !important;
+}
+.header-group-symbol-search {
+  display: none !important;
+}
+.tv-close-panel {
+  display: none !important;
 }

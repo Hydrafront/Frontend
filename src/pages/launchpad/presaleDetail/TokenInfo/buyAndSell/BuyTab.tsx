@@ -29,7 +29,7 @@ import FormatPrice from "@/components/ui/FormatPrice";
 
 const BuyTab: React.FC<{
   openFeeDialog: () => void;
-  balance: number;
+  balance: number | undefined;
   tokenBalance: number;
 }> = ({ balance }) => {
   const { isConnected, address } = useAccount();
@@ -107,6 +107,7 @@ const BuyTab: React.FC<{
         toast.error("Missing required infomation");
       } else {
         try {
+          setTransactionLoading(true);
           const txHash = await buyGivenIn(
             parseUnits(minTokenAmount.toString(), 18),
             parseUnits((value + amountOutFee).toString(), 18)
@@ -153,6 +154,7 @@ const BuyTab: React.FC<{
         toast.error("Missing required infomation");
       } else {
         try {
+          setTransactionLoading(true);
           const txHash = await buyGivenOut(
             parseUnits((tokenAmount - amountInfee).toString(), 18),
             parseUnits(maxEthAmount.toString(), 18)
@@ -190,26 +192,29 @@ const BuyTab: React.FC<{
   };
 
   useEffect(() => {
-    if (!swapped) {
-      if (balance < value) {
-        return setErrorMessage("Insufficient balance");
+    if (balance !== undefined) {
+      if (!swapped) {
+        if (balance < value) {
+          console.log("balance", balance);
+          return setErrorMessage("Insufficient balance");
+        }
+        if (value !== 0 && value < 0.01) {
+          return setErrorMessage(
+            "Minimum buy amount is 0.01" + getUnit(Number(chainId))
+          );
+        }
+        setErrorMessage("");
+      } else {
+        if (tokenAmount !== 0 && balance < maxEthAmount) {
+          return setErrorMessage("Insufficient balance");
+        }
+        if (maxEthAmount !== 0 && maxEthAmount < 0.01) {
+          return setErrorMessage(
+            "Minimum buy amount is 0.01" + getUnit(Number(chainId))
+          );
+        }
+        setErrorMessage("");
       }
-      if (value !== 0 && value < 0.01) {
-        return setErrorMessage(
-          "Minimum buy amount is 0.01" + getUnit(Number(chainId))
-        );
-      }
-      setErrorMessage("");
-    } else {
-      if (balance < maxEthAmount) {
-        return setErrorMessage("Insufficient balance");
-      }
-      if (maxEthAmount !== 0 && maxEthAmount < 0.01) {
-        return setErrorMessage(
-          "Minimum buy amount is 0.01" + getUnit(Number(chainId))
-        );
-      }
-      setErrorMessage("");
     }
   }, [balance, value, maxEthAmount, swapped, chainId]);
 
