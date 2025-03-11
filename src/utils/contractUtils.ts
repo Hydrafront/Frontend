@@ -234,7 +234,7 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
   const sellGivenIn = async (
     amountToken: bigint,
     amountPOLMin: bigint,
-    fee: bigint
+    // fee: bigint
   ) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
