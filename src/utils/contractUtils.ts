@@ -234,7 +234,7 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
   const sellGivenIn = async (
     amountToken: bigint,
     amountPOLMin: bigint,
-    // fee: bigint
+    fee: bigint
   ) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
@@ -245,7 +245,7 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
         abi: factoryAbi,
         functionName: "sellGivenIn",
         args: [tokenAddress, amountToken, amountPOLMin],
-        // value: fee,
+        value: fee,
       });
       return txHash;
     } catch (error) {
