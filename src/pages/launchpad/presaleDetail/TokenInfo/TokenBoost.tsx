@@ -1,13 +1,16 @@
 import IconText from "@/components/common/IconText";
 import BoltIcon from "@/components/icons/BoltIcon";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { closeDialog, openDialog } from "@/store/reducers/dialog-slice";
+import { getUnit } from "@/utils/config/chainDexConfig";
 import { Button, DialogBody } from "@material-tailwind/react";
 import { IconClockFilled, IconX } from "@tabler/icons-react";
 import clsx from "clsx";
 
 const TokenBoost = () => {
   const dispatch = useAppDispatch();
+  const { token } = useAppSelector((state) => state.token);
+
   const handleClose = () => {
     dispatch(closeDialog());
   };
@@ -108,24 +111,26 @@ const TokenBoost = () => {
                 <div className="flex justify-center gap-2 items-center py-2">
                   <div className="w-6 h-6 rounded-full bg-lightestColor"></div>
                   <span className="text-lightestColor text-[15px] lg:text-[18px]">
-                    TOKEN / POL
+                    TOKEN / {getUnit(token?.chainId as number)}
                   </span>
                 </div>
                 <div className="flex justify-center gap-2 items-center py-2 bg-lightestColor">
                   <img
-                    src="/assets/images/avatars/dog.jpg"
+                    src={token?.logo}
                     alt="token-avatar"
                     className="w-8 h-8 rounded-md"
                   />
                   <span className="text-[19px] lg:text-[22px]">
-                    <strong className="text-orangeColor">TOKEN NAME</strong>
-                    /POL
+                    <strong className="text-orangeColor">
+                      {token?.symbol}
+                    </strong>
+                    /{getUnit(token?.chainId as number)}
                   </span>
                 </div>
                 <div className="flex justify-center gap-2 items-center py-2">
                   <div className="w-6 h-6 rounded-full bg-lightestColor"></div>
                   <span className="text-lightestColor text-[15px] lg:text-[18px]">
-                    TOKEN / POL
+                    TOKEN / {getUnit(token?.chainId as number)}
                   </span>
                 </div>
               </div>
