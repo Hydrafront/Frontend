@@ -4,6 +4,7 @@ import "react-clock/dist/Clock.css";
 import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
 import "./styles/dot-loading.css";
+import "./styles/spin.css";
 import "animate.css/animate.min.css";
 import React from "react";
 import ReactDOM from "react-dom/client";

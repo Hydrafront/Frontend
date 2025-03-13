@@ -1,3 +1,4 @@
+import { BoostType } from "@/interfaces/types";
 import { StylesConfig } from "react-select";
 
 export const multiSelectStyle: StylesConfig = {
@@ -48,3 +49,12 @@ export const multiSelectStyle: StylesConfig = {
     backgroundColor: "rgb(33 30 44 / var(--tw-bg-opacity))",
   }),
 };
+
+
+export const boostOptions: BoostType[] = [
+  { times: 10, hours: 12, price: 0.003, width: "w-1/2 lg:w-1/5" },
+  { times: 30, hours: 12, price: 100, width: "w-1/2 lg:w-1/5" },
+  { times: 50, hours: 12, price: 150, width: "w-1/2 lg:w-1/5" },
+  { times: 100, hours: 24, price: 200, width: "w-1/2 lg:w-1/5" },
+  { times: 500, hours: 24, price: 250, width: "w-full lg:w-1/5" },
+];

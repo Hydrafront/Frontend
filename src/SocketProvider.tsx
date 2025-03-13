@@ -1,14 +1,22 @@
 import React, { useEffect } from "react";
-import { createTokenListener, saveTransactionListener, updateTokenInfoListener } from "./socket/token";
+import {
+  createTokenListener,
+  saveTransactionListener,
+  updateBoostedListener,
+  updateTokenInfoListener,
+} from "./socket/token";
 import { TokenType, TransactionType } from "./interfaces/types";
 import { useAppDispatch } from "./store/hooks";
-import { addToken, addTransaction, updateTokenList } from "./store/reducers/token-slice";
+import {
+  addToken,
+  addTransaction,
+  updateTokenList,
+} from "./store/reducers/token-slice";
 
 const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-
-    const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     createTokenListener((tokenInfo: TokenType) => {
@@ -19,6 +27,9 @@ const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     });
     updateTokenInfoListener((tokenInfo: TokenType) => {
       dispatch(updateTokenList(tokenInfo));
+    });
+    updateBoostedListener((boost: number) => {
+      dispatch(updateTokenList({ boost }));
     });
   }, [dispatch]);
 

@@ -1,16 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState: boolean = false;
+const initialState: { isLoading: boolean; text: string } = {
+  isLoading: false,
+  text: "", 
+};
 
 const LoadingSlice = createSlice({
   name: "loading",
-  initialState: { isLoading: initialState },
+  initialState: initialState,
   reducers: {
-    openLoading: (state) => {
+    openLoading: (state, action) => {
       state.isLoading = true;
+      state.text = action.payload;
     },
     closeLoading: (state) => {
       state.isLoading = false;
+      state.text = "";
     },
   },
 });

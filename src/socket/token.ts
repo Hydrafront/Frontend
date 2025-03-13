@@ -38,3 +38,9 @@ export const updateTokenInfoListener = (
     func(tokenInfo);
   });
 };
+
+export const updateBoostedListener = (func: (boost: number) => void) => {
+  socket.on("update-boosted", (boost: number) => {
+    func(boost);
+  });
+};

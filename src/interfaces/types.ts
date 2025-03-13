@@ -51,3 +51,9 @@ export interface Candle {
   close: number;
 }
 
+export interface BoostType {
+  times: number;
+  hours: number;
+  price: number;
+  width?: string;
+}

@@ -9,7 +9,6 @@ import TokenBuyAndSellInfo from "./TokenBuyAndSellInfo";
 import TokenAddresses from "./TokenAddresses";
 import TokenAudit from "./TokenAudit";
 import TokenWarningText from "./TokenWarningText";
-import TokenBoost from "./TokenBoost";
 import TokenCommonInfo from "./TokenCommonInfo";
 import TokenSwap from "./TokenSwap";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -21,6 +20,7 @@ import { useWatchContractEvent } from "wagmi";
 import { tokenAbi } from "@/utils/abi/tokenAbi";
 import socket from "@/socket/token";
 import { setToken } from "@/store/reducers/token-slice";
+import TokenBoost from "./TokenBoost";
 
 interface Props {
   type?: string | undefined;
@@ -99,7 +99,7 @@ const TokenInfo: React.FC<Props> = () => {
           <BorderBox className="flex flex-col w-1/2">
             <InfoText className="text-center">MARKET CAP</InfoText>
             <div className="text-center">
-              <FormatPrice 
+              <FormatPrice
                 value={currentMarketCap * ethPrice[Number(chainId)]}
                 doller={true}
               />

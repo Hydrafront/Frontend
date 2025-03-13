@@ -115,7 +115,7 @@ export const useCreatePresaleToken = () => {
   };
   return {
     createPresaleToken,
-    isLoading: isLoading || isSuccess === false,
+    isLoading,
     UserRejectedRequestError,
   };
 };

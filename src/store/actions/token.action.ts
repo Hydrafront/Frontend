@@ -1,12 +1,18 @@
 import { PinataSDK } from "pinata-web3";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { setToken, setTokens, setTransactions, setTokenCount } from "../reducers/token-slice";
+import {
+  setToken,
+  setTokens,
+  setTransactions,
+  setTokenCount,
+} from "../reducers/token-slice";
 import { ThunkAction } from "redux-thunk";
 import { RootState } from "../store";
 import { AnyAction } from "redux";
 import { TransactionType } from "@/interfaces/types";
 import socket from "@/socket/token";
+import { closeLoading } from "../reducers/loading-slice";
 
 const pinata = new PinataSDK({
   pinataJwt: import.meta.env.VITE_PINATA_TOKEN,
@@ -27,25 +33,26 @@ export const uploadImageToPinata = async (file: File) => {
 };
 
 interface TokenInfo {
-  description: string;
-  dex: {
+  description?: string;
+  dex?: {
     name: string;
     address: `0x${string}`;
   };
-  chainId: number;
-  logo: string;
-  name: string;
-  symbol: string;
-  price: number;
-  marketCap: number;
-  creator: `0x${string}`;
-  type: string;
-  banner: string;
-  progress: number;
-  website: string;
-  twitter: string;
-  telegram: string;
-  discord: string;
+  chainId?: number;
+  logo?: string;
+  name?: string;
+  symbol?: string;
+  price?: number;
+  marketCap?: number;
+  creator?: `0x${string}`;
+  type?: string;
+  banner?: string;
+  progress?: number;
+  website?: string;
+  twitter?: string;
+  telegram?: string;
+  discord?: string;
+  boost?: number;
 }
 
 export const createTokenInfo = async (
@@ -117,5 +124,25 @@ export const saveTransactionAction =
       socket.emit("save-transaction", res.data);
     } catch (error) {
       throw new Error("Failed to save transaction");
+    }
+  };
+export const updateBoost =
+  (
+    tokenAddress: `0x${string}`,
+    boost: number
+  ): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async (dispatch) => {
+    try {
+      await axios.put(`${BASE_URL}/update-boosted`, {
+        tokenAddress,
+        boost,
+      });
+      dispatch(setToken({ boost }));
+      toast.success("Boost updated successfully");
+      socket.emit("update-boosted", boost);
+    } catch (error) {
+      throw new Error("Failed to update boost");
+    } finally {
+      dispatch(closeLoading());
     }
   };

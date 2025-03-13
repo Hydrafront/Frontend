@@ -36,12 +36,12 @@ import {
   useCurrentTokenPrice,
   useMarketCap,
 } from "@/utils/contractUtils";
-import Spin2 from "@/components/spins/spin2/Spin2";
+import Spin2 from "@/components/spins/Spin2";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { createTokenEmit } from "@/socket/token";
 import { useAppSelector } from "@/store/hooks";
 
-const MAX_FILE_SIZE = 1024 * 1024; // 1MB
+const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5MB
 
 export interface FormType {
   name: string;
@@ -61,11 +61,8 @@ const TokenForm: React.FC = () => {
   const { open } = useWeb3Modal();
   const chains = useChains();
   const chainId = useChainId();
-  const {
-    createPresaleToken,
-    isLoading: isContractLoading,
-    UserRejectedRequestError,
-  } = useCreatePresaleToken();
+  const { createPresaleToken, UserRejectedRequestError } =
+    useCreatePresaleToken();
   const { ethPrice } = useAppSelector((state) => state.eth);
   const { isConnected, address } = useAccount();
   const [selectedChain, setSelectedChain] = useState<Chain>(chains[0]);
@@ -77,9 +74,6 @@ const TokenForm: React.FC = () => {
     | undefined
   >();
   const [isLoading, setIsLoading] = useState(false);
-  const [creationStep, setCreationStep] = useState<
-    "idle" | "uploading" | "creating" | "completed" | "error"
-  >("idle");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const contractAddress = getContractAddress(selectedChain.id);
@@ -132,7 +126,7 @@ const TokenForm: React.FC = () => {
         setIsUploadingBanner(true);
       }
       if (file.size > MAX_FILE_SIZE) {
-        toast.error("File size must be less than 1MB");
+        toast.error("File size must be less than 5MB");
         return;
       }
       const obj: { [key: string]: string | undefined } = {};
@@ -191,7 +185,6 @@ const TokenForm: React.FC = () => {
         import.meta.env.VITE_PRIVATE_KEY
       );
       setIsLoading(true);
-      setCreationStep("uploading");
       const receipt = await createPresaleToken(
         form.name,
         form.symbol,
@@ -229,14 +222,12 @@ const TokenForm: React.FC = () => {
       } else {
         throw new Error("Token address or image upload failed");
       }
-      setCreationStep("completed");
       toast.success("Token created successfully");
       setIsLoading(false);
     } catch (error) {
       console.log("Error in token creation", error);
 
       //Reset the creation step to allow the user to try again
-      setCreationStep("idle");
 
       if (error instanceof Error) {
         if (error instanceof UserRejectedRequestError) {
@@ -258,29 +249,6 @@ const TokenForm: React.FC = () => {
       }
       setIsLoading(false);
     }
-  };
-
-  const getStatusText = () => {
-    if (creationStep === "creating")
-      return isContractLoading ? (
-        <span className="text-textDark">
-          Wating for blockchain confirmation...
-        </span>
-      ) : (
-        <span className="text-textDark">Creating token on blockchain...</span>
-      );
-    if (creationStep === "completed")
-      return (
-        <span className="text-textDark">
-          Token created successfully on blockchain
-        </span>
-      );
-    if (creationStep === "error")
-      return (
-        <span className="text-red-500">
-          Error occurred. Visit Portfolio to Update TokenInfo
-        </span>
-      );
   };
 
   return (
@@ -569,9 +537,6 @@ const TokenForm: React.FC = () => {
             Connect Wallet
           </GradientButton>
         )}
-      </div>
-      <div className="mt-5">
-        <p className="text-textDark text-[14px]">{getStatusText()}</p>
       </div>
     </div>
   );

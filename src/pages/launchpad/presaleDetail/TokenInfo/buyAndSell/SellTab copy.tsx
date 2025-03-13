@@ -397,9 +397,7 @@ const SellTab: React.FC<{
           className="w-full py-2 flex justify-center"
         >
           {transactionLoading ? (
-            <div className="flex items-center gap-2">
-              <div className="dot-flashing m-auto"></div>
-            </div>
+            "Processing..."
           ) : (
             <>
               {isConnected ? (

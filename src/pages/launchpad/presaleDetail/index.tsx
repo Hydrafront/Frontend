@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getTokenByAddress, getTransactionsByTokenAddress } from "@/store/actions/token.action";
 import TradingViewChart from "@/components/ui/TradingViewChart";
-import Spin2 from "@/components/spins/spin2/Spin2";
+import Spin2 from "@/components/spins/Spin2";
 import { isEmpty } from "@/utils/validation";
 import { getUnit } from "@/utils/config/chainDexConfig";
 

@@ -1,4 +1,3 @@
-import "./spin1.css";
 
 const Spin1 = () => {
   return <div className="loader-1"></div>;

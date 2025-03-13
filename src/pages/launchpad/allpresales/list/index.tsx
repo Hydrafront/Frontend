@@ -1,7 +1,7 @@
 import NFTCard from "./NFTCard";
 import { TokenType } from "@/interfaces/types";
 import { AnimationOnScroll } from "react-animation-on-scroll";
-import Spin1 from "@/components/spins/spin1/Spin1";
+import Spin1 from "@/components/spins/Spin1";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useAppSelector } from "@/store/hooks";
 import { isEmpty } from "@/utils/validation";
