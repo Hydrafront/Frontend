@@ -32,7 +32,7 @@ const NFTTable = () => {
     return {
       token: (
         <div className="py-2 px-3 flex items-center min-w-[160px] md:min-w-[350px] border-l border-r border-borderColor bg-lightColor token-first-item">
-          <span className="text-textDark mr-3 text-tedar hidden md:block">
+          <span className="text-textDark mr-3 text-tedar hidden md:block w-[50px]">
             #{index + 1}
           </span>
           <div>
@@ -53,7 +53,7 @@ const NFTTable = () => {
           <span className="text-textDark text-[12px]">
             /{getUnit(item.chainId)}
           </span>
-          <span className="tex-sm text-white ml-2 whitespace-nowrap hidden md:block">
+          <span className="text-sm overflow-hidden hidden md:block text-ellipsis text-white ml-2 whitespace-nowrap w-[150px]">
             {item.description}
           </span>
           {(item.boost ?? 0) > 0 && (
