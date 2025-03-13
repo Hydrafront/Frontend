@@ -71,13 +71,13 @@ const BoostPayment = ({ selectedBoost }: { selectedBoost: BoostType }) => {
       // Send native MATIC (POL) on Polygon
       try {
         await sendTransaction({
-          to: process.env.VITE_PAYMENT_ADDRESS as `0x${string}`,
+          to: import.meta.env.VITE_PAYMENT_ADDRESS as `0x${string}`,
           value: ethers.parseEther(
             (selectedBoost.price / Number(ethPrice[selectedNetwork])).toString()
           ),
         });
       } catch (error) {
-        toast.error("Payment Failed: " + error);
+        toast.error("Boost payment failed");
       }
     }
   };

@@ -133,13 +133,13 @@ export const updateBoost =
   ): ThunkAction<void, RootState, unknown, AnyAction> =>
   async (dispatch) => {
     try {
-      await axios.put(`${BASE_URL}/update-boosted`, {
+      const res = await axios.put(`${BASE_URL}/update-boosted`, {
         tokenAddress,
         boost,
       });
-      dispatch(setToken({ boost }));
+      dispatch(setToken({ boost: res.data.boost }));
       toast.success("Boost updated successfully");
-      socket.emit("update-boosted", boost);
+      socket.emit("update-boosted", res.data.boost);
     } catch (error) {
       throw new Error("Failed to update boost");
     } finally {
