@@ -13,7 +13,7 @@ const BoostDashboard = () => {
     const dispatch = useAppDispatch();
 
     const [selectedBoost, setSelectedBoost] = useState<BoostType | null>(null);
-    const [status, setStatus] = useState<"boost" | "payment">("boost");
+    const [status, setStatus] = useState<string>("boost");
   
     const handleClose = () => {
         dispatch(closeDialog());
@@ -56,13 +56,19 @@ const BoostDashboard = () => {
             Ticker!
           </p>
           {!selectedBoost ? (
-            <BoostList setSelectedBoost={setSelectedBoost} />
+            <BoostList
+              setSelectedBoost={setSelectedBoost}
+            />
           ) : (
-            <BoostConfirm selectedBoost={selectedBoost} setSelectedBoost={setSelectedBoost} setStatus={setStatus} />
+            <BoostConfirm
+              selectedBoost={selectedBoost}
+              setSelectedBoost={setSelectedBoost}
+              setStatus={setStatus}
+            />
           )}
         </div>
       ) : (
-        <BoostPayment selectedBoost={selectedBoost} />
+        selectedBoost && <BoostPayment selectedBoost={selectedBoost} />
       )}
     </div>
   );
