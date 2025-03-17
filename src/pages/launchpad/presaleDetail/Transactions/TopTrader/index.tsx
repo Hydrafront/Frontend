@@ -248,7 +248,7 @@ const TopTraders = () => {
       className={clsx(
         "transaction-table overflow-scroll md:h-[350px]",
         tab === "txn"
-          ? " h-[calc((100vh-116px)/2)]"
+          ? "min-h-[calc(100vh-116px)]"
           : " h-[calc((100vh-116px)/2)]"
       )}
     >
