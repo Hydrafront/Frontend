@@ -6,7 +6,7 @@ import LeafIcon from "@/components/icons/LeafIcon";
 import ScrollOnDrag from "@/components/ui/ScrollOnDrag";
 import { useAppDispatch } from "@/store/hooks";
 import { setFilters } from "@/store/reducers/token-slice";
-import { supportedChains } from "@/utils/config/chainDexConfig";
+import { getChainName, supportedChains } from "@/utils/config/chainDexConfig";
 import { getUrlSearchParams, setUrlSearchParams } from "@/utils/func";
 import { List, ListItem } from "@material-tailwind/react";
 import {
@@ -26,13 +26,7 @@ const DragScrollbar: React.FC = () => {
   const [subSort, setSubsort] = useState<string>("");
   const [boosted, setBoosted] = useState<boolean>(false);
   const [ads, setAds] = useState<boolean>(false);
-  const { chainId } = getUrlSearchParams();
 
-  const handleChangeChain = (chainId: string | undefined) => () => {
-    dispatch(setFilters({ chainId: chainId || undefined }));
-    setUrlSearchParams({ chainId: chainId || undefined });
-    // setChainId(chainId);
-  };
 
   const handleChangeSort = (value: string) => () => {
     setSort(value);
@@ -116,31 +110,41 @@ const DragScrollbar: React.FC = () => {
     options,
   }) => {
     const dividerOption = ["Any", "≤3d"];
-    const [selected, setSelected] = useState<string | undefined>(undefined);
+    const arrayOptions =
+      name === "Chain"
+        ? ["Any", ...supportedChains.map((chain) => chain.id.toString())]
+        : options;
 
+    const key = () => {
+      if (name === "DEX") {
+        return "dex";
+      } else if (name === "Chain") {
+        return "chainId";
+      } else if (name === "Age") {
+        return "age";
+      } else if (name === "Min progress") {
+        return "minProgress";
+      } else if (name === "Max progress") {
+        return "maxProgress";
+      }
+      return name.toLowerCase();
+    };
     const handleClick = (value: string) => () => {
-      const key = () => {
-        if (name === "DEX") {
-          return "dex";
-        } else if (name === "Age") {
-          return "age";
-        } else if (name === "Min progress") {
-          return "minProgress";
-        } else if (name === "Max progress") {
-          return "maxProgress";
-        }
-        return name.toLowerCase();
-      };
-      setSelected(value);
       dispatch(setFilters({ [key()]: value === "Any" ? undefined : value }));
       setUrlSearchParams({ [key()]: value === "Any" ? undefined : value });
     };
+    const { [key()]: selected } = getUrlSearchParams();
     return (
       <CustomPopover
         trigger={
           <button className="border-borderColor border rounded-md px-3 flex gap-2 items-center whitespace-nowrap">
             <IconFilterFilled size={16} />
-            {name} {selected && selected !== "Any" ? `(${selected})` : ""}
+            {name}{" "}
+            {selected
+              ? `(${
+                  name === "Chain" ? getChainName(Number(selected)) : selected
+                })`
+              : ""}
           </button>
         }
       >
@@ -150,7 +154,7 @@ const DragScrollbar: React.FC = () => {
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
         >
-          {options.map((item, index) => (
+          {arrayOptions.map((item, index) => (
             <React.Fragment key={index}>
               <ListItem
                 placeholder={undefined}
@@ -160,7 +164,7 @@ const DragScrollbar: React.FC = () => {
                 onClick={handleClick(item)}
                 selected={selected === item}
               >
-                {item}
+                {name === "Chain" ? (item === "Any" ? "All Chains" : getChainName(Number(item))) : item}
               </ListItem>
               {dividerOption.includes(item) && (
                 <hr className="border-borderColor" />
@@ -186,8 +190,8 @@ const DragScrollbar: React.FC = () => {
 
   return (
     <ScrollOnDrag className="flex pb-4 pt-1 cursor-move">
-      <div className="flex p-[1px] bg-lighterColor rounded-md">
-        <div
+      <div className="flex p-[1px] rounded-md">
+        {/* <div
           className={clsx(
             "rounded-l-lg cursor-pointer whitespace-nowrap px-3 text-sm py-2 bg-bgColor hover:bg-lighterColor",
             chainId === undefined && "bg-lighterColor"
@@ -195,28 +199,11 @@ const DragScrollbar: React.FC = () => {
           onClick={handleChangeChain(undefined)}
         >
           All chains
-        </div>
-        {supportedChains.map((chain) => (
-          <div
-            key={chain.id}
-            className={clsx(
-              "cursor-pointer px-3 py-2 bg-bgColor whitespace-nowrap text-sm hover:bg-lighterColor",
-              chainId === chain.id.toString() && "bg-lighterColor"
-            )}
-            onClick={handleChangeChain(chain.id.toString())}
-          >
-            {chain.name}
-          </div>
-        ))}
-        {/* <div
-          className={clsx(
-            "rounded-r-lg cursor-pointer whitespace-nowrap px-3 py-2 text-sm bg-bgColor hover:bg-lighterColor",
-            chain === "unichain" && "bg-lighterColor"
-          )}
-          onClick={handleChangeChain("unichain")}
-        >
-          Unichain
         </div> */}
+        <FilterButton
+          name="Chain"
+          options={supportedChains.map((chain) => chain.id.toString())}
+        />
       </div>
       <div className="ml-3 flex gap-2">
         {SortButton({

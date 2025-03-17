@@ -52,7 +52,6 @@ const BuyTab: React.FC<{
   const { currentPrice, accumulatedPOL, remainingTokens } =
     useCurrentTokenPrice(tokenAddress as `0x${string}`);
   const { ethPrice } = useAppSelector((state) => state.eth);
-  const currentEthPrice = ethPrice[Number(chainId)];
 
   const { amountOut, amountOutFee } = useAmountOutAndFee(
     tokenAddress as `0x${string}`,
@@ -102,6 +101,7 @@ const BuyTab: React.FC<{
 
   const handleAction = async () => {
     setTransactionLoading(true);
+    console.log(minTokenAmount)
     if (!swapped) {
       if (isEmpty(value)) {
         toast.error("Missing required infomation");
@@ -116,12 +116,12 @@ const BuyTab: React.FC<{
           // const tokenAddress = await getTokenAddress(txHash, "buy");
           if (token) {
             try {
-              await addTokenToWallet({
-                tokenAddress: tokenAddress as `0x${string}`,
-                tokenSymbol: token.symbol,
-                tokenImage: token.logo,
-                tokenDecimals: token.decimals,
-              });
+              // await addTokenToWallet({
+              //   tokenAddress: tokenAddress as `0x${string}`,
+              //   tokenSymbol: token.symbol,
+              //   tokenImage: token.logo,
+              //   tokenDecimals: token.decimals,
+              // });
               dispatch(
                 saveTransactionAction({
                   txHash,
@@ -130,8 +130,9 @@ const BuyTab: React.FC<{
                   token: minTokenAmount,
                   eth: value,
                   maker: address as `0x${string}`,
-                  usd: currentPrice * minTokenAmount * currentEthPrice,
-                  price: currentPrice * currentEthPrice,
+                  usd:
+                    currentPrice * minTokenAmount * ethPrice[Number(chainId)],
+                  price: currentPrice * ethPrice[Number(chainId)],
                   chainId: Number(chainId),
                 })
               );
@@ -141,6 +142,8 @@ const BuyTab: React.FC<{
                 "Error occurred while adding token to wallet:",
                 error
               );
+            } finally {
+              setTransactionLoading(false);
             }
           }
         } catch (error) {
@@ -176,8 +179,8 @@ const BuyTab: React.FC<{
                 token: tokenAmount,
                 eth: value,
                 maker: address as `0x${string}`,
-                usd: currentPrice * tokenAmount * currentEthPrice,
-                price: currentPrice * currentEthPrice,
+                usd: currentPrice * tokenAmount * ethPrice[Number(chainId)],
+                price: currentPrice * ethPrice[Number(chainId)],
                 chainId: Number(chainId),
               })
             );
@@ -349,7 +352,7 @@ const BuyTab: React.FC<{
           placeholder={undefined}
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
-          disabled={transactionLoading}
+          disabled={transactionLoading || !isEmpty(errorMessage)}
           onClick={isConnected ? handleAction : handleConnectWallet}
           color="green"
           className="w-full py-2 flex justify-center"
@@ -391,7 +394,11 @@ const BuyTab: React.FC<{
                 you receive min. {Math.ceil(minTokenAmount)} {token.symbol} (~
                 <FormatPrice
                   color="text-textDark"
-                  value={minTokenAmount * currentPrice * currentEthPrice}
+                  value={
+                    minTokenAmount *
+                    currentPrice *
+                    (ethPrice[Number(chainId)] || 0)
+                  }
                 />
                 )
               </>
@@ -401,7 +408,7 @@ const BuyTab: React.FC<{
                 {getUnit(Number(chainId))} (~
                 <FormatPrice
                   color="text-textDark"
-                  value={maxEthAmount * currentEthPrice}
+                  value={maxEthAmount * (ethPrice[Number(chainId)] || 0)}
                 />
                 )
               </>

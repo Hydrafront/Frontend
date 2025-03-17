@@ -31,20 +31,20 @@ const NFTCard: React.FC<NFTCardType> = (props) => {
         onPointerEnterCapture={undefined}
         onPointerLeaveCapture={undefined}
         onClick={handleClick}
-        className="p-4 cursor-pointer"
+        className="p-2 md:p-4 cursor-pointer"
       >
         <div className="flex">
           <img
             src={props.logo}
             alt="token-avatar"
-            className="rounded-md w-[100px] h-[100px] mr-4"
+            className="rounded-md w-[60px] h-[60px] md:w-[100px] md:h-[100px] mr-4"
           />
           <div className="flex flex-col justify-center">
             <div>
-              <span className="text-[20px] text-gray-500 mr-3 overflow-hidden text-ellipsis whitespace-nowrap">
+              <span className="text-[16px] md:text-[20px] text-gray-500 mr-3 overflow-hidden text-ellipsis whitespace-nowrap">
                 {props.name}
               </span>
-              <span className="text-[20px] text-white overflow-hidden text-ellipsis whitespace-nowrap">
+              <span className="text-[16px] md:text-[20px] text-white overflow-hidden text-ellipsis whitespace-nowrap">
                 {props.symbol}
               </span>
             </div>

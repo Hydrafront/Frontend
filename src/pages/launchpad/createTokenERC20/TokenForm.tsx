@@ -7,35 +7,45 @@ import {
   IconWallet,
 } from "@tabler/icons-react";
 import Upload from "rc-upload";
-import { PresaleTokenFormProps } from ".";
 import { useAccount, useChains } from "wagmi";
-import { useEffect } from "react";
+import { useState } from "react";
 import clsx from "clsx";
 import { Checkbox, Tooltip } from "@material-tailwind/react";
+import { Chain } from "wagmi/chains";
+import { useForm } from "@/hooks/useForm";
 
-interface PropsType {
-  form: PresaleTokenFormProps;
-  setForm: (value: PresaleTokenFormProps | ((prev: PresaleTokenFormProps) => PresaleTokenFormProps)) => void;
+export interface FormType {
+  name: string;
+  symbol: string;
+  logo: string;
+  maxSupply: number;
+  decimal: number;
+  [key: string]: unknown; // Add index signature
 }
-
-const TokenForm: React.FC<PropsType> = ({ form, setForm }) => {
+const TokenForm: React.FC = () => {
   const chains = useChains();
   const { isConnected } = useAccount();
+  const [selectedChain, setSelectedChain] = useState<Chain>(chains[0]);
 
-  useEffect(() => {
-    setForm((prev: PresaleTokenFormProps) => ({
-      ...prev,
-      chain: chains[0],
-      dex: { name: "Uniswap" },
-    }));
-  }, [chains, setForm]);
 
+  const { form, setForm } = useForm<FormType>({
+    name: "",
+    symbol: "",
+    maxSupply: 0,
+    logo: "",
+    decimal: 18,
+  });
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev: PresaleTokenFormProps) => ({
+    setForm((prev: FormType) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
   };
+
+  const handleChainChange = async (value: Chain) => {
+    setSelectedChain(value);
+  };
+  
 
   // const handleSelectChange = (key: string, value: string) => {
   //   setForm({
@@ -55,20 +65,22 @@ const TokenForm: React.FC<PropsType> = ({ form, setForm }) => {
       </div>
       <div className="mb-5 flex flex-wrap">
         {chains.map((chain, index) => (
-          <button
-            key={index}
-            className={clsx(
-              "text-[18px] bg-lighterColor rounded-lg w-full sm:w-1/2 text-center flex py-4 hover:bg-lightestColor border-2 justify-center items-center gap-3",
-              form.chain?.name === chain.name && "border-green-500"
-            )}
+          <div key={index} className="w-full sm:w-1/2 p-2">
+            <button
+              onClick={() => handleChainChange(chain)}
+              className={clsx(
+                "text-[18px] bg-lighterColor rounded-lg w-full text-center flex py-4 hover:bg-lightestColor border-2 border-borderColor justify-center items-center gap-3",
+                selectedChain.id === chain.id && "border-green-500"
+              )}
           >
             <img
               src={`/assets/images/chains/${chain.name}.png`}
               alt="chain-icon"
               className="w-9"
             />
-            {chain.name === "Polygon" ? "Polygon Pos" : chain.name}
-          </button>
+              {chain.name === "Polygon" ? "Polygon Pos" : chain.name}
+            </button>
+          </div>
         ))}
       </div>
       <div className="flex mb-4 w-full items-center gap-4">
@@ -96,7 +108,7 @@ const TokenForm: React.FC<PropsType> = ({ form, setForm }) => {
 
       <LabelText>Upload images</LabelText>
       <div className="mb-10 flex flex-wrap xl:flex-nowrap gap-4">
-        <Upload component="div" value={form.avatar}>
+        <Upload component="div" value={form.logo}>
           <div className="h-[150px] w-[160px] border-dashed border-2 bg-lighterColor border-gray-400 flex justify-center items-center rounded-xl">
             <div>
               <IconPhotoPlus className="w-[30px] h-[30px] m-auto mb-2" />

@@ -42,6 +42,10 @@ const AllPresales: React.FC = () => {
     getTokens(filters);
   }, [filters]);
 
+  const handlePageChange = (selectedItem: { selected: number }) => {
+    dispatch(setFilters({ ...filters, page: selectedItem.selected + 1 }));
+  };
+
   return (
     <div className="relative px-4 pt-3">
       <BitRivals />
@@ -53,8 +57,8 @@ const AllPresales: React.FC = () => {
         <NFTTable />
       )}
       {tokenCount > 0 && (
-        <div className="w-full flex justify-center">
-          <Pagination pageCount={Math.ceil(tokenCount / 10)} />
+        <div className="w-full flex justify-center mb-4">
+          <Pagination onPageChange={handlePageChange} pageCount={Math.ceil(tokenCount / 5)} />
         </div>
       )}
     </div>

@@ -23,7 +23,7 @@ const TransactionTable = () => {
   const { transactions } = useAppSelector((state) => state.token);
   const { token } = useAppSelector((state) => state.token);
   const [sortedTxns, setSortedTxns] = useState<TransactionType[]>([]);
-
+  const { tab } = useAppSelector((state) => state.token);
   useEffect(() => {
     if (transactions.length > 0) {
       const sortedTxns = [...transactions];
@@ -176,7 +176,14 @@ const TransactionTable = () => {
   ];
 
   return (
-    <div className="transaction-table overflow-scroll h-[350px]">
+    <div
+      className={clsx(
+        "transaction-table overflow-scroll md:h-[350px]",
+        tab === "txn"
+          ? "min-h-[calc(100vh-116px)]"
+          : "h-[calc((100vh-116px)/2)]"
+      )}
+    >
       <Table
         emptyText={
           <div className="text-white text-center gap-2 h-[305px] flex items-center justify-center">

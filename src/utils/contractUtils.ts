@@ -148,7 +148,7 @@ export const useUserBalance = (
 
 export const useBuyToken = (tokenAddress: `0x${string}`) => {
   const chainId = useChainId();
-  const { writeContractAsync, error: buyError } = useWriteContract();
+  const { writeContractAsync, error: buyError, isSuccess } = useWriteContract();
   const { address } = useAccount();
 
   const buyGivenIn = async (minTokenAmount: bigint, amountPrice: bigint) => {
@@ -185,7 +185,7 @@ export const useBuyToken = (tokenAddress: `0x${string}`) => {
       throw new Error("Error buying token:", { cause: error });
     }
   };
-  return { buyGivenIn, buyGivenOut, buyError };
+  return { buyGivenIn, buyGivenOut, buyError, isSuccess };
 };
 
 //-----------------Token Allowance-----------------

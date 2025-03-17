@@ -19,20 +19,22 @@ const TokenSwap = () => {
   const ethValueRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (ethPrice[Number(chainId)]) {
     if (focused === "token") {
-    if (ethValue.label === "USD") {
-      setEthValue({
-        ...ethValue,
-        value: (
-          Number(value) *
-          (currentPrice * ethPrice[Number(chainId)])
-        ).toString(),
-      });
-    } else {
-      setEthValue({
-        ...ethValue,
-        value: (Number(value) * (currentPrice ?? 0)).toString(),
+      if (ethValue.label === "USD") {
+        setEthValue({
+          ...ethValue,
+          value: (
+            Number(value) *
+            (currentPrice * ethPrice[Number(chainId)])
+          ).toString(),
         });
+      } else {
+        setEthValue({
+          ...ethValue,
+          value: (Number(value) * (currentPrice ?? 0)).toString(),
+        });
+        }
       }
     }
   }, [value, currentPrice * ethPrice[Number(chainId)], currentPrice]);
@@ -92,9 +94,11 @@ const TokenSwap = () => {
           value={value}
           onChange={handleValueChange}
           onFocus={() => setFocused("token")}
-          className="bg-transparent p-2 pl-4 border-r w-[160px] sm:w-[150px] lg:w-auto rounded-r-none border-borderColor"
+          className="bg-transparent p-2 pl-4 border-r w-full lg:w-auto rounded-r-none border-borderColor"
         />
-        <button className="text-center flex-1 bg-lighterColor">DINOCAT</button>
+        <button className="text-center px-2 flex-1 bg-lighterColor">
+          DINOCAT
+        </button>
       </div>
       <div className="flex justify-center">
         <IconTransferVertical />
@@ -109,7 +113,7 @@ const TokenSwap = () => {
           value={ethValue.value}
           onChange={handleEthValueChange}
           onFocus={() => setFocused("eth")}
-          className="bg-transparent p-2 pl-4 border-r w-[160px] sm:w-[150px] lg:w-auto rounded-r-none border-borderColor"
+          className="bg-transparent p-2 pl-4 border-r w-full lg:w-auto rounded-r-none border-borderColor"
         />
         <div className="flex gap-2 bg-lighterColor flex-1 p-1">
           <button
@@ -117,8 +121,17 @@ const TokenSwap = () => {
             onClick={() => handleEthSelect("USD")}
           >
             <IconText>
-              <IconCheck size={16} color={ethValue.label === "USD" ? "white" : "gray"} />
-              <span className={clsx(ethValue.label === "USD" ? "text-white" : "text-gray-500")}>USD</span>
+              <IconCheck
+                size={16}
+                color={ethValue.label === "USD" ? "white" : "gray"}
+              />
+              <span
+                className={clsx(
+                  ethValue.label === "USD" ? "text-white" : "text-gray-500"
+                )}
+              >
+                USD
+              </span>
             </IconText>
           </button>
           <button
@@ -126,8 +139,17 @@ const TokenSwap = () => {
             onClick={() => handleEthSelect("POL")}
           >
             <IconText>
-              <IconCheck size={16} color={ethValue.label === "POL" ? "white" : "gray"} />
-              <span className={clsx(ethValue.label === "POL" ? "text-white" : "text-gray-500")}>POL</span>
+              <IconCheck
+                size={16}
+                color={ethValue.label === "POL" ? "white" : "gray"}
+              />
+              <span
+                className={clsx(
+                  ethValue.label === "POL" ? "text-white" : "text-gray-500"
+                )}
+              >
+                POL
+              </span>
             </IconText>
           </button>
         </div>

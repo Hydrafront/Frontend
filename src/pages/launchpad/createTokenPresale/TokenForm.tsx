@@ -51,6 +51,7 @@ export interface FormType {
   banner: string | undefined;
   website: string;
   twitter: string;
+  decimal?: number;
   telegram: string;
   discord: string;
   initialBuy: number;
@@ -94,6 +95,7 @@ const TokenForm: React.FC = () => {
     );
   }, []);
 
+
   const { form, setForm, handleChange } = useForm<FormType>({
     name: "",
     symbol: "",
@@ -106,16 +108,15 @@ const TokenForm: React.FC = () => {
     discord: "",
     initialBuy: 0,
     policy: false,
+    decimal: 18,
   });
 
   const handleChainChange = async (value: Chain) => {
-    try {
-      if (chainId !== value?.id) {
-        setSelectedChain(value);
-      }
-    } catch (error) {
-      console.error(error);
-    }
+    setSelectedChain(value);
+    setSelectedDex(getDex(value.id)?.[0] as {
+      name: string;
+      address: `0x${string}` | undefined;
+    });
   };
 
   const handleImageUpload =
@@ -263,21 +264,22 @@ const TokenForm: React.FC = () => {
       </div>
       <div className="mb-5 flex flex-wrap">
         {chains.map((item, index) => (
-          <button
-            key={index}
-            onClick={() => handleChainChange(item)}
-            className={clsx(
-              "text-[18px] bg-lighterColor rounded-lg w-full sm:w-1/2 text-center flex py-4 hover:bg-lightestColor border-2 justify-center items-center gap-3",
-              chainId === item.id && "border-green-500"
-            )}
-          >
-            <img
-              src={`/assets/images/chains/Polygon.png`}
-              alt="chain-icon"
-              className="w-9"
-            />
-            {item.name}
-          </button>
+          <div key={index} className="w-full sm:w-1/2 p-2">
+            <button
+              onClick={() => handleChainChange(item)}
+              className={clsx(
+                "text-[18px] bg-lighterColor whitespace-nowrap rounded-lg w-full text-center flex py-4 hover:bg-lightestColor border-2 border-borderColor justify-center items-center gap-3",
+                selectedChain.id === item.id && "border-green-500"
+              )}
+            >
+              <img
+                src={`/assets/images/chains/${item.name}.png`}
+                alt="chain-icon"
+                className="w-9"
+              />
+              {item.name}
+            </button>
+          </div>
         ))}
       </div>
       <div className="flex mb-4 w-full items-center gap-4">
@@ -296,7 +298,7 @@ const TokenForm: React.FC = () => {
             )}
           >
             <img
-              src={`/assets/images/dexs/Uniswap.png`}
+              src={`/assets/images/dexs/${item.name}.png`}
               alt="chain-icon"
               className="w-9"
             />

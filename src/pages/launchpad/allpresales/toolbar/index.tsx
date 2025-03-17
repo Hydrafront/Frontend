@@ -1,6 +1,6 @@
 import ListBtnGroup from "./ListBtnGroup";
 import SearchInput from "./SearchInput";
-import Categories from "./Catgories";
+// import Categories from "./Catgories";
 import DragScrollbar from "./DragScrollbar";
 import { setUrlSearchParams } from "@/utils/func";
 import { useState } from "react";
@@ -10,11 +10,11 @@ import { useAppDispatch } from "@/store/hooks";
 interface PropsType {
   style: string;
   setStyle: (value: string) => void;
-  tab: string;
-  setTab: (value: string) => void;
+  tab?: string;
+  setTab?: (value: string) => void;
 }
 
-const Toolbar: React.FC<PropsType> = ({ style, setStyle, tab, setTab }) => {
+const Toolbar: React.FC<PropsType> = ({ style, setStyle }) => {
   const dispatch = useAppDispatch();
   const [value, setValue] = useState<string>("");
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -33,9 +33,9 @@ const Toolbar: React.FC<PropsType> = ({ style, setStyle, tab, setTab }) => {
             <SearchInput value={value} onChange={(e) => setValue(e.target.value)} onKeyPress={handleSearch} />
           </div>
         </div>
-        <div className="w-full xl:w-[430px] flex justify-center mt-3 md:mt-0">
+        {/* <div className="w-full xl:w-[430px] flex justify-center mt-3 md:mt-0">
           <Categories tab={tab} setTab={setTab} />
-        </div>
+        </div> */}
       </div>
       <DragScrollbar />
     </>

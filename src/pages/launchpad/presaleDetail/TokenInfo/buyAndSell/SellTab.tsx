@@ -45,7 +45,6 @@ const SellTab: React.FC<{
   const [priorityFee, setPriorityFee] = useState<number>(0);
   const dispatch = useAppDispatch();
   const { ethPrice } = useAppSelector((state) => state.eth);
-  const currentEthPrice = ethPrice[Number(chainId)];
   const { accumulatedPOL, remainingTokens } = useCurrentTokenPrice(
     tokenAddress as `0x${string}`
   );
@@ -122,8 +121,8 @@ const SellTab: React.FC<{
               token: tokenAmount,
               eth: value,
               maker: address as `0x${string}`,
-              usd: currentPrice * tokenAmount * currentEthPrice,
-              price: currentPrice * currentEthPrice,
+              usd: currentPrice * tokenAmount * ethPrice[Number(chainId)],
+              price: currentPrice * ethPrice[Number(chainId)],
               chainId: Number(chainId),
             })
           );
@@ -171,6 +170,11 @@ const SellTab: React.FC<{
     open();
   };
 
+  const handleSelectAmount = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const item = Number(e.currentTarget.textContent?.slice(0, -1));
+    setTokenAmount(tokenBalance * item / 100);
+  };
+
   if (!token) return null;
 
   return (
@@ -201,13 +205,13 @@ const SellTab: React.FC<{
           />
         </div>
         <div className="flex gap-[1px]">
-          {[0.1, 0.25, 0.5, 1, 2, 5].map((item) => (
+          {[10, 20, 25, 50, 75, 100].map((item) => (
             <button
               key={item}
-              onClick={() => setTokenAmount(item)}
+              onClick={handleSelectAmount}
               className="text-[12px] py-1 bg-lighterColor w-1/6 hover:bg-lightestColor transition"
             >
-              {item}
+              {item}%
             </button>
           ))}
         </div>
@@ -247,7 +251,7 @@ const SellTab: React.FC<{
           placeholder={undefined}
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
-          disabled={transactionLoading}
+          disabled={transactionLoading || !isEmpty(errorMessage)}
           onClick={isConnected ? handleAction : handleConnectWallet}
           color="red"
           className="w-full py-2 flex justify-center"
@@ -282,7 +286,7 @@ const SellTab: React.FC<{
             you receive min. {minEthAmount.toFixed(3)} {getUnit(Number(chainId))} (~
             <FormatPrice
               color="text-textDark"
-              value={minEthAmount * currentEthPrice}
+              value={minEthAmount * (ethPrice[Number(chainId)] || 0)}
             />
             )
           </InfoText>

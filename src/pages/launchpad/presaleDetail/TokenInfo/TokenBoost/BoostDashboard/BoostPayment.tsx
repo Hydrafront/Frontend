@@ -101,7 +101,7 @@ const BoostPayment = ({ selectedBoost }: { selectedBoost: BoostType }) => {
     if (transactionError) {
       toast.error("Payment Failed: " + transactionError);
     }
-  }, [isConfirming, isConfirmed, dispatch, transactionError, token?.tokenAddress, selectedBoost]);
+  }, [isConfirming, isConfirmed, transactionError, token?.tokenAddress, selectedBoost.times, dispatch]);
 
   return (
     <div className="bg-lightestColor p-6 rounded-lg text-white">

@@ -68,7 +68,7 @@ const TokenInfo: React.FC<Props> = () => {
   if (!token) return null;
 
   return (
-    <div className="overflow-y-scroll h-[100vh] pb-5 scroll-hidden">
+    <div className="overflow-y-scroll h-full md:h-[100vh] pb-5 scroll-hidden">
       <TokenHeader
         name={token.name}
         symbol={token.symbol}
@@ -93,16 +93,26 @@ const TokenInfo: React.FC<Props> = () => {
           <BorderBox className="flex flex-col w-1/2">
             <InfoText className="text-center">PRICE</InfoText>
             <div className="text-center">
-              <FormatPrice value={currentPrice * ethPrice[Number(chainId)]} />
+              {ethPrice[Number(chainId)] ? (
+                <FormatPrice
+                  value={currentPrice * ethPrice[Number(chainId)]}
+                />
+              ) : (
+                <div className="dot-flashing m-auto my-1"></div>
+              )}
             </div>
           </BorderBox>
           <BorderBox className="flex flex-col w-1/2">
             <InfoText className="text-center">MARKET CAP</InfoText>
             <div className="text-center">
-              <FormatPrice
-                value={currentMarketCap * ethPrice[Number(chainId)]}
-                doller={true}
-              />
+              {ethPrice[Number(chainId)] ? (
+                <FormatPrice
+                  value={currentMarketCap * ethPrice[Number(chainId)]}
+                  doller={true}
+                />
+              ) : (
+                <div className="dot-flashing m-auto my-1"></div>
+              )}
             </div>
           </BorderBox>
         </div>

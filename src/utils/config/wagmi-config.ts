@@ -2,7 +2,7 @@ import { createWeb3Modal } from "@web3modal/wagmi/react";
 import { defaultWagmiConfig } from "@web3modal/wagmi/react/config";
 
 // import { mainnet, arbitrum, optimism, apeChain, base, bsc, polygon, sonicTestnet, avalanche, sepolia } from 'wagmi/chains'
-import { polygonAmoy } from "wagmi/chains";
+import { arbitrum, avalanche, base, bsc, optimism, polygon, polygonAmoy, unichain } from "wagmi/chains";
 import { http } from "viem";
 
 // 1. Get projectId at https://cloud.walletconnect.com
@@ -20,9 +20,8 @@ const metadata = {
   url: "https://www.hydrapad.com/", // origin must match your domain & subdomain
   icons: ["https://avatars.githubusercontent.com/u/37784886"],
 };
-
 // const chains = [mainnet, arbitrum,optimism, apeChain, base, bsc, polygon, sonicTestnet, avalanche, sepolia] as const
-const chains = [polygonAmoy] as const;
+const chains = [polygonAmoy, unichain, base, polygon, avalanche, bsc, optimism, arbitrum] as const;
 export const config = defaultWagmiConfig({
   chains,
   projectId,

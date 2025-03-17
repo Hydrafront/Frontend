@@ -150,12 +150,14 @@ const TradingViewChart = ({
 
   return (
     <ErrorBoundary>
-      <div
-        ref={chartRef}
-        id={containerId}
-        className="tv-chart-container"
-        style={{ height: "600px", width: "100%" }}
-      />
+      <div className="w-full h-[calc((100vh-116px)/2)] md:h-[600px]">
+        <div
+          ref={chartRef}
+          id={containerId}
+          className="tv-chart-container"
+          style={{ height: "100%", width: "100%" }}
+        />
+      </div>
     </ErrorBoundary>
   );
 };

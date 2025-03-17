@@ -8,6 +8,7 @@ interface TokenState {
   transactions: TransactionType[];
   filters: Record<string, string>;
   tokenCount: number;
+  tab: "info" | "chart-txn" | "chart" | "txn";
 }
 
 const initialState: TokenState = {
@@ -17,6 +18,7 @@ const initialState: TokenState = {
   transactions: [],
   filters: {},
   tokenCount: 0,
+  tab: "info"
 };
 
 const TokenSlice = createSlice({
@@ -64,6 +66,9 @@ const TokenSlice = createSlice({
     setTokenCount: (state, action) => {
       state.tokenCount = action.payload;
     },
+    setTab: (state, action) => {
+      state.tab = action.payload;
+    }
   },
 });
 
@@ -76,6 +81,7 @@ export const {
   updateTokenList,
   setFilters,
   setTokenCount,
+  setTab
 } = TokenSlice.actions;
 
 export default TokenSlice.reducer;

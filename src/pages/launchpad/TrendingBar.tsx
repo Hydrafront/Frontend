@@ -39,11 +39,11 @@ const TrendingBar
         <div className="items-center hidden xl:flex">
           <div className="flex py-2 px-3 items-center justify-center w-[110px] bg-[#15131D] rounded-[64px]">
             {/* <img src="/assets/images/bit_rials.png" alt="bit-rials" width={28.8} height={28.8} className="rounded-md" /> */}
-            <span className="font-bold text-[14px] ml-1 text-orange-300">
+            <span className="font-bold text-[14px] ml-1 text-greenColor">
               Trending
             </span>
           </div>
-          <IconTrendingUp className="ml-3 mr-6 w-[30px]" color="orange" />
+          <IconTrendingUp className="ml-3 mr-6 w-[30px]" color="green" />
         </div>
         <div className="flex justify-between overflow-hidden pb-2">
           <Marquee>

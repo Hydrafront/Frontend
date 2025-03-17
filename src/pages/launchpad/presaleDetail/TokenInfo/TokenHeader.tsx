@@ -37,7 +37,7 @@ const TokenHeader = ({
       <div className="flex justify-center gap-2 pt-2 items-center">
         <span className="text-greenColor">1 {getUnit(Number(chainId))}</span>
         <span className="text-white">=</span>
-        <span className="text-white">${ethPrice[Number(chainId)]}</span>
+        <span className="text-white flex items-center">{ethPrice[Number(chainId)] ? "$ " + ethPrice[Number(chainId)] : <div className="dot-flashing ml-4"></div>}</span>
       </div>
       <div className="p-2 flex justify-center gap-2 items-center">
         <div className="cursor-pointer text-white flex gap-1 items-center text-[18px]">
