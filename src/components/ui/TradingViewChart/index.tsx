@@ -1,67 +1,86 @@
 import { useEffect, useRef } from "react";
 import CustomDataFeed from "./datafeed";
 import ErrorBoundary from "./ErrorBoundary";
-
-interface TradingViewWidgetConfig {
-  container_id: string;
-  symbol: string;
-  interval: string;
-  library_path: string;
-  auto_size?: boolean;
-  height?: string;
-  disabled_features?: string[];
-  width?: string;
-  locale?: string;
-  favorites?: {
-    intervals: string[];
-    indicators: string[];
-    drawingTools: string[];
-    chartTypes: string[];
-  };
-  theme?: string;
-  custom_css_url?: string;
-  allow_symbol_change?: boolean;
-  hide_top_toolbar?: boolean;
-  hide_side_toolbar?: boolean;
-  toolbar_bg?: string;
-  datafeed: typeof CustomDataFeed;
-  overrides?: Record<string, unknown>;
-  debug?: boolean;
-  debug_broker?: string;
-  time_frames?: Array<{
-    text: string;
-    resolution: string;
-    description: string;
-  }>;
-}
-
-interface TradingViewWidget {
-  remove: () => void;
-  onChartReady: (callback: () => void) => void;
-  activeChart: () => {
-    getPriceScale: (position: string) => {
-      applyOptions: (options: { mode: number }) => void;
-    };
-    setNeedsUpdate: () => void;
-  };
-}
+import type {
+  ChartingLibraryWidgetOptions,
+  IChartingLibraryWidget,
+  TradingTerminalWidgetOptions,
+  ResolutionString,
+  IBasicDataFeed,
+} from "./charting_library";
 
 declare global {
   interface Window {
     TradingView: {
-      widget: new (config: TradingViewWidgetConfig) => TradingViewWidget;
+      widget: new (
+        config: ChartingLibraryWidgetOptions | TradingTerminalWidgetOptions
+      ) => IChartingLibraryWidget;
     };
   }
 }
 
 const TradingViewChart = ({
   symbol = "00/USD",
-  interval = "60",
   containerId = "tv_chart_container",
 }) => {
-  const chartRef = useRef(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartContainer = useRef<IChartingLibraryWidget | null>(null);
+
+  const widgetOptions: ChartingLibraryWidgetOptions = {
+    debug: true,
+    autosize: true,
+    symbol: symbol,
+    // fullscreen: true,
+    // height: '',
+    timezone: "exchange",
+    client_id: "tradingview.com",
+    user_id: "public_user_id",
+    theme: "Dark",
+    locale: "en",
+    favorites: {
+      intervals: ["5"] as ResolutionString[],
+      // indicators: ["Awesome Oscillator", "Bollinger Bands"],
+      // drawingTools: ['LineToolBrush', 'LineToolCallout', 'LineToolCircle'],
+      chartTypes: ["Area", "Candles"],
+    },
+    // toolbar_bg: '#f1f3f6',
+    // enable_publishing: false,
+    // allow_symbol_change: true,
+    // withdateranges: true,
+    // range: '1D',
+    // hide_side_toolbar: false,
+    container: chartRef.current,
+    container_id: "tv_chart_container",
+    datafeed: CustomDataFeed as unknown as IBasicDataFeed,
+    interval: "60" as ResolutionString,
+    library_path: "/static/charting_library/",
+    // enabled_features: ['show_spread_operators', 'move_logo_to_main_pane'],
+    disabled_features: [
+      // "volume_force_overlay",
+      // "show_logo_on_all_charts",
+      // "caption_buttons_text_if_possible",
+      // "create_volume_indicator_by_default",
+      // "header_compare",
+      // "compare_symbol",
+      // "display_market_status",
+      // "header_interval_dialog_button",
+      // "show_interval_dialog_on_key_press",
+      // "popup_hints",
+      // "header_in_fullscreen_mode",
+      // "use_localstorage_for_settings",
+      // "right_bar_stays_on_scroll",
+      "header_symbol_search",
+      "symbol_info",
+    ],
+    enabled_features: ["hide_price_scale_if_all_sources_hidden"],
+    // studies_overrides: {
+    //   'bollinger bands.median.color': '#33FF88',
+    //   'bollinger bands.upper.linewidth': 7
+    // }
+  };
 
   useEffect(() => {
+    console.log(window.TradingView);
     if (
       !window.TradingView ||
       typeof window.TradingView.widget !== "function"
@@ -69,84 +88,38 @@ const TradingViewChart = ({
       console.error("TradingView widget is not available!");
       return;
     }
-    const loadTradingViewChart = () => {
-      const widget = new window.TradingView.widget({
-        container_id: containerId,
-        symbol: symbol,
-        interval: interval,
-        library_path: "/static/charting_library/",
-        auto_size: true,
-        height: "100%",
-        width: "100%",
-        locale: "en",
-        time_frames: [
-          { text: "5y", resolution: "6M", description: "5 Years" },
-          { text: "1y", resolution: "1W", description: "1 Year" },
-          { text: "6m", resolution: "1D", description: "6 Month" },
-          { text: "3m", resolution: "5", description: "3 Month" },
-          { text: "1m", resolution: "1", description: "1 Month" },
-          { text: "5d", resolution: "1W", description: "5 Days" },
-          { text: "1d", resolution: "1", description: "1 Day" },
-          { text: "1m", resolution: "1", description: "1 Minute" },
-        ],
-        theme: "dark",
-        custom_css_url: "/static/charting_library/static/black.css",
-        allow_symbol_change: true,
-        hide_top_toolbar: false,
-        disabled_features: ["symbol_search"],
-        hide_side_toolbar: false,
-        toolbar_bg: "#131722",
-        datafeed: CustomDataFeed,
-        favorites: {
-          intervals: ["1s", "1", "5", "15", "60", "240", "1D", "1W", "1M"],
-          indicators: ["Awesome Oscillator", "Bollinger Bands"],
-          drawingTools: ["LineToolBrush", "LineToolCallout", "LineToolCircle"],
-          chartTypes: ["Area", "Candles"],
-        },
+    chartContainer.current = new window.TradingView.widget(widgetOptions);
+    chartContainer.current.onChartReady(() => {
+      const widget = chartContainer.current;
+      if (!widget) return;
 
-        // enabled_features: ["study_templates"],
-
-        overrides: {
-          // Customizing Last Price Line
-          "mainSeriesProperties.lastValueVisible": true, // Show last price
-          "mainSeriesProperties.priceLineVisible": true, // Show horizontal price line
-
-          "paneProperties.background": "#171B26", // Dark background
-          "scalesProperties.textColor": "#FFFFFF", // White text for axis labels
-          "paneProperties.vertGridProperties.color": "#222631", // Grid color
-          "paneProperties.horzGridProperties.color": "#222631",
-          // Candle Colors
-          "mainSeriesProperties.candleStyle.upColor": "#00C176", // Green for up
-          "mainSeriesProperties.candleStyle.downColor": "#FF3B30", // Red for down
-          "mainSeriesProperties.candleStyle.borderUpColor": "#00C176",
-          "mainSeriesProperties.candleStyle.borderDownColor": "#FF3B30",
-          "mainSeriesProperties.candleStyle.wickUpColor": "#00C176",
-          "mainSeriesProperties.candleStyle.wickDownColor": "#FF3B30",
-
-          "scalesProperties.logarithmicScale": true, // Enable log scale
-
-          // Volume bars
-          volumePaneSize: "medium", // Show volume below chart
-          "volumePaneProperties.volume.color.0": "#FF3B30", // Sell volume red
-          "volumePaneProperties.volume.color.1": "#00C176", // Buy volume green
-        },
-        // charts_storage_api_version: "1.1",
-        debug: true,
-        debug_broker: "broker-only",
+      widget.chart().getSeries().setChartStyleProperties(1, {
+        borderColor: "#22c55e",
+        upColor: "#22c55e",
+        downColor: "#ef4444",
+        borderUpColor: "#22c55e",
+        borderDownColor: "#ef4444",
       });
-      widget.onChartReady(() => {
-        const chart = widget.activeChart();
-        chart.getPriceScale("right").applyOptions({
-          mode: 1,
-        }); // Log scale
-        chart.setNeedsUpdate();
+      widget.applyOverrides({
+        "paneProperties.background": "#101523",
+        "paneProperties.backgroundType": "solid",
       });
+      const volumeStudy = widget
+        .activeChart()
+        .getAllStudies()
+        .find((x: { name: string }) => x.name === "Volume");
+      if (!volumeStudy) return;
 
-      return () => widget && widget.remove();
-    };
+      const volumeStudyId = volumeStudy.id;
+      const volume = widget.activeChart().getStudyById(volumeStudyId);
+      volume.applyOverrides({
+        "volume.color.0": "#ef4444",
+        "volume.color.1": "#22c55e",
+      });
+    });
 
-    loadTradingViewChart();
-  }, [symbol, interval]);
+    return () => chartContainer.current?.remove();
+  }, []);
 
   return (
     <ErrorBoundary>

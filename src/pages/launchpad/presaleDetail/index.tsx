@@ -83,7 +83,6 @@ const PresaleDetail: React.FC = () => {
                   symbol={`${token?.symbol}/${getUnit(
                     token?.chainId as number
                   )}`}
-                  interval="1"
                   containerId="tv_chart_container"
                 />
               </div>
@@ -94,7 +93,6 @@ const PresaleDetail: React.FC = () => {
             <div className="h-full border-2 border-borderColor">
               <TradingViewChart
                 symbol={`${token?.symbol}/${getUnit(token?.chainId as number)}`}
-                interval="1"
                 containerId="tv_chart_container"
               />
             </div>

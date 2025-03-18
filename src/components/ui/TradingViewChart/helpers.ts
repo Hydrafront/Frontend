@@ -6,7 +6,7 @@ interface ApiError {
   message?: string;
 }
 
-interface TransactionData {
+export interface TransactionData {
   createdAt: string;
   price: number;
   usd?: number;

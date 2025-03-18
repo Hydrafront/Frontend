@@ -1,14 +1,22 @@
+import {
+  LibrarySymbolInfo,
+  // ErrorCallback,
+  ResolutionString,
+} from "./charting_library";
+
 import axios from "axios";
 import {
-  makeApiRequest,
-  generateSymbol,
+  // makeApiRequest,
+  // generateSymbol,
   parseFullSymbol,
   transformToOHLCV,
+  TransactionData,
 } from "./helpers";
 import { subscribeOnStream, unsubscribeFromStream } from "./streaming";
 import { BASE_URL } from "@/store/actions/token.action";
 
 const lastBarsCache = new Map();
+const cachedBars: { [key: string]: TransactionData[] } = {};
 
 const resolutionMap = {
   "1s": {
@@ -52,17 +60,35 @@ const resolutionMap = {
 // DatafeedConfiguration implementation
 const configurationData = {
   // Represents the resolutions for bars supported by your datafeed
-  supported_resolutions: ["1s", "15s", "30s", "1", "3", "5", "15", "30", "60", "120", "240", "480", "720", "1D", "3D", "1W", "1M"],
-  custom_intervals: {
-    "1": "1 Min",
-    "5": "5 Min",
-    "15": "15 Min",
-    "60": "1 Hour",
-    "240": "4 Hours",
-    "1D": "1 Day",
-    "1W": "1 Week",
-    "1M": "1 Month",
-  },
+  supported_resolutions: [
+    "1s",
+    "15s",
+    "30s",
+    "1",
+    "3",
+    "5",
+    "15",
+    "30",
+    "60",
+    "120",
+    "240",
+    "480",
+    "720",
+    "1D",
+    "3D",
+    "1W",
+    "1M",
+  ] as ResolutionString[],
+  // custom_intervals: {
+  //   "1": "1 Min",
+  //   "5": "5 Min",
+  //   "15": "15 Min",
+  //   "60": "1 Hour",
+  //   "240": "4 Hours",
+  //   "1D": "1 Day",
+  //   "1W": "1 Week",
+  //   "1M": "1 Month",
+  // },
   // The `exchanges` arguments are used for the `searchSymbols` method if a user selects the exchange
   exchanges: [
     {
@@ -72,12 +98,12 @@ const configurationData = {
     },
   ],
   // The `symbols_types` arguments are used for the `searchSymbols` method if a user selects this symbol type
-  symbols_types: [
-    {
-      name: "crypto",
-      value: "crypto",
-    },
-  ],
+  // symbols_types: [
+  //   {
+  //     name: "crypto",
+  //     value: "crypto",
+  //   },
+  // ],
 };
 
 export interface TradingSymbol {
@@ -103,7 +129,6 @@ export interface ApiResponse {
 export interface ConfigurationData {
   supported_resolutions: string[];
   exchanges: Array<{ value: string; name: string; desc: string }>;
-  symbols_types: Array<{ name: string; value: string }>;
 }
 
 export interface Bar {
@@ -112,6 +137,7 @@ export interface Bar {
   high: number;
   open: number;
   close: number;
+  volume: number;
 }
 
 export interface HistoryResponse {
@@ -119,112 +145,119 @@ export interface HistoryResponse {
 }
 
 // Obtains all symbols for all exchanges supported by CryptoCompare API
-async function getAllSymbols(): Promise<TradingSymbol[]> {
-  const data = await makeApiRequest("data/v3/all/exchanges") as ApiResponse;
-  let allSymbols: TradingSymbol[] = [];
+// async function getAllSymbols(): Promise<TradingSymbol[]> {
+//   try {
+//     const data = (await makeApiRequest("data/v3/all/exchanges")) as ApiResponse;
+//     let allSymbols: TradingSymbol[] = [];
 
-  for (const exchange of configurationData.exchanges) {
-    const pairs = data.Data[exchange.value].pairs;
+//     for (const exchange of configurationData.exchanges) {
+//       const pairs = data.Data[exchange.value].pairs;
 
-    for (const leftPairPart of Object.keys(pairs)) {
-      const symbols = pairs[leftPairPart].map((rightPairPart: string) => {
-        const symbol = generateSymbol(
-          exchange.value,
-          leftPairPart,
-          rightPairPart
-        );
-        return {
-          symbol: symbol.short,
-          full_name: symbol.short,
-          description: symbol.short,
-          exchange: exchange.value,
-          type: "crypto",
-        };
-      });
-      allSymbols = [...allSymbols, ...symbols];
-    }
-  }
-  return allSymbols;
-}
+//       for (const leftPairPart of Object.keys(pairs)) {
+//         const symbols = pairs[leftPairPart].map((rightPairPart: string) => {
+//           const symbol = generateSymbol(
+//             exchange.value,
+//             leftPairPart,
+//             rightPairPart
+//           );
+//           return {
+//             symbol: symbol.short,
+//             full_name: symbol.short,
+//             description: symbol.short,
+//             exchange: exchange.value,
+//             type: "crypto",
+//           };
+//         });
+//         allSymbols = [...allSymbols, ...symbols];
+//       }
+//     }
+//     return allSymbols;
+//   } catch (error) {
+//     console.error("[getAllSymbols]: Get error", error);
+//     return [];
+//   }
+// }
 
 export default {
   onReady: (callback: (configuration: ConfigurationData) => void) => {
     console.log("[onReady]: Method call");
-    setTimeout(() => callback(configurationData));
+    setTimeout(() => callback(configurationData), 0);
   },
 
   // searchSymbols: async (
   //   userInput: string,
   //   exchange: string,
-  //   _symbolType: string,
+  //   symbolType: string,
   //   onResultReadyCallback: (symbols: TradingSymbol[]) => void
   // ) => {
-  //   console.log("[searchSymbols]: Method call");
-  //   const symbols = await getAllSymbols();
-  //   const newSymbols = symbols.filter((symbol) => {
-  //     const isExchangeValid = exchange === "" || symbol.exchange === exchange;
-  //     const isFullSymbolContainsInput =
-  //       symbol.full_name.toLowerCase().indexOf(userInput.toLowerCase()) !== -1;
-  //     return isExchangeValid && isFullSymbolContainsInput;
-  //   });
-  //   onResultReadyCallback(newSymbols);
+  //   // console.log("[searchSymbols]: Method call");
+  //   // const symbols = await getAllSymbols();
+  //   // const newSymbols = symbols.filter((symbol) => {
+  //   //   const isExchangeValid = exchange === "" || symbol.exchange === exchange;
+  //   //   const isFullSymbolContainsInput =
+  //   //     symbol.full_name.toLowerCase().indexOf(userInput.toLowerCase()) !== -1;
+  //   //   return isExchangeValid && isFullSymbolContainsInput;
+  //   // });
+  //   // onResultReadyCallback(newSymbols);
   // },
 
   resolveSymbol: async (
     symbolName: string,
-    onSymbolResolvedCallback: (symbolInfo: TradingSymbol) => void,
-    // onResolveErrorCallback: (error: string) => void,
+    onSymbolResolvedCallback: (symbolInfo: LibrarySymbolInfo) => void,
+    // onResolveErrorCallback: ErrorCallback
   ) => {
     console.log("[resolveSymbol]: Method call", symbolName);
-    const symbols = await getAllSymbols();
-    let symbolItem = symbols.find(
-      ({ full_name }) => full_name === symbolName
-    );
-    // if (!symbolItem) {
-    //   console.log("[resolveSymbol]: Cannot resolve symbol", symbolName);
-    //   onResolveErrorCallback("cannot resolve symbol");
-    //   return;
-    // }
+    const pricescale = 10000000000000;
+    let symbolItem = null;
+    // const symbols = await getAllSymbols();
+    // symbolItem = symbols.find(({ full_name }) => full_name === symbolName);
     if (!symbolItem) {
       symbolItem = {
         full_name: symbolName,
         symbol: symbolName,
         description: symbolName,
         type: "crypto",
-        exchange: "Uniswap",
+        exchange: "uniswap",
       };
     }
-    // Symbol information object
-    const symbolInfo = {
-      ticker: symbolItem.full_name,
+
+    const symbolInfo: LibrarySymbolInfo = {
+      ticker: symbolItem.symbol,
       name: symbolItem.symbol,
+      full_name: symbolItem.full_name,
       description: symbolItem.description,
       type: symbolItem.type,
       session: "24x7",
       timezone: "Etc/UTC",
       exchange: symbolItem.exchange,
+      listed_exchange: symbolItem.exchange,
+      format: "price",
+      pricescale,
       minmov: 1,
-      pricescale: 10000000000000,
       has_intraday: true,
-      has_no_volume: true,
+      has_daily: false,
+      visible_plots_set: "ohlcv",
       has_weekly_and_monthly: false,
       supported_resolutions: configurationData.supported_resolutions,
       data_status: "streaming",
     };
 
     console.log("[resolveSymbol]: Symbol resolved", symbolName);
-    onSymbolResolvedCallback(symbolInfo as unknown as TradingSymbol);
+    onSymbolResolvedCallback(symbolInfo);
   },
 
   getBars: async (
     symbolInfo: TradingSymbol,
     resolution: string,
-    _from: number,
-    _to: number,
+    periodParams: { from: number; to: number; firstDataRequest: boolean },
     onHistoryCallback: (bars: Bar[], response: HistoryResponse) => void,
     onErrorCallback: (error: string) => void
   ) => {
-    const resolutionInSeconds = resolutionMap[resolution as keyof typeof resolutionMap];
+    const { from, to } = periodParams;
+
+    console.log(periodParams);
+    const resolutionInSeconds =
+      resolutionMap[resolution as keyof typeof resolutionMap];
     if (!resolutionInSeconds) {
       onErrorCallback("unsupported resolution");
       return;
@@ -235,7 +268,9 @@ export default {
     }
 
     console.log("[getBars]: Method call", symbolInfo, resolution);
-    const parsedSymbol = parseFullSymbol(symbolInfo.full_name);
+    const parsedSymbol = parseFullSymbol(
+      `${symbolInfo.exchange}:${symbolInfo.full_name}`
+    );
     if (!parsedSymbol) {
       onErrorCallback("cannot resolve symbol");
       return;
@@ -254,13 +289,17 @@ export default {
       // const data = await makeApiRequest(
       //   `data/${resolutionInSeconds.resolution}?${query}`
       // );
-      const response = await axios.get(
-        `${BASE_URL}/get-transactions-by-address/${
-          window.location.pathname.split("/")[3]
-        }`
-      );
+      const cachedKey = `${symbolInfo.symbol}_${resolution}`;
+      if (!cachedBars[cachedKey]) {
+        const response = await axios.get(
+          `${BASE_URL}/get-transactions-in-range/${
+            window.location.pathname.split("/")[3]
+          }/${from}/${to}`
+        );
+        cachedBars[cachedKey] = response.data.data;
+      }
       const transformedData = transformToOHLCV(
-        response.data,
+        cachedBars[cachedKey].filter((bar) => new Date(bar.createdAt).getTime() >= from * 1000 && new Date(bar.createdAt).getTime() <= to * 1000),
         resolutionInSeconds.seconds
       );
       // const response = await axios.get(`${BASE_URL}/get-transactions-by-address/${window.location.pathname.split("/")[3]}`)
@@ -285,20 +324,20 @@ export default {
         bars = [
           ...bars,
           {
-            time: bar.time * 1000,
+            time: bar.time,
             low: bar.low,
             high: bar.high,
             open: bar.open,
             close: bar.close,
+            volume: bar.volume,
           },
         ];
       });
-      lastBarsCache.set(symbolInfo.full_name, {
+      lastBarsCache.set(`${symbolInfo.exchange}:${symbolInfo.full_name}`, {
         ...bars[bars.length - 1],
       });
-      console.log(`[getBars]: returned ${bars.length} bar(s)`);
       onHistoryCallback(bars, {
-        noData: false,
+        noData: bars.length === 0 && new Date(cachedBars[cachedKey][cachedBars[cachedKey].length - 1].createdAt).getTime() > to * 1000,
       });
     } catch (error) {
       console.log("[getBars]: Get error", error);
@@ -323,7 +362,7 @@ export default {
       onRealtimeCallback,
       subscriberUID,
       onResetCacheNeededCallback,
-      lastBarsCache.get(symbolInfo.full_name)
+      lastBarsCache.get(`${symbolInfo.exchange}:${symbolInfo.full_name}`)
     );
   },
 
