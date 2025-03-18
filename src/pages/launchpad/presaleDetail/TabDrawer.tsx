@@ -54,7 +54,7 @@ const TabDrawer: React.FC = () => {
   };
 
   return (
-    <div className="block lg:hidden">
+    <div className="block md:hidden">
       <button
         onClick={handleOpen}
         className="fixed right-0 top-[50%] border-2 border-green-500 z-[99] bg-[#0000007a] hover:shadow-defaultShadow transition-all p-3 rounded-l-full"

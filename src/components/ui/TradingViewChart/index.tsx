@@ -7,7 +7,10 @@ import type {
   TradingTerminalWidgetOptions,
   ResolutionString,
   IBasicDataFeed,
+  IChartWidgetApi,
 } from "./charting_library";
+import { useAppSelector } from "@/store/hooks";
+import clsx from "clsx";
 
 declare global {
   interface Window {
@@ -30,8 +33,9 @@ const TradingViewChart = ({
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartContainer = useRef<IChartingLibraryWidget | null>(null);
+  const { tab } = useAppSelector((state) => state.token);
 
-  const widgetOptions: ChartingLibraryWidgetOptions = {
+  const widgetOptions: ChartingLibraryWidgetOptions | IChartWidgetApi = {
     debug: true,
     autosize: true,
     symbol: symbol,
@@ -128,7 +132,7 @@ const TradingViewChart = ({
 
   return (
     <ErrorBoundary>
-      <div className="w-full h-[calc((100vh-116px)/2)] md:h-[600px]">
+      <div className={clsx("w-full md:h-[600px]", tab === "chart" ? "h-full" : "h-[calc((100vh-116px)/2)]")}>
         <div
           ref={chartRef}
           id={containerId}
