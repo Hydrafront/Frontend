@@ -96,10 +96,12 @@ const TopTraders = () => {
             trader.bought.usd += transaction.usd;
             trader.bought.token += transaction.token;
             trader.bought.txns += 1;
+            trader.pnl -= transaction.usd;
           } else {
             trader.sold.usd += transaction.usd;
             trader.sold.token += transaction.token;
             trader.sold.txns += 1;
+            trader.pnl += transaction.usd;
           }
         }
       });
@@ -141,10 +143,17 @@ const TopTraders = () => {
     ),
     pnl: (
       <div className="text-green-300 px-3">
-        <FormatPrice
-          color={trader.pnl > 0 ? "text-green-300" : "text-red-400"}
-          value={trader.pnl > 0 ? trader.pnl : -trader.pnl}
-        />
+        <div
+          className={clsx(trader.pnl > 0 ? "text-green-300" : "text-red-400")}
+        >
+          {trader.pnl > 0
+            ? Math.abs(trader.pnl) < 0.1
+              ? "< $0.1"
+              : <FormatPrice color="text-green-300" value={trader.pnl} />
+            : Math.abs(trader.pnl) < 0.1
+            ? "< $0.1"
+            : <FormatPrice color="text-red-400" value={-trader.pnl} />}
+        </div>
       </div>
     ),
     unrealized: <div className="text-white py-2 px-3">{"< $0.1"}</div>,
