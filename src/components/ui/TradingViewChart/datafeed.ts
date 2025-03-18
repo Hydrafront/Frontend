@@ -19,13 +19,13 @@ const lastBarsCache = new Map();
 const cachedBars: { [key: string]: TransactionData[] } = {};
 
 const resolutionMap = {
-  "1s": {
-    resolution: "histominute",
-    seconds: 1,
-  },
   "1": {
     resolution: "histominute",
     seconds: 60,
+  },
+  "3": {
+    resolution: "histominute",
+    seconds: 180,
   },
   "5": {
     resolution: "histominute",
@@ -61,9 +61,6 @@ const resolutionMap = {
 const configurationData = {
   // Represents the resolutions for bars supported by your datafeed
   supported_resolutions: [
-    "1s",
-    "15s",
-    "30s",
     "1",
     "3",
     "5",
@@ -74,10 +71,10 @@ const configurationData = {
     "240",
     // "480",
     // "720",
-    // "1D",
+    "1D",
     // "3D",
-    // "1W",
-    // "1M",
+    "1W",
+    "1M",
   ] as ResolutionString[],
   // custom_intervals: {
   //   "1": "1 Min",

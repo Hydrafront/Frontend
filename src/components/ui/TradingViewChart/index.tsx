@@ -22,6 +22,11 @@ declare global {
 const TradingViewChart = ({
   symbol = "00/USD",
   containerId = "tv_chart_container",
+  interval = "60",
+}: {
+  symbol?: string;
+  containerId?: string;
+  interval?: string;
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartContainer = useRef<IChartingLibraryWidget | null>(null);
@@ -38,7 +43,7 @@ const TradingViewChart = ({
     theme: "Dark",
     locale: "en",
     favorites: {
-      intervals: ["5"] as ResolutionString[],
+      intervals: ["5", "60"] as ResolutionString[],
       // indicators: ["Awesome Oscillator", "Bollinger Bands"],
       // drawingTools: ['LineToolBrush', 'LineToolCallout', 'LineToolCircle'],
       chartTypes: ["Area", "Candles"],
@@ -50,9 +55,9 @@ const TradingViewChart = ({
     // range: '1D',
     // hide_side_toolbar: false,
     container: chartRef.current,
-    container_id: "tv_chart_container",
+    container_id: containerId,
     datafeed: CustomDataFeed as unknown as IBasicDataFeed,
-    interval: "60" as ResolutionString,
+    interval: interval as ResolutionString,
     library_path: "/static/charting_library/",
     // enabled_features: ['show_spread_operators', 'move_logo_to_main_pane'],
     disabled_features: [

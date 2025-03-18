@@ -94,6 +94,7 @@ const PresaleDetail: React.FC = () => {
               <TradingViewChart
                 symbol={`${token?.symbol}/${getUnit(token?.chainId as number)}`}
                 containerId="tv_chart_container"
+                interval="60"
               />
             </div>
           )}
