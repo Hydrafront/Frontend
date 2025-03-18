@@ -61,8 +61,8 @@ const resolutionMap = {
 const configurationData = {
   // Represents the resolutions for bars supported by your datafeed
   supported_resolutions: [
-    "1",
-    "3",
+    // "1",
+    // "3",
     "5",
     "15",
     "30",
@@ -71,10 +71,10 @@ const configurationData = {
     "240",
     // "480",
     // "720",
-    "1D",
+    // "1D",
     // "3D",
-    "1W",
-    "1M",
+    // "1W",
+    // "1M",
   ] as ResolutionString[],
   // custom_intervals: {
   //   "1": "1 Min",
