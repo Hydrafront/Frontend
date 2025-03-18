@@ -68,7 +68,7 @@ const TokenInfo: React.FC<Props> = () => {
   if (!token) return null;
 
   return (
-    <div className="overflow-y-scroll h-full md:h-[100vh] pb-5 scroll-hidden">
+    <div className="overflow-y-scroll h-full md:h-[calc(100vh-82.5px)] lg:h-[calc(100vh-86.5px)] xl:h-[calc(100vh-90.5px)] pb-5 scroll-hidden">
       <TokenHeader
         name={token.name}
         symbol={token.symbol}

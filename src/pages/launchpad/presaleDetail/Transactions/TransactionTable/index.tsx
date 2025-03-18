@@ -178,9 +178,9 @@ const TransactionTable = () => {
   return (
     <div
       className={clsx(
-        "transaction-table overflow-scroll md:h-[350px]",
+        "transaction-table overflow-scroll md:h-[calc((100vh-82.5px)*2/5-40px)] lg:h-[calc((100vh-86.5px)*2/5-40px)] xl:h-[calc((100vh-90.5px)*2/5-40px)]",
         tab === "txn"
-          ? "min-h-[calc(100vh-116px)]"
+          ? "h-[calc(100vh-116px)]"
           : "h-[calc((100vh-116px)/2)]"
       )}
     >

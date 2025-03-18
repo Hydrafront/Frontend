@@ -45,7 +45,7 @@ const PresaleDetail: React.FC = () => {
       {/* <div className="flex 2xl:h-[calc(100vh-85px)] xl:h-[calc(100vh-83px)] sm:h-[calc(100vh-80px)] h-[calc(100vh-63px)] justify-between"> */}
       <div className="flex justify-between h-full">
         <div className="w-full h-full hidden md:flex flex-col overflow-hidden border-borderColor border-r">
-          <div className="flex flex-1">
+          <div className="flex">
             {/* <LeftSidebar type={type} /> */}
             <div className="w-full ">
               {type === "erc20" ? (

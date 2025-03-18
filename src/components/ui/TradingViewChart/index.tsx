@@ -132,7 +132,7 @@ const TradingViewChart = ({
 
   return (
     <ErrorBoundary>
-      <div className={clsx("w-full md:h-[600px]", tab === "chart" ? "h-full" : "h-[calc((100vh-116px)/2)]")}>
+      <div className={clsx("w-full md:h-[calc((100vh-82.5px)*3/5)] lg:h-[calc((100vh-86.5px)*3/5)] xl:h-[calc((100vh-90.5px)*3/5)]", tab === "chart" ? "h-full" : "h-[calc((100vh-116px)/2)]")}>
         <div
           ref={chartRef}
           id={containerId}
