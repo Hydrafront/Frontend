@@ -47,7 +47,7 @@ const TradingViewChart = ({
     theme: "Dark",
     locale: "en",
     favorites: {
-      intervals: ["5", "60"] as ResolutionString[],
+      intervals: [] as ResolutionString[],
       // indicators: ["Awesome Oscillator", "Bollinger Bands"],
       // drawingTools: ['LineToolBrush', 'LineToolCallout', 'LineToolCircle'],
       chartTypes: ["Area", "Candles"],
@@ -63,6 +63,15 @@ const TradingViewChart = ({
     datafeed: CustomDataFeed as unknown as IBasicDataFeed,
     interval: interval as ResolutionString,
     library_path: "/static/charting_library/",
+    time_frames: [
+      { text: "5y", resolution: "1W" as ResolutionString },
+      { text: "1y", resolution: "1W" as ResolutionString },
+      { text: "6m", resolution: "120" as ResolutionString },
+      { text: "3m", resolution: "60" as ResolutionString },
+      { text: "1m", resolution: "30" as ResolutionString },
+      { text: "5d", resolution: "5" as ResolutionString },
+      { text: "1d", resolution: "1" as ResolutionString },
+    ],
     // enabled_features: ['show_spread_operators', 'move_logo_to_main_pane'],
     disabled_features: [
       // "volume_force_overlay",
@@ -132,7 +141,12 @@ const TradingViewChart = ({
 
   return (
     <ErrorBoundary>
-      <div className={clsx("w-full md:h-[calc((100vh-82.5px)*3/5)] lg:h-[calc((100vh-86.5px)*3/5)] xl:h-[calc((100vh-90.5px)*3/5)]", tab === "chart" ? "h-full" : "h-[calc((100vh-116px)/2)]")}>
+      <div
+        className={clsx(
+          "w-full md:h-[calc((100vh-82.5px)*3/5)] lg:h-[calc((100vh-86.5px)*3/5)] xl:h-[calc((100vh-90.5px)*3/5)]",
+          tab === "chart" ? "h-full" : "h-[calc((100vh-116px)/2)]"
+        )}
+      >
         <div
           ref={chartRef}
           id={containerId}
