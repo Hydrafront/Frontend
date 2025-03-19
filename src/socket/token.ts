@@ -8,11 +8,6 @@ const socket = io(`${import.meta.env.VITE_SERVER_URL}`, {
   reconnectionDelay: 1000,
   path: '/socket.io/',
   autoConnect: true,
-  forceNew: true,
-  withCredentials: true,
-  extraHeaders: {
-    "Access-Control-Allow-Origin": "*"
-  }
 });
 
 export default socket;
