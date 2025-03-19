@@ -39,8 +39,14 @@ interface TraderType {
   };
   pnl: number;
   unrealized: number;
-  balance: number;
+  balance: {
+    total: number;
+    balance: number;
+  }
 }
+
+
+
 const TopTraders = () => {
   const { transactions } = useAppSelector((state) => state.token);
   const [traders, setTraders] = useState<TraderType[]>([]);
@@ -66,7 +72,10 @@ const TopTraders = () => {
               },
               pnl: -transaction.usd,
               unrealized: 0,
-              balance: 0,
+              balance: {
+                total: transaction.token,
+                balance: transaction.token,
+              },
             });
           } else {
             traders.push({
@@ -83,7 +92,10 @@ const TopTraders = () => {
               },
               pnl: transaction.usd,
               unrealized: 0,
-              balance: 0,
+              balance: {
+                total: 0,
+                balance: -transaction.token,
+              },
             });
           }
         } else {
@@ -97,11 +109,14 @@ const TopTraders = () => {
             trader.bought.token += transaction.token;
             trader.bought.txns += 1;
             trader.pnl -= transaction.usd;
+            trader.balance.total += transaction.token;
+            trader.balance.balance += transaction.token;
           } else {
             trader.sold.usd += transaction.usd;
             trader.sold.token += transaction.token;
             trader.sold.txns += 1;
             trader.pnl += transaction.usd;
+            trader.balance.balance -= transaction.token;
           }
         }
       });
@@ -160,14 +175,16 @@ const TopTraders = () => {
     balance: (
       <div className="text-white py-1  px-3">
         <p className="text-center mb-[2px]">
-          <span className="text-white">0 </span>
+          <span className="text-white">{numberFormat(trader.balance.balance)} </span>
           <span className="text-[12px] text-textDark">of </span>
-          <span className="text-white">234.3K</span>
+          <span className="text-white">{numberFormat(trader.balance.total)}</span>
         </p>
         <Progress
+          value={trader.balance.balance / trader.balance.total * 100}
           placeholder={undefined}
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
+          color="green"
           className="h-[4px] bg-gray-600"
         />
       </div>
