@@ -1,3 +1,4 @@
+import TimeAgo from "@/components/ui/TimeAgo";
 import { useAppSelector } from "@/store/hooks";
 import { getContractAddress } from "@/utils/func";
 import { IconCopy, IconExternalLink } from "@tabler/icons-react";
@@ -17,7 +18,9 @@ const TokenAddresses = () => {
     <div className="w-full mb-2">
       <div className="flex justify-between border-b border-borderColor py-2">
         <span className="text-white text-sm">Token created</span>
-        <span className="text-white text-sm">19h 23m ago</span>
+        <span className="text-sm">
+          <TimeAgo createdAt={new Date(token?.createdAt || "")} /> ago
+        </span>
       </div>
       <div className="flex justify-between border-b border-borderColor py-2">
         <span className="text-white text-sm">Creator</span>
