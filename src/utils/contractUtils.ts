@@ -481,7 +481,11 @@ export const useUniswapV2Router = () => {
 export const useAddLiquidity = (tokenAddress: `0x${string}`) => {
   const { writeContractAsync, error: addLiquidityError } = useWriteContract();
   const { address } = useAccount();
-  const addLiquidity = async (amountTokenDesired: bigint, amountTokenMin: bigint, amountETHMin: bigint) => {
+  const addLiquidity = async (
+    amountTokenDesired: bigint,
+    amountTokenMin: bigint,
+    amountETHMin: bigint
+  ) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
@@ -498,4 +502,18 @@ export const useAddLiquidity = (tokenAddress: `0x${string}`) => {
     }
   };
   return { addLiquidity, addLiquidityError };
+};
+
+export const useGetInitialReverses = (chainId: number) => {
+  const { data: initialAccumulatedPOL } = useReadContract({
+    address: getContractAddress(chainId),
+    abi: factoryAbi,
+    functionName: "getAccumulatedPOL",
+  });
+  const { data: initialRemainingTokens } = useReadContract({
+    address: getContractAddress(chainId),
+    abi: factoryAbi,
+    functionName: "getRemainingTokens",
+  });
+  return { initialAccumulatedPOL, initialRemainingTokens };
 };

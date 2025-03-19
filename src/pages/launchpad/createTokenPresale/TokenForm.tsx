@@ -25,7 +25,7 @@ import {
   createTokenInfo,
   uploadImageToPinata,
 } from "@/store/actions/token.action";
-import { generateSignature } from "@/utils/func";
+import { generateSignature, getCurrentEthPrice } from "@/utils/func";
 import { isEmpty } from "@/utils/validation";
 import { getContractAddress } from "@/utils/func";
 import { useChainId } from "wagmi";
@@ -33,13 +33,12 @@ import {
   useCreatePresaleToken,
   useProgressBPS,
   useUniswapV2Router,
-  useCurrentTokenPrice,
   useMarketCap,
+  useGetInitialReverses,
 } from "@/utils/contractUtils";
 import Spin2 from "@/components/spins/Spin2";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { createTokenEmit } from "@/socket/token";
-import { useAppSelector } from "@/store/hooks";
 
 const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5MB
 
@@ -64,7 +63,6 @@ const TokenForm: React.FC = () => {
   const chainId = useChainId();
   const { createPresaleToken, UserRejectedRequestError } =
     useCreatePresaleToken();
-  const { ethPrice } = useAppSelector((state) => state.eth);
   const { isConnected, address } = useAccount();
   const [selectedChain, setSelectedChain] = useState<Chain>(chains[0]);
   const [selectedDex, setSelectedDex] = useState<
@@ -78,13 +76,11 @@ const TokenForm: React.FC = () => {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const contractAddress = getContractAddress(selectedChain.id);
-  const { currentPrice } = useCurrentTokenPrice(
-    contractAddress as `0x${string}`
-  );
   const { currentMarketCap } = useMarketCap(contractAddress as `0x${string}`);
   const { progressBPS } = useProgressBPS(contractAddress as `0x${string}`);
 
   const { uniswapV2Router } = useUniswapV2Router();
+  const { initialAccumulatedPOL, initialRemainingTokens } = useGetInitialReverses(selectedChain.id);
 
   useEffect(() => {
     setSelectedDex(
@@ -159,8 +155,15 @@ const TokenForm: React.FC = () => {
     }
   };
 
+  const getInitialPrice = async () => {
+    const price = await getCurrentEthPrice(selectedChain.id);
+    const initialPrice = (Number(initialAccumulatedPOL) / Number(initialRemainingTokens)) * price;
+    return initialPrice;
+  };
+
   const handleCreatePresale = async () => {
     const nonce = Date.now();
+    console.log(await getInitialPrice());
 
     if (
       isEmpty(form.name) ||
@@ -211,7 +214,7 @@ const TokenForm: React.FC = () => {
           symbol: form.symbol,
           progress: progressBPS,
           logo: form.logo as string,
-          price: currentPrice * Number(ethPrice[Number(chainId)]),
+          price: await getInitialPrice(),
           marketCap: currentMarketCap as number,
           banner: form.banner as string,
           website: form.website,

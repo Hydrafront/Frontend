@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { TransactionType } from "@/interfaces/types";
 import queryString from "query-string";
+import { getHttpsPriceUrl, getPriceKey } from "./config/chainDexConfig";
+import axios from "axios";
 
 // get Signature when create a new token
 export async function generateSignature(
@@ -248,4 +250,12 @@ export const setUrlSearchParams = (
 export const getUrlSearchParams = () => {
   const url = new URL(window.location.href);
   return queryString.parse(url.search);
+};
+
+export const getCurrentEthPrice = async (chainId: number) => {
+  const priceUrl = getHttpsPriceUrl(chainId);
+  if (!priceUrl) return 0;
+  const response = await axios.get(priceUrl);
+  const priceKey = getPriceKey(chainId);
+  return response.data[priceKey as keyof typeof response.data].usd;
 };
