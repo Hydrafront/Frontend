@@ -1,7 +1,10 @@
 import { TokenType, TransactionType } from "@/interfaces/types";
 import { io } from "socket.io-client";
 
-const socket = io(`${import.meta.env.VITE_SERVER_URL}`);
+const socket = io(`${import.meta.env.VITE_SERVER_URL}`, {
+  transports: ["polling"],
+});
+
 
 export default socket;
 

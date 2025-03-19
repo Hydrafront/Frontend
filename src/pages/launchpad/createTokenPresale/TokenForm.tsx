@@ -223,10 +223,10 @@ const TokenForm: React.FC = () => {
           discord: form.discord,
         });
         createTokenEmit(token);
+        toast.success("Token created successfully");
       } else {
         throw new Error("Token address or image upload failed");
       }
-      toast.success("Token created successfully");
       setIsLoading(false);
     } catch (error) {
       console.log("Error in token creation", error);

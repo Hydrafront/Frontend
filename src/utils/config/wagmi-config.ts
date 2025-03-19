@@ -3,7 +3,7 @@ import { defaultWagmiConfig } from "@web3modal/wagmi/react/config";
 
 // import { mainnet, arbitrum, optimism, apeChain, base, bsc, polygon, sonicTestnet, avalanche, sepolia } from 'wagmi/chains'
 import { arbitrum, avalanche, base, bsc, optimism, polygon, polygonAmoy, unichain } from "wagmi/chains";
-import { http } from "viem";
+// import { http } from "viem";
 
 // 1. Get projectId at https://cloud.walletconnect.com
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
@@ -26,9 +26,9 @@ export const config = defaultWagmiConfig({
   chains,
   projectId,
   metadata,
-  transports: {
-    [polygonAmoy.id]: http("https://polygon-amoy.g.alchemy.com/v2/CIQZ8kkdzYO_oLFlpmxmZDJP7GOxxEPT"),
-  },
+  // transports: {
+  //   [polygonAmoy.id]: http("https://polygon-amoy.g.alchemy.com/v2/CIQZ8kkdzYO_oLFlpmxmZDJP7GOxxEPT"),
+  // },
 });
 
 // 3. Create modal
