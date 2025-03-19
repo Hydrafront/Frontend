@@ -11,6 +11,9 @@ import clsx from "clsx";
 import { useAppSelector } from "@/store/hooks";
 import { numberFormat } from "@/utils/func";
 import FormatPrice from "@/components/ui/FormatPrice";
+import { useParams } from "react-router";
+import { useCurrentTokenPrice } from "@/utils/contractUtils";
+
 type AlignType = "left" | "center" | "right";
 
 interface TraderTableType {
@@ -42,15 +45,16 @@ interface TraderType {
   balance: {
     total: number;
     balance: number;
-  }
+  };
 }
 
-
-
 const TopTraders = () => {
+  const { chainId, tokenAddress } = useParams();
   const { transactions } = useAppSelector((state) => state.token);
   const [traders, setTraders] = useState<TraderType[]>([]);
   const { tab } = useAppSelector((state) => state.token);
+  const { ethPrice } = useAppSelector((state) => state.eth);
+  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
 
   useEffect(() => {
     if (transactions.length > 0) {
@@ -71,7 +75,10 @@ const TopTraders = () => {
                 txns: 0,
               },
               pnl: -transaction.usd,
-              unrealized: 0,
+              unrealized:
+                (Number(ethPrice[chainId as string]) * currentPrice -
+                  Number(transaction.price)) *
+                Number(transaction.token),
               balance: {
                 total: transaction.token,
                 balance: transaction.token,
@@ -109,6 +116,10 @@ const TopTraders = () => {
             trader.bought.token += transaction.token;
             trader.bought.txns += 1;
             trader.pnl -= transaction.usd;
+            trader.unrealized +=
+              (Number(ethPrice[chainId as string]) * currentPrice -
+                Number(transaction.price)) *
+              Number(transaction.token);
             trader.balance.total += transaction.token;
             trader.balance.balance += transaction.token;
           } else {
@@ -116,6 +127,10 @@ const TopTraders = () => {
             trader.sold.token += transaction.token;
             trader.sold.txns += 1;
             trader.pnl += transaction.usd;
+            trader.unrealized -=
+              (Number(ethPrice[chainId as string]) * currentPrice -
+                Number(transaction.price)) *
+              Number(transaction.token);
             trader.balance.balance -= transaction.token;
           }
         }
@@ -161,26 +176,38 @@ const TopTraders = () => {
         <div
           className={clsx(trader.pnl > 0 ? "text-green-300" : "text-red-400")}
         >
-          {trader.pnl > 0
-            ? Math.abs(trader.pnl) < 0.1
-              ? "< $0.1"
-              : <FormatPrice color="text-green-300" value={trader.pnl} />
-            : Math.abs(trader.pnl) < 0.1
-            ? "< $0.1"
-            : <FormatPrice color="text-red-400" value={-trader.pnl} />}
+          {trader.pnl > 0 ? (
+            Math.abs(trader.pnl) < 0.1 ? (
+              "< $0.1"
+            ) : (
+              <FormatPrice color="text-green-300" value={trader.pnl} />
+            )
+          ) : Math.abs(trader.pnl) < 0.1 ? (
+            "< $0.1"
+          ) : (
+            <FormatPrice color="text-red-400" value={-trader.pnl} />
+          )}
         </div>
       </div>
     ),
-    unrealized: <div className="text-white py-2 px-3">{"< $0.1"}</div>,
+    unrealized: (
+      <div className="text-white py-2 px-3">
+        {trader.unrealized < 0.1 ? "< $0.1" : <FormatPrice color="text-white" value={trader.unrealized} />}
+      </div>
+    ),
     balance: (
       <div className="text-white py-1  px-3">
         <p className="text-center mb-[2px]">
-          <span className="text-white">{numberFormat(trader.balance.balance)} </span>
+          <span className="text-white">
+            {numberFormat(trader.balance.balance)}{" "}
+          </span>
           <span className="text-[12px] text-textDark">of </span>
-          <span className="text-white">{numberFormat(trader.balance.total)}</span>
+          <span className="text-white">
+            {numberFormat(trader.balance.total)}
+          </span>
         </p>
         <Progress
-          value={trader.balance.balance / trader.balance.total * 100}
+          value={(trader.balance.balance / trader.balance.total) * 100}
           placeholder={undefined}
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
