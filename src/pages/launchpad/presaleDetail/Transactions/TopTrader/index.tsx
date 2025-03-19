@@ -221,7 +221,7 @@ const TopTraders = () => {
         className="cursor-hover h-full items-center flex justify-center hover:bg-lightestColor cursor-pointer"
         onClick={() => {
           window.open(
-            `https://amoy.polygonscan.com/account/${trader.maker}`,
+            `https://amoy.polygonscan.com/address/${trader.maker}`,
             "_blank"
           );
         }}

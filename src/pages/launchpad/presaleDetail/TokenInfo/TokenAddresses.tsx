@@ -33,7 +33,7 @@ const TokenAddresses = () => {
           </button>
           <div className="flex items-center gap-2">
             {/* <span className="text-sm">EXP</span> */}
-            <Link to="#" target="_blank">
+            <Link to={`https://amoy.polygonscan.com/address/${token?.creator}`} target="_blank">
               <IconExternalLink size={16} />
             </Link>
           </div>
@@ -53,7 +53,7 @@ const TokenAddresses = () => {
           </button>
           <div className="flex items-center gap-2">
             {/* <span className="text-sm">EXP</span> */}
-            <Link to="#" target="_blank">
+            <Link to={`https://amoy.polygonscan.com/address/${token?.tokenAddress}`} target="_blank">
               <IconExternalLink size={16} />
             </Link>
           </div>
@@ -74,7 +74,7 @@ const TokenAddresses = () => {
           </button>
           <div className="flex items-center gap-2">
             {/* <span className="text-sm">EXP</span> */}
-            <Link to="#" target="_blank">
+            <Link to={`https://amoy.polygonscan.com/address/${getContractAddress(token?.chainId as number)}`} target="_blank">
               <IconExternalLink size={16} />
             </Link>
           </div>
