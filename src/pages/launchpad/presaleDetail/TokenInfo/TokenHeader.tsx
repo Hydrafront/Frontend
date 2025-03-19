@@ -50,7 +50,7 @@ const TokenHeader = ({
           />
         </div>
         <span className="text-[18px]">/</span>
-        <span className="text-[18px] text-white">SOL</span>
+        <span className="text-[18px] text-white">{getUnit(Number(chainId))}</span>
         <div className="flex items-center">
           <LeafIcon width={16} />
           <span className="text-[13px] text-green-600">

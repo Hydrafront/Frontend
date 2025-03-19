@@ -1,12 +1,12 @@
 import BoltIcon from "@/components/icons/BoltIcon";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { openDialog } from "@/store/reducers/dialog-slice";
 import { Button, DialogBody } from "@material-tailwind/react";
 import BoostDashboard from "./BoostDashboard";
 
 const TokenBoost = () => {
     const dispatch = useAppDispatch();
-
+    const { token } = useAppSelector((state) => state.token);
 
   const handleClick = () => {
     dispatch(
@@ -38,7 +38,7 @@ const TokenBoost = () => {
         <span>Boost</span>
         <div>
           <span className="px-[10px] py-[1px] ml-2 rounded-lg text-sm text-black bg-orange-500">
-            100
+            {token?.boost}
           </span>
         </div>
       </Button>
