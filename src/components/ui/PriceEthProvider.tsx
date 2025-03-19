@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAppDispatch } from "@/store/hooks";
 import { setEthPrice } from "@/store/reducers/eth-slice";
+import { getCurrentEthPrice } from "@/utils/func";
 
 interface PriceEthProviderProps {
   children: React.ReactNode;
@@ -17,6 +18,13 @@ const PriceEthProvider: React.FC<PriceEthProviderProps> = ({
 
   useEffect(() => {
     if (!priceUrl || typeof window === "undefined") return;
+
+    const getPrice = async () => {
+      const price = await getCurrentEthPrice(chainId);
+      dispatch(setEthPrice({ [chainId]: price }));
+    };
+
+    getPrice();
 
     let ws: WebSocket | null = null;
 
