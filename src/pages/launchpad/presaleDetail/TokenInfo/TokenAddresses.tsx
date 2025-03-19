@@ -88,7 +88,7 @@ const TokenAddresses = () => {
         <div className="flex">
           <div className="flex items-center py-[1px] px-2 w-20 text-ellipsis overflow-hidden whitespace-nowrap">
             {/* <IconCopy size={16} /> */}
-            Uniswap
+            {token?.dex?.name}
           </div>
         </div>
       </div>

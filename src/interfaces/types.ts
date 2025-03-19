@@ -10,6 +10,10 @@ export interface TokenType {
   discord?: string;
   description: string;
   decimals: number;
+  dex?: {
+    name: string;
+    address: `0x${string}`;
+  };
   price: number;
   marketCap: number;
   volume: number;
