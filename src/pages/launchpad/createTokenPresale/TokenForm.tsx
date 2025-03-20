@@ -42,6 +42,7 @@ import Spin2 from "@/components/spins/Spin2";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { createTokenEmit } from "@/socket/token";
 import { useAppDispatch } from "@/store/hooks";
+
 const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5MB
 
 export interface FormType {

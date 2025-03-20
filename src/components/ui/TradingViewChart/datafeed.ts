@@ -331,7 +331,7 @@ export default {
         ...bars[bars.length - 1],
       });
       onHistoryCallback(bars, {
-        noData: bars.length === 0 && new Date(cachedBars[cachedKey][cachedBars[cachedKey].length - 1].createdAt).getTime() > to * 1000,
+        noData: bars.length !== 0,
       });
     } catch (error) {
       console.log("[getBars]: Get error", error);
