@@ -175,9 +175,7 @@ const TokenForm: React.FC = () => {
     if (
       isEmpty(form.name) ||
       isEmpty(form.symbol) ||
-      isEmpty(form.description) ||
-      isEmpty(form.logo) ||
-      isEmpty(form.banner)
+      isEmpty(form.description)
     ) {
       toast.error("Please fill all the fields");
       return;
@@ -284,6 +282,24 @@ const TokenForm: React.FC = () => {
         toast.error("An unknown error occurred");
       }
       setIsLoading(false);
+    }
+  };
+
+  const handleInitialBuyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value);
+    if (val >= 0) {
+      if (val >= 1 && e.target.value.startsWith("0")) {
+        e.target.value = e.target.value.slice(1);
+      }
+      setForm((prev: FormType) => ({
+        ...prev,
+        initialBuy: val,
+      }));
+    } else {
+      setForm((prev: FormType) => ({
+        ...prev,
+        initialBuy: 0,
+      }));
     }
   };
 
@@ -412,9 +428,8 @@ const TokenForm: React.FC = () => {
           </div>
           <Input
             type="number"
-            min={0}
             name="initialBuy"
-            onChange={handleChange}
+            onChange={handleInitialBuyChange}
             value={form.initialBuy}
             icon={
               <button className="bg-gray-800 p-1 rounded-md">

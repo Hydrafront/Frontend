@@ -97,8 +97,6 @@ socket.on(
     }
     const channelString = `0~${parsedSymbol.exchange.toLowerCase()}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
     const subscriptionItem = channelToSubscription.get(channelString);
-    console.log(channelToSubscription);
-    console.log(channelString);
     if (subscriptionItem === undefined) {
       return;
     }
@@ -117,7 +115,6 @@ socket.on(
         close: tradePrice,
         volume: volume,
       };
-      console.log("[socket] Generate new bar", bar);
     } else {
       bar = {
         time: tradeTime,
@@ -127,9 +124,7 @@ socket.on(
         close: tradePrice,
         volume: volume,
       };
-      console.log("[socket] Update the latest bar by price", tradePrice);
     }
-    console.log(bar);
     subscriptionItem.lastDailyBar = bar;
     // Send data to every subscriber of that symbol
     subscriptionItem.handlers.forEach(
