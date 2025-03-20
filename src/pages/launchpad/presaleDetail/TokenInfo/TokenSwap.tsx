@@ -15,6 +15,7 @@ const TokenSwap = () => {
     label: "USD",
     value: "0",
   });
+  const { token } = useAppSelector((state) => state.token);
   const valueRef = useRef<HTMLInputElement>(null);
   const ethValueRef = useRef<HTMLInputElement>(null);
 
@@ -37,7 +38,7 @@ const TokenSwap = () => {
         }
       }
     }
-  }, [value, currentPrice * ethPrice[Number(chainId)], currentPrice]);
+  }, [value, ethPrice[Number(chainId)], currentPrice]);
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
@@ -97,7 +98,7 @@ const TokenSwap = () => {
           className="bg-transparent p-2 pl-4 border-r w-full lg:w-auto rounded-r-none border-borderColor"
         />
         <button className="text-center px-2 flex-1 bg-lighterColor">
-          DINOCAT
+          {token?.symbol}
         </button>
       </div>
       <div className="flex justify-center">

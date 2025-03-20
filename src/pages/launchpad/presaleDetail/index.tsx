@@ -17,6 +17,7 @@ import { getPriceUrl, getUnit } from "@/utils/config/chainDexConfig";
 import Spin3 from "@/components/spins/Spin3";
 import PriceEthProvider from "@/components/ui/PriceEthProvider";
 import TabDrawer from "./TabDrawer";
+import { resetToken, resetTransactions } from "@/store/reducers/token-slice";
 
 const PresaleDetail: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -28,6 +29,10 @@ const PresaleDetail: React.FC = () => {
   useEffect(() => {
     dispatch(getTokenByAddress(tokenAddress as `0x${string}`));
     dispatch(getTransactionsByTokenAddress(tokenAddress as `0x${string}`));
+    return () => {
+      dispatch(resetToken());
+      dispatch(resetTransactions());
+    }
   }, [tokenAddress, dispatch]);
 
   if (isEmpty(token)) {

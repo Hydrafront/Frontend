@@ -137,7 +137,7 @@ const TopTraders = () => {
       });
       setTraders(traders);
     }
-  }, [transactions]);
+  }, [transactions, currentPrice, ethPrice[chainId as string]]);
 
   const TopTraders: TraderTableType[] = traders.map((trader, index) => ({
     rank: <div className="py-1 px-3 text-textDark">#{index + 1}</div>,

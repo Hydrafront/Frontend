@@ -59,7 +59,6 @@ export const createTokenInfo = async (
   tokenAddress: `0x${string}`,
   info: TokenInfo
 ) => {
-  console.log(info, "info");
   try {
     const res = await axios.post(`${BASE_URL}/create`, {
       tokenAddress,

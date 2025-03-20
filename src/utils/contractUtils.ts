@@ -10,6 +10,7 @@ import { useAccount } from "wagmi";
 import { getContractAddress } from "./func";
 import {
   formatUnits,
+  parseUnits,
   TransactionReceipt,
   UserRejectedRequestError,
 } from "viem";
@@ -34,8 +35,9 @@ export const useCreatePresaleToken = () => {
     name: string,
     symbol: string,
     nonce: number,
-    signature: `0x${string}`
-    // initialBuy: number
+    signature: `0x${string}`,
+    initialBuy: number,
+    tokenAmount: number
   ) => {
     if (!publicClient) {
       throw new Error("Public client is not available");
@@ -56,13 +58,29 @@ export const useCreatePresaleToken = () => {
       // });
       let hash;
       try {
-        hash = await writeContractAsync({
-          abi: factoryAbi,
-          address: getContractAddress(chainId),
-          functionName: "createHydrapadPresaleToken",
-          args: [name, symbol, BigInt(nonce), signature],
-          // value: totalValue,
-        });
+        if (initialBuy > 0) {
+          hash = await writeContractAsync({
+            abi: factoryAbi,
+            address: getContractAddress(chainId),
+            functionName: "createHydrapadPresaleTokenAndBuy",
+            args: [
+              name,
+              symbol,
+              BigInt(nonce),
+              signature,
+              parseUnits(tokenAmount.toString(), 18),
+            ],
+            value: parseUnits(initialBuy.toString(), 18),
+          });
+        } else {
+          hash = await writeContractAsync({
+            abi: factoryAbi,
+            address: getContractAddress(chainId),
+            functionName: "createHydrapadPresaleToken",
+            args: [name, symbol, BigInt(nonce), signature],
+            // value: totalValue,
+          });
+        }
       } catch (error) {
         console.error("DIRECT Error creating token:", error);
         throw new Error("DIRECT Error creating token:", { cause: error });
@@ -148,8 +166,9 @@ export const useUserBalance = (
 
 export const useBuyToken = (tokenAddress: `0x${string}`) => {
   const chainId = useChainId();
-  const { writeContractAsync, error: buyError, isSuccess } = useWriteContract();
+  const { writeContractAsync } = useWriteContract();
   const { address } = useAccount();
+  const publicClient = usePublicClient();
 
   const buyGivenIn = async (minTokenAmount: bigint, amountPrice: bigint) => {
     if (!address || !tokenAddress) {
@@ -163,7 +182,14 @@ export const useBuyToken = (tokenAddress: `0x${string}`) => {
         args: [tokenAddress, minTokenAmount],
         value: amountPrice,
       });
-      return txHash;
+      const receipt = await publicClient?.waitForTransactionReceipt({
+        hash: txHash,
+      });
+      if (receipt && receipt.status === "success") {
+        return txHash;
+      } else {
+        throw new Error("Error buying token:");
+      }
     } catch (error) {
       throw new Error("Error buying token:", { cause: error });
     }
@@ -180,12 +206,19 @@ export const useBuyToken = (tokenAddress: `0x${string}`) => {
         args: [tokenAddress, amountToken, maxPriceAmount],
         value: maxPriceAmount,
       });
-      return txHash;
+      const receipt = await publicClient?.waitForTransactionReceipt({
+        hash: txHash,
+      });
+      if (receipt && receipt.status === "success") {
+        return txHash;
+      } else {
+        throw new Error("Error buying token:");
+      }
     } catch (error) {
       throw new Error("Error buying token:", { cause: error });
     }
   };
-  return { buyGivenIn, buyGivenOut, buyError, isSuccess };
+  return { buyGivenIn, buyGivenOut };
 };
 
 //-----------------Token Allowance-----------------
@@ -205,7 +238,7 @@ export function useTokenAllowance(
 //-----------------Approve Token-----------------
 export const useApproveToken = (tokenAddress: `0x${string}`) => {
   const chainId = useChainId();
-  const { writeContractAsync, error: approveError } = useWriteContract();
+  const { writeContractAsync } = useWriteContract();
   const { address } = useAccount();
   const approveToken = async (amount: bigint) => {
     if (!address || !tokenAddress) {
@@ -220,17 +253,19 @@ export const useApproveToken = (tokenAddress: `0x${string}`) => {
       });
       return txHash;
     } catch (error) {
-      throw new Error("Error approving token:", { cause: error });
+      throw new Error("Error approving token:");
     }
   };
-  return { approveToken, approveError };
+  return { approveToken };
 };
 
 //-----------------Sell Token-----------------
 export const useSellToken = (tokenAddress: `0x${string}`) => {
   const chainId = useChainId();
-  const { writeContractAsync, error: buyError } = useWriteContract();
+  const { writeContractAsync } = useWriteContract();
   const { address } = useAccount();
+  const publicClient = usePublicClient();
+
   const sellGivenIn = async (
     amountToken: bigint,
     amountPOLMin: bigint,
@@ -247,7 +282,14 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
         args: [tokenAddress, amountToken, amountPOLMin],
         value: fee,
       });
-      return txHash;
+      const receipt = await publicClient?.waitForTransactionReceipt({
+        hash: txHash,
+      });
+      if (receipt && receipt.status === "success") {
+        return txHash;
+      } else {
+        throw new Error("Error selling token:");
+      }
     } catch (error) {
       throw new Error("Error selling token:", { cause: error });
     }
@@ -263,12 +305,19 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
         functionName: "sellGivenOut",
         args: [tokenAddress, amountPOL, amountTokenMax],
       });
-      return txHash;
+      const receipt = await publicClient?.waitForTransactionReceipt({
+        hash: txHash,
+      });
+      if (receipt && receipt.status === "success") {
+        return txHash;
+      } else {
+        throw new Error("Error selling token:");
+      }
     } catch (error) {
       throw new Error("Error selling token:", { cause: error });
     }
   };
-  return { sellGivenIn, sellGivenOut, buyError };
+  return { sellGivenIn, sellGivenOut };
 };
 
 //-----------------Get Token Address from txHash-----------------

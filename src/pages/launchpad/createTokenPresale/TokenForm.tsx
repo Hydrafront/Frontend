@@ -80,7 +80,8 @@ const TokenForm: React.FC = () => {
   const { progressBPS } = useProgressBPS(contractAddress as `0x${string}`);
 
   const { uniswapV2Router } = useUniswapV2Router();
-  const { initialAccumulatedPOL, initialRemainingTokens } = useGetInitialReverses(selectedChain.id);
+  const { initialAccumulatedPOL, initialRemainingTokens } =
+    useGetInitialReverses(selectedChain.id);
 
   useEffect(() => {
     setSelectedDex(
@@ -90,7 +91,6 @@ const TokenForm: React.FC = () => {
       }
     );
   }, []);
-
 
   const { form, setForm, handleChange } = useForm<FormType>({
     name: "",
@@ -109,10 +109,12 @@ const TokenForm: React.FC = () => {
 
   const handleChainChange = async (value: Chain) => {
     setSelectedChain(value);
-    setSelectedDex(getDex(value.id)?.[0] as {
-      name: string;
-      address: `0x${string}` | undefined;
-    });
+    setSelectedDex(
+      getDex(value.id)?.[0] as {
+        name: string;
+        address: `0x${string}` | undefined;
+      }
+    );
   };
 
   const handleImageUpload =
@@ -157,13 +159,18 @@ const TokenForm: React.FC = () => {
 
   const getInitialPrice = async () => {
     const price = await getCurrentEthPrice(selectedChain.id);
-    const initialPrice = (Number(initialAccumulatedPOL) / Number(initialRemainingTokens)) * price;
+    const initialPrice =
+      (Number(initialAccumulatedPOL) / Number(initialRemainingTokens)) * price;
     return initialPrice;
   };
 
   const handleCreatePresale = async () => {
+    if (selectedChain.id !== 80002) {
+      toast.error("This chain is not supported yet");
+      return;
+    }
     const nonce = Date.now();
-    console.log(await getInitialPrice());
+    const tokenPrice = await getInitialPrice();
 
     if (
       isEmpty(form.name) ||
@@ -189,43 +196,68 @@ const TokenForm: React.FC = () => {
         import.meta.env.VITE_PRIVATE_KEY
       );
       setIsLoading(true);
-      const receipt = await createPresaleToken(
-        form.name,
-        form.symbol,
-        nonce,
-        signature as `0x${string}`
-        // form.initialBuy
-      );
+      try {
+        const receipt = await createPresaleToken(
+          form.name,
+          form.symbol,
+          nonce,
+          signature as `0x${string}`,
+          form.initialBuy,
+          form.initialBuy / tokenPrice
+        );
+        tokenAddress = receipt?.logs[0].address;
+        console.log("token created on blockchain", tokenAddress);
 
-      tokenAddress = receipt?.logs[0].address;
-      console.log("token created on blockchain", tokenAddress);
-
-      if (tokenAddress && form.logo && form.banner) {
-        const { token } = await createTokenInfo(tokenAddress as `0x${string}`, {
-          type: "presale",
-          creator: address as `0x${string}`,
-          description: form.description,
-          dex: {
-            name: selectedDex?.name || "",
-            address: selectedDex?.address as `0x${string}`,
-          },
-          chainId: selectedChain.id,
-          name: form.name,
-          symbol: form.symbol,
-          progress: progressBPS,
-          logo: form.logo as string,
-          price: await getInitialPrice(),
-          marketCap: currentMarketCap as number,
-          banner: form.banner as string,
-          website: form.website,
-          twitter: form.twitter,
-          telegram: form.telegram,
-          discord: form.discord,
-        });
-        createTokenEmit(token);
-        toast.success("Token created successfully");
-      } else {
-        throw new Error("Token address or image upload failed");
+        if (tokenAddress && form.logo && form.banner) {
+          try {
+            const { token } = await createTokenInfo(
+              tokenAddress as `0x${string}`,
+              {
+                type: "presale",
+                creator: address as `0x${string}`,
+                description: form.description,
+                dex: {
+                  name: selectedDex?.name || "",
+                  address: selectedDex?.address as `0x${string}`,
+                },
+                chainId: selectedChain.id,
+                name: form.name,
+                symbol: form.symbol,
+                progress: progressBPS,
+                logo: form.logo as string,
+                price: tokenPrice,
+                marketCap: currentMarketCap as number,
+                banner: form.banner as string,
+                website: form.website,
+                twitter: form.twitter,
+                telegram: form.telegram,
+                discord: form.discord,
+              }
+            );
+            if (form.initialBuy > 0) {
+              // saveTransactionAction({
+              //   txHash,
+              //   type: "Buy",
+              //   tokenAddress: tokenAddress as `0x${string}`,
+              //   token: minTokenAmount,
+              //   eth: value,
+              //   maker: address as `0x${string}`,
+              //   usd:
+              //     currentPrice * minTokenAmount * ethPrice[Number(chainId)],
+              //   price: currentPrice * ethPrice[Number(chainId)],
+              //   chainId: Number(chainId),
+              // })
+            }
+            createTokenEmit(token);
+            toast.success("Token created successfully");
+          } catch (error) {
+            console.log("Error in token creation", error);
+          }
+        } else {
+          throw new Error("Token address or image upload failed");
+        }
+      } catch (error) {
+        console.log("Error in token creation", error);
       }
       setIsLoading(false);
     } catch (error) {

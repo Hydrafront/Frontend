@@ -2,7 +2,7 @@ import BoltIcon from "@/components/icons/BoltIcon";
 import LeafIcon from "@/components/icons/LeafIcon";
 import { Card, CardBody } from "@material-tailwind/react";
 import { IconTransfer } from "@tabler/icons-react";
-import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router";
 import React from "react";
 import LinkIcon from "@/components/ui/LinkIcon";
 import TokenProgressbar from "@/components/common/TokenProgressbar";
@@ -13,10 +13,11 @@ import TimeAgo from "@/components/ui/TimeAgo";
 export interface NFTCardType extends TokenType {}
 
 const NFTCard: React.FC<NFTCardType> = (props) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/detail/${props.chainId}/${props.tokenAddress}/${props.type}`);
+    window.location.href = `/detail/${props.chainId}/${props.tokenAddress}/${props.type}`;
+    // navigate(`/detail/${props.chainId}/${props.tokenAddress}/${props.type}`);
   };
   return (
     <Card

@@ -37,6 +37,7 @@ export interface TokenType {
 export interface TransactionType {
   txHash: string;
   type: string;
+  symbol: string;
   tokenAddress: `0x${string}`;
   token: number;
   eth: number;

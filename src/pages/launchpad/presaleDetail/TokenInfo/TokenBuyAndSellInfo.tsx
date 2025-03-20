@@ -6,6 +6,11 @@ import { TransactionType } from "@/interfaces/types";
 import FormatPrice from "@/components/ui/FormatPrice";
 import socket from "@/socket/token";
 import { useParams } from "react-router";
+import { getCurrentEthPrice } from "@/utils/func";
+import { useGetInitialReverses } from "@/utils/contractUtils";
+import { setInitialPrice } from "@/store/reducers/token-slice";
+import { useDispatch } from "react-redux";
+import { isEmpty } from "@/utils/validation";
 interface DurationType {
   label: string;
   value: number;
@@ -23,14 +28,17 @@ interface TransactionStats {
 }
 
 const TokenBuyAndSellInfo = () => {
-  const { tokenAddress } = useParams();
+  const { tokenAddress, chainId } = useParams();
   const [durationOption, setDurationOption] = useState<DurationType[]>([
     { label: "5M", value: 5, percent: 0, selected: true },
     { label: "1H", value: 60, percent: 0, selected: false },
     { label: "6H", value: 360, percent: 0, selected: false },
     { label: "24H", value: 1440, percent: 0, selected: false },
   ]);
-  const { transactions } = useAppSelector((state) => state.token);
+  const { token } = useAppSelector((state) => state.token);
+  const { initialAccumulatedPOL, initialRemainingTokens } =
+    useGetInitialReverses(Number(chainId));
+  const { transactions, initialPrice } = useAppSelector((state) => state.token);
   const [txns, setTxns] = useState<TransactionType[]>([]);
   const [stats, setStats] = useState<TransactionStats>({
     buyTransactions: [],
@@ -40,7 +48,7 @@ const TokenBuyAndSellInfo = () => {
     buyers: 0,
     sellers: 0,
   });
-
+  const dispatch = useDispatch();
   const getVolume = useCallback(() => {
     let buyVolume: number = 0;
     let sellVolume: number = 0;
@@ -75,6 +83,19 @@ const TokenBuyAndSellInfo = () => {
   }, [txns]);
 
   useEffect(() => {
+    if (initialAccumulatedPOL && initialRemainingTokens) {
+      const getInitialPrice = async () => {
+        const price = await getCurrentEthPrice(Number(chainId));
+        const initialPrice =
+          (Number(initialAccumulatedPOL) / Number(initialRemainingTokens)) *
+          price;
+        dispatch(setInitialPrice(initialPrice));
+      };
+      getInitialPrice();
+    }
+  }, [initialAccumulatedPOL, initialRemainingTokens, chainId, dispatch]);
+
+  useEffect(() => {
     const d = durationOption.find((option) => option.selected);
     const time = new Date().getTime() - (d?.value ?? 0) * 60 * 1000;
     const sortedTxns = [...transactions];
@@ -91,6 +112,7 @@ const TokenBuyAndSellInfo = () => {
   }, [transactions, durationOption]);
 
   useEffect(() => {
+    if (isEmpty(initialPrice) || !token) return;
     const sortedTxns = [...transactions].sort(
       (a, b) =>
         new Date(b.createdAt ?? "").getTime() -
@@ -104,15 +126,14 @@ const TokenBuyAndSellInfo = () => {
       );
       let percent = 0;
       if (filteredTxns.length >= 1) {
-        const lastTxn = filteredTxns[0];
         let startTxn = null;
         if (filteredTxns.length === sortedTxns.length) {
           startTxn = sortedTxns[sortedTxns.length - 1];
         } else {
           startTxn = sortedTxns[filteredTxns.length];
         }
-        if (lastTxn?.price && startTxn?.price) {
-          percent = ((lastTxn.price - startTxn.price) / startTxn.price) * 100;
+        if (token.price && startTxn?.price) {
+          percent = ((token.price - startTxn.price) / startTxn.price) * 100;
         }
       }
       return {
@@ -130,7 +151,7 @@ const TokenBuyAndSellInfo = () => {
     });
 
     setDurationOption(options);
-  }, [transactions]);
+  }, [transactions, initialPrice, token?.price, chainId]);
 
   useEffect(() => {
     setStats({

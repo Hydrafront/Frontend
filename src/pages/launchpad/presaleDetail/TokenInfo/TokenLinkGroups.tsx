@@ -20,7 +20,7 @@ const TokenLinkGroups: React.FC<TokenLinkGroupsProps> = ({
   website = "",
   twitter = "",
   telegram = "",
-  discord = ""
+  discord = "",
 }) => {
   const linkArr = [];
   if (website)
@@ -85,19 +85,20 @@ const TokenLinkGroups: React.FC<TokenLinkGroupsProps> = ({
           <IconDots size={16} />
         </Button>
       )}
-
-      <Button
-        placeholder={undefined}
-        onPointerEnterCapture={undefined}
-        onPointerLeaveCapture={undefined}
-        className="p-2"
-        onClick={() => {
-          const tokenInfo = document.getElementById("common-token-info");
-          tokenInfo?.scrollIntoView({ behavior: "smooth" });
-        }}
-      >
-        <IconArrowDown size={16} />
-      </Button>
+      {linkArr.length > 0 && (
+        <Button
+          placeholder={undefined}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
+          className="p-2"
+          onClick={() => {
+            const tokenInfo = document.getElementById("common-token-info");
+            tokenInfo?.scrollIntoView({ behavior: "smooth" });
+          }}
+        >
+          <IconArrowDown size={16} />
+        </Button>
+      )}
     </ButtonGroup>
   );
 };

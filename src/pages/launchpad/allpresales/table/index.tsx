@@ -4,7 +4,7 @@ import React from "react";
 import clsx from "clsx";
 import IconText from "@/components/common/IconText";
 import BoltIcon from "@/components/icons/BoltIcon";
-import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router";
 import { useAppSelector } from "@/store/hooks";
 import { getChainLogo, getUnit } from "@/utils/config/chainDexConfig";
 import FormatPrice from "@/components/ui/FormatPrice";
@@ -12,6 +12,9 @@ import TimeAgo from "@/components/ui/TimeAgo";
 type AlignType = "left" | "center" | "right";
 
 interface TableType {
+  chainId: number;
+  tokenAddress: string;
+  type: string;
   token: React.ReactElement;
   progress: React.ReactElement;
   mcap: React.ReactElement;
@@ -30,6 +33,9 @@ const NFTTable = () => {
 
   const data: TableType[] = tokens.map((item, index) => {
     return {
+      chainId: item.chainId,
+      tokenAddress: item.tokenAddress || '',
+      type: item.type || 'presale',
       token: (
         <div className="py-2 px-3 flex items-center min-w-[160px] md:min-w-[350px] border-l border-r border-borderColor bg-lightColor token-first-item">
           <span className="text-textDark mr-3 text-tedar hidden md:block w-[50px]">
@@ -205,10 +211,11 @@ const NFTTable = () => {
     },
   ];
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-  const handleClick = () => {
-    navigate("/detail/Polygon/sdfsdfsdfsdfsdfsdfsdfdsfdf/presale");
+  const handleClick = (data: TableType) => {
+    window.location.href = `/detail/${data.chainId}/${data.tokenAddress}/${data.type}`;
+    // navigate(`/detail/${data.chainId}/${data.tokenAddress}/${data.type}`);
   };
   return (
     <div className="mb-10 token-table overflow-x-scroll -mx-4">
@@ -225,7 +232,6 @@ const NFTTable = () => {
               <tr
                 {...props}
                 className="token-tr bg-lightColor transition cursor-pointer"
-                onClick={handleClick}
               />
             ),
           },
@@ -246,6 +252,9 @@ const NFTTable = () => {
         columns={columns}
         data={data}
         className="fe_c_table"
+        onRow={(record) => ({
+          onClick: () => handleClick(record),
+        })}
       />
     </div>
   );

@@ -98,7 +98,6 @@ const TradingViewChart = ({
   };
 
   useEffect(() => {
-    console.log(window.TradingView);
     if (
       !window.TradingView ||
       typeof window.TradingView.widget !== "function"

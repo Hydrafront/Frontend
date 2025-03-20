@@ -21,6 +21,7 @@ import { tokenAbi } from "@/utils/abi/tokenAbi";
 import socket from "@/socket/token";
 import { setToken } from "@/store/reducers/token-slice";
 import TokenBoost from "./TokenBoost";
+import { useEffect } from "react";
 
 interface Props {
   type?: string | undefined;
@@ -41,6 +42,21 @@ const TokenInfo: React.FC<Props> = () => {
   );
   const dispatch = useAppDispatch();
 
+  useEffect(() => {
+    dispatch(
+      setToken({
+        progress: progressBPS,
+        price: currentPrice * ethPrice[Number(chainId)],
+        marketCap: currentMarketCap * ethPrice[Number(chainId)],
+      })
+    );
+    socket.emit("update-token-info", {
+      tokenAddress: tokenAddress as `0x${string}`,
+      progress: progressBPS,
+      price: currentPrice * ethPrice[Number(chainId)],
+      marketCap: currentMarketCap * ethPrice[Number(chainId)],
+    });
+  }, [currentPrice, dispatch, ethPrice, chainId, currentMarketCap]);
   useWatchContractEvent({
     address: tokenAddress as `0x${string}`,
     abi: tokenAbi,
@@ -50,19 +66,6 @@ const TokenInfo: React.FC<Props> = () => {
       refetchCurrentPrice();
       refetchCurrentMarketCap();
       refetchProgressBPS();
-      dispatch(
-        setToken({
-          progress: progressBPS,
-          price: (currentPrice as number) * ethPrice[Number(chainId)],
-          marketCap: (currentMarketCap as number) * ethPrice[Number(chainId)],
-        })
-      );
-      socket.emit("update-token-info", {
-        tokenAddress: tokenAddress as `0x${string}`,
-        progress: progressBPS,
-        price: (currentPrice as number) * ethPrice[Number(chainId)],
-        marketCap: (currentMarketCap as number) * ethPrice[Number(chainId)],
-      });
     },
   });
   if (!token) return null;
@@ -93,10 +96,8 @@ const TokenInfo: React.FC<Props> = () => {
           <BorderBox className="flex flex-col w-1/2">
             <InfoText className="text-center">PRICE</InfoText>
             <div className="text-center">
-              {ethPrice[Number(chainId)] ? (
-                <FormatPrice
-                  value={currentPrice * ethPrice[Number(chainId)]}
-                />
+              {token.price ? (
+                <FormatPrice value={token.price} />
               ) : (
                 <div className="dot-flashing m-auto my-1"></div>
               )}
@@ -105,11 +106,8 @@ const TokenInfo: React.FC<Props> = () => {
           <BorderBox className="flex flex-col w-1/2">
             <InfoText className="text-center">MARKET CAP</InfoText>
             <div className="text-center">
-              {ethPrice[Number(chainId)] ? (
-                <FormatPrice
-                  value={currentMarketCap * ethPrice[Number(chainId)]}
-                  doller={true}
-                />
+              {token.marketCap ? (
+                <FormatPrice value={token.marketCap} doller={true} />
               ) : (
                 <div className="dot-flashing m-auto my-1"></div>
               )}

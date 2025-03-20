@@ -86,7 +86,7 @@ const SellTab: React.FC<{
       toast.error("Missing required information");
       return;
     }
-    
+
     try {
       if (!isApproved) {
         try {
@@ -112,20 +112,23 @@ const SellTab: React.FC<{
             ),
             parseUnits(priorityFee.toString(), token?.decimals || 18)
           );
-          toast.success("Token sold successfully!");
-          dispatch(
-            saveTransactionAction({
-              txHash,
-              type: "Sell",
-              tokenAddress: tokenAddress as `0x${string}`,
-              token: tokenAmount,
-              eth: value,
-              maker: address as `0x${string}`,
-              usd: currentPrice * tokenAmount * ethPrice[Number(chainId)],
-              price: currentPrice * ethPrice[Number(chainId)],
-              chainId: Number(chainId),
-            })
-          );
+          if (token && txHash) {
+            toast.success("Token sold successfully!");
+            dispatch(
+              saveTransactionAction({
+                txHash,
+                symbol: token.symbol + ":" + getUnit(Number(chainId)),
+                type: "Sell",
+                tokenAddress: tokenAddress as `0x${string}`,
+                token: tokenAmount,
+                eth: value,
+                maker: address as `0x${string}`,
+                usd: token.price * tokenAmount,
+                price: token.price,
+                chainId: Number(chainId),
+              })
+            );
+          }
         } catch (error) {
           toast.error("Error occurred while selling token!");
         } finally {
@@ -152,7 +155,15 @@ const SellTab: React.FC<{
       }
       setErrorMessage("");
     }
-  }, [tokenBalance, minEthAmount, value, chainId, balance, tokenAmount, currentPrice]);
+  }, [
+    tokenBalance,
+    minEthAmount,
+    value,
+    chainId,
+    balance,
+    tokenAmount,
+    currentPrice,
+  ]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
@@ -172,7 +183,7 @@ const SellTab: React.FC<{
 
   const handleSelectAmount = (e: React.MouseEvent<HTMLButtonElement>) => {
     const item = Number(e.currentTarget.textContent?.slice(0, -1));
-    setTokenAmount(tokenBalance * item / 100);
+    setTokenAmount((tokenBalance * item) / 100);
   };
 
   if (!token) return null;
@@ -182,11 +193,7 @@ const SellTab: React.FC<{
       <div className="border border-borderColor rounded-md">
         <div className="relative">
           <div className="flex gap-2 w-[100px] absolute left-2 top-1/2 z-[999] -translate-y-1/2">
-            <img
-              src={token.logo}
-              alt="token-icon"
-              className="w-6 h-6"
-            />
+            <img src={token.logo} alt="token-icon" className="w-6 h-6" />
             <span className="overflow-hidden text-ellipsis whitespace-nowrap">
               {token.symbol}
             </span>
@@ -283,7 +290,8 @@ const SellTab: React.FC<{
       ) : (
         <>
           <InfoText className="text-center">
-            you receive min. {minEthAmount.toFixed(3)} {getUnit(Number(chainId))} (~
+            you receive min. {minEthAmount.toFixed(3)}{" "}
+            {getUnit(Number(chainId))} (~
             <FormatPrice
               color="text-textDark"
               value={minEthAmount * (ethPrice[Number(chainId)] || 0)}

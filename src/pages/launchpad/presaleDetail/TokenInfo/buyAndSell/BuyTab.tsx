@@ -2,7 +2,6 @@ import IconText from "@/components/common/IconText";
 import InfoText from "@/components/common/InfoText";
 import { getChainName, getUnit } from "@/utils/config/chainDexConfig";
 import {
-  addTokenToWallet,
   useAmountInAndFee,
   useBuyToken,
   useCurrentTokenPrice,
@@ -101,7 +100,6 @@ const BuyTab: React.FC<{
 
   const handleAction = async () => {
     setTransactionLoading(true);
-    console.log(minTokenAmount)
     if (!swapped) {
       if (isEmpty(value)) {
         toast.error("Missing required infomation");
@@ -112,39 +110,29 @@ const BuyTab: React.FC<{
             parseUnits(minTokenAmount.toString(), 18),
             parseUnits((value + amountOutFee).toString(), 18)
           );
-          toast.success("Token purchased successfully!");
           // const tokenAddress = await getTokenAddress(txHash, "buy");
-          if (token) {
-            try {
-              // await addTokenToWallet({
-              //   tokenAddress: tokenAddress as `0x${string}`,
-              //   tokenSymbol: token.symbol,
-              //   tokenImage: token.logo,
-              //   tokenDecimals: token.decimals,
-              // });
-              dispatch(
-                saveTransactionAction({
-                  txHash,
-                  type: "Buy",
-                  tokenAddress: tokenAddress as `0x${string}`,
-                  token: minTokenAmount,
-                  eth: value,
-                  maker: address as `0x${string}`,
-                  usd:
-                    currentPrice * minTokenAmount * ethPrice[Number(chainId)],
-                  price: currentPrice * ethPrice[Number(chainId)],
-                  chainId: Number(chainId),
-                })
-              );
-            } catch (error) {
-              toast.error("Error occurred while adding token to wallet!");
-              console.error(
-                "Error occurred while adding token to wallet:",
-                error
-              );
-            } finally {
-              setTransactionLoading(false);
-            }
+          if (token && txHash) {
+            toast.success("Token purchased successfully!");
+            // await addTokenToWallet({
+            //   tokenAddress: tokenAddress as `0x${string}`,
+            //   tokenSymbol: token.symbol,
+            //   tokenImage: token.logo,
+            //   tokenDecimals: token.decimals,
+            // });
+            dispatch(
+              saveTransactionAction({
+                txHash,
+                symbol: token.symbol + ":" + getUnit(Number(chainId)),
+                type: "Buy",
+                tokenAddress: tokenAddress as `0x${string}`,
+                token: minTokenAmount,
+                eth: value,
+                maker: address as `0x${string}`,
+                usd: token.price * minTokenAmount,
+                price: token.price,
+                chainId: Number(chainId),
+              })
+            );
           }
         } catch (error) {
           toast.error("Error occurred while buying token!");
@@ -162,25 +150,26 @@ const BuyTab: React.FC<{
             parseUnits((tokenAmount - amountInfee).toString(), 18),
             parseUnits(maxEthAmount.toString(), 18)
           );
-          toast.success("Token purchased successfully!");
-          if (token) {
-            await addTokenToWallet({
-              tokenAddress: tokenAddress as `0x${string}`,
-              tokenSymbol: token.symbol,
-              tokenImage: token.logo,
-              tokenDecimals: token.decimals,
-            });
-            toast.success("Token is added to wallet!");
+          if (token && txHash) {
+            toast.success("Token purchased successfully!");
+            // await addTokenToWallet({
+            //   tokenAddress: tokenAddress as `0x${string}`,
+            //   tokenSymbol: token.symbol,
+            //   tokenImage: token.logo,
+            //   tokenDecimals: token.decimals,
+            // });
+            // toast.success("Token is added to wallet!");
             dispatch(
               saveTransactionAction({
                 txHash,
+                symbol: token.symbol + ":" + getUnit(Number(chainId)),
                 type: "Buy",
                 tokenAddress: tokenAddress as `0x${string}`,
                 token: tokenAmount,
                 eth: value,
                 maker: address as `0x${string}`,
-                usd: currentPrice * tokenAmount * ethPrice[Number(chainId)],
-                price: currentPrice * ethPrice[Number(chainId)],
+                usd: token.price * tokenAmount,
+                price: token.price,
                 chainId: Number(chainId),
               })
             );
@@ -198,7 +187,6 @@ const BuyTab: React.FC<{
     if (balance !== undefined) {
       if (!swapped) {
         if (balance < value) {
-          console.log("balance", balance);
           return setErrorMessage("Insufficient balance");
         }
         if (value !== 0 && value < 0.01) {
