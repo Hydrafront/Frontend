@@ -25,6 +25,7 @@ import {
   useSellToken,
   useTokenAllowance,
 } from "@/utils/contractUtils";
+import { TransactionType } from "@/interfaces/types";
 
 const SellTab: React.FC<{
   openFeeDialog: () => void;
@@ -147,19 +148,19 @@ const SellTab: React.FC<{
                 parseUnits(priorityFee.toString(), token?.decimals || 18)
               );
               toast.success("Token sold successfully!");
-              dispatch(
-                saveTransactionAction({
-                  txHash,
-                  type: "Sell",
-                  tokenAddress: tokenAddress as `0x${string}`,
-                  token: tokenAmount,
-                  eth: value,
-                  maker: address as `0x${string}`,
-                  usd: currentPrice * tokenAmount * currentEthPrice,
-                  price: currentPrice * currentEthPrice,
-                  chainId: Number(chainId),
-                })
-              );
+              const transaction: TransactionType = {
+                txHash: txHash as `0x${string}`,
+                type: "sell",
+                tokenAddress: tokenAddress as `0x${string}`,
+                token: maxAmountToken,
+                eth: minEthAmount + amountInfee,
+                maker: address as `0x${string}`,
+                usd: (minEthAmount + amountInfee) * currentPrice * currentEthPrice,
+                price: currentPrice * currentEthPrice,
+                chainId: Number(chainId),
+                symbol: token?.symbol || ""
+              };
+              dispatch(saveTransactionAction(transaction));
             } catch (error) {
               toast.error("Error occurred while selling token!");
             } finally {
@@ -199,19 +200,19 @@ const SellTab: React.FC<{
               parseUnits(value.toString(), 18)
             );
             toast.success("Token sold successfully!");
-            dispatch(
-              saveTransactionAction({
-                txHash,
-                type: "Sell",
-                tokenAddress: tokenAddress as `0x${string}`,
-                token: maxAmountToken,
-                eth: value,
-                usd: maxAmountToken * currentPrice * currentEthPrice,
-                price: currentPrice * currentEthPrice,
-                maker: address as `0x${string}`,
-                chainId: Number(chainId),
-              })
-            );
+            const transaction: TransactionType = {
+              txHash: txHash as `0x${string}`,
+              type: "sell",
+              tokenAddress: tokenAddress as `0x${string}`,
+              token: maxAmountToken - amountOutFee,
+              eth: value,
+              maker: address as `0x${string}`,
+              usd: (maxAmountToken - amountOutFee) * currentPrice * currentEthPrice,
+              price: currentPrice * currentEthPrice,
+              chainId: Number(chainId),
+              symbol: token?.symbol || ""
+            };
+            dispatch(saveTransactionAction(transaction));
           }
         } catch (error) {
           toast.error("Error occurred while selling token!");
