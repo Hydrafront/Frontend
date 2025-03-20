@@ -67,10 +67,10 @@ export const useCreatePresaleToken = () => {
               name,
               symbol,
               BigInt(nonce),
-              signature,
               parseUnits(tokenAmount.toString(), 18),
+              signature,
             ],
-            value: parseUnits(initialBuy.toString(), 18),
+            value: parseUnits((initialBuy).toString(), 18),
           });
         } else {
           hash = await writeContractAsync({
@@ -107,6 +107,10 @@ export const useCreatePresaleToken = () => {
           receipt = await publicClient.waitForTransactionReceipt({ hash });
         } catch (checkError) {
           console.error("Error checking transaction receipt:", checkError);
+        }
+
+        if (receipt && receipt.status !== "success") {
+          throw new Error("Transaction failed");
         }
 
         await new Promise((resolve) => setTimeout(resolve, 3000));

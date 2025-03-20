@@ -23,6 +23,7 @@ import { toast } from "react-toastify";
 import { Chain } from "viem";
 import {
   createTokenInfo,
+  saveTransactionAction,
   uploadImageToPinata,
 } from "@/store/actions/token.action";
 import { generateSignature, getCurrentEthPrice } from "@/utils/func";
@@ -35,11 +36,12 @@ import {
   useUniswapV2Router,
   useMarketCap,
   useGetInitialReverses,
+  useCurrentTokenPrice,
 } from "@/utils/contractUtils";
 import Spin2 from "@/components/spins/Spin2";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { createTokenEmit } from "@/socket/token";
-
+import { useAppDispatch } from "@/store/hooks";
 const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5MB
 
 export interface FormType {
@@ -77,21 +79,10 @@ const TokenForm: React.FC = () => {
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const contractAddress = getContractAddress(selectedChain.id);
   const { currentMarketCap } = useMarketCap(contractAddress as `0x${string}`);
+  const { currentPrice } = useCurrentTokenPrice(
+    contractAddress as `0x${string}`
+  );
   const { progressBPS } = useProgressBPS(contractAddress as `0x${string}`);
-
-  const { uniswapV2Router } = useUniswapV2Router();
-  const { initialAccumulatedPOL, initialRemainingTokens } =
-    useGetInitialReverses(selectedChain.id);
-
-  useEffect(() => {
-    setSelectedDex(
-      getDex(selectedChain.id)?.[0] as {
-        name: string;
-        address: `0x${string}` | undefined;
-      }
-    );
-  }, []);
-
   const { form, setForm, handleChange } = useForm<FormType>({
     name: "",
     symbol: "",
@@ -106,6 +97,20 @@ const TokenForm: React.FC = () => {
     policy: false,
     decimal: 18,
   });
+
+  const { uniswapV2Router } = useUniswapV2Router();
+  const dispatch = useAppDispatch();
+  const { initialAccumulatedPOL, initialRemainingTokens } =
+    useGetInitialReverses(selectedChain.id);
+
+  useEffect(() => {
+    setSelectedDex(
+      getDex(selectedChain.id)?.[0] as {
+        name: string;
+        address: `0x${string}` | undefined;
+      }
+    );
+  }, []);
 
   const handleChainChange = async (value: Chain) => {
     setSelectedChain(value);
@@ -194,6 +199,8 @@ const TokenForm: React.FC = () => {
         import.meta.env.VITE_PRIVATE_KEY
       );
       setIsLoading(true);
+      const amountOut = 0.9 * form.initialBuy / currentPrice;
+
       try {
         const receipt = await createPresaleToken(
           form.name,
@@ -201,10 +208,13 @@ const TokenForm: React.FC = () => {
           nonce,
           signature as `0x${string}`,
           form.initialBuy,
-          form.initialBuy / tokenPrice
+          amountOut
         );
-        tokenAddress = receipt?.logs[0].address;
-        console.log("token created on blockchain", tokenAddress);
+        if (form.initialBuy > 0) {
+          tokenAddress = receipt?.logs[1].address;
+        } else {
+          tokenAddress = receipt?.logs[0].address;
+        }
 
         if (tokenAddress) {
           try {
@@ -233,18 +243,19 @@ const TokenForm: React.FC = () => {
               }
             );
             if (form.initialBuy > 0) {
-              // saveTransactionAction({
-              //   txHash,
-              //   type: "Buy",
-              //   tokenAddress: tokenAddress as `0x${string}`,
-              //   token: minTokenAmount,
-              //   eth: value,
-              //   maker: address as `0x${string}`,
-              //   usd:
-              //     currentPrice * minTokenAmount * ethPrice[Number(chainId)],
-              //   price: currentPrice * ethPrice[Number(chainId)],
-              //   chainId: Number(chainId),
-              // })
+              const transaction = {
+                txHash: receipt?.transactionHash as `0x${string}`,
+                type: "Buy",
+                tokenAddress: tokenAddress as `0x${string}`,
+                token: amountOut,
+                eth: form.initialBuy,
+                maker: address as `0x${string}`,
+                usd: amountOut * tokenPrice,
+                price: tokenPrice,
+                chainId: Number(chainId),
+                symbol: form.symbol,
+              };
+              dispatch(saveTransactionAction(transaction));
             }
             createTokenEmit(token);
             toast.success("Token created successfully");
@@ -252,7 +263,8 @@ const TokenForm: React.FC = () => {
             console.log("Error in token creation", error);
           }
         } else {
-          throw new Error("Token address or image upload failed");
+          toast.error("Transaction was reverted. Please try again");
+          throw new Error("Transaction was reverted. Please try again");
         }
       } catch (error) {
         console.log("Error in token creation", error);
