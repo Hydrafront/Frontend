@@ -63,6 +63,8 @@ dexSocket.addEventListener("message", (event) => {
       close: tradePrice,
     };
     console.log("[socket] Update the latest bar by price", tradePrice);
+    console.log(bar);
+    console.log(subscriptionItem)
   }
   subscriptionItem.lastDailyBar = bar;
 
@@ -82,25 +84,27 @@ socket.on(
     price,
     time,
     symbol,
+    volume,
   }: {
     price: number;
     time: string;
     symbol: string;
+    volume: number;
   }) => {
     const parsedSymbol = parseFullSymbol(symbol);
-    console.log(parsedSymbol);
     if (!parsedSymbol) {
         return;
     }
-    const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
+    const channelString = `0~${parsedSymbol.exchange.toLowerCase()}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
     const subscriptionItem = channelToSubscription.get(channelString);
-    console.log(subscriptionItem);
+    console.log(channelToSubscription);
+    console.log(channelString);
     if (subscriptionItem === undefined) {
       return;
     }
     const lastDailyBar = subscriptionItem.lastDailyBar;
     const nextDailyBarTime = getNextDailyBarTime(lastDailyBar.time);
-    const tradeTime = new Date(time).getTime() / 1000;
+    const tradeTime = new Date(time).getTime();
     const tradePrice = price;
     
     let bar;
@@ -111,17 +115,21 @@ socket.on(
         high: tradePrice,
         low: tradePrice,
         close: tradePrice,
+        volume: volume,
       };
       console.log("[socket] Generate new bar", bar);
     } else {
       bar = {
-        ...lastDailyBar,
-        high: Math.max(lastDailyBar.high, tradePrice),
-        low: Math.min(lastDailyBar.low, tradePrice),
+        time: tradeTime,
+        open: tradePrice,
+        high: tradePrice,
+        low: tradePrice,
         close: tradePrice,
+        volume: volume,
       };
       console.log("[socket] Update the latest bar by price", tradePrice);
     }
+    console.log(bar);
     subscriptionItem.lastDailyBar = bar;
     // Send data to every subscriber of that symbol
     subscriptionItem.handlers.forEach(
@@ -148,11 +156,11 @@ export function subscribeOnStream(
   _onResetCacheNeededCallback: () => void,
   lastDailyBar: Bar
 ) {
-  const parsedSymbol = parseFullSymbol(symbolInfo.full_name);
-  if (!parsedSymbol) {
-    return;
-  }
-  const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
+    const parsedSymbol = parseFullSymbol(symbolInfo.exchange + ":" + symbolInfo.full_name);
+    if (!parsedSymbol) {
+        return;
+    }
+  const channelString = `0~${parsedSymbol.exchange.toLowerCase()}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
   const handler = {
     id: subscriberUID,
     callback: onRealtimeCallback,
@@ -169,6 +177,7 @@ export function subscribeOnStream(
     lastDailyBar,
     handlers: [handler],
   };
+  console.log(subscriptionItem);
   channelToSubscription.set(channelString, subscriptionItem);
   console.log(
     "[subscribeBars]: Subscribe to streaming. Channel:",

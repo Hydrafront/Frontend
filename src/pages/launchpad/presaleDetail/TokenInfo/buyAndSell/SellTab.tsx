@@ -117,7 +117,7 @@ const SellTab: React.FC<{
             dispatch(
               saveTransactionAction({
                 txHash,
-                symbol: token.symbol + ":" + getUnit(Number(chainId)),
+                symbol: token.dex?.name + ":" + token.symbol + "/" + getUnit(Number(chainId)),
                 type: "Sell",
                 tokenAddress: tokenAddress as `0x${string}`,
                 token: tokenAmount,

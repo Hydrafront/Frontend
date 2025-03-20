@@ -250,7 +250,6 @@ export default {
   ) => {
     const { from, to } = periodParams;
 
-    console.log(periodParams);
     const resolutionInSeconds =
       resolutionMap[resolution as keyof typeof resolutionMap];
     if (!resolutionInSeconds) {

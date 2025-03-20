@@ -122,7 +122,7 @@ const BuyTab: React.FC<{
             dispatch(
               saveTransactionAction({
                 txHash,
-                symbol: token.symbol + ":" + getUnit(Number(chainId)),
+                symbol: token.dex?.name + ":" + token.symbol + "/" + getUnit(Number(chainId)),
                 type: "Buy",
                 tokenAddress: tokenAddress as `0x${string}`,
                 token: minTokenAmount,
@@ -162,7 +162,7 @@ const BuyTab: React.FC<{
             dispatch(
               saveTransactionAction({
                 txHash,
-                symbol: token.symbol + ":" + getUnit(Number(chainId)),
+                symbol: token.dex?.name + ":" + token.symbol + "/" + getUnit(Number(chainId)),
                 type: "Buy",
                 tokenAddress: tokenAddress as `0x${string}`,
                 token: tokenAmount,
