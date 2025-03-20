@@ -206,7 +206,7 @@ const TokenForm: React.FC = () => {
         tokenAddress = receipt?.logs[0].address;
         console.log("token created on blockchain", tokenAddress);
 
-        if (tokenAddress && form.logo && form.banner) {
+        if (tokenAddress) {
           try {
             const { token } = await createTokenInfo(
               tokenAddress as `0x${string}`,
@@ -222,10 +222,10 @@ const TokenForm: React.FC = () => {
                 name: form.name,
                 symbol: form.symbol,
                 progress: progressBPS,
-                logo: form.logo as string,
+                logo: form.logo,
                 price: tokenPrice,
                 marketCap: currentMarketCap as number,
-                banner: form.banner as string,
+                banner: form.banner,
                 website: form.website,
                 twitter: form.twitter,
                 telegram: form.telegram,
