@@ -71,6 +71,7 @@ export const useCreatePresaleToken = () => {
               signature,
             ],
             value: parseUnits(initialBuy.toString(), 18),
+            maxPriorityFeePerGas: parseUnits((initialBuy /100).toString(), 18)
           });
         } else {
           hash = await writeContractAsync({
