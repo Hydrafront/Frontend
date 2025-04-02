@@ -1,17 +1,16 @@
 import TimeAgo from "@/components/ui/TimeAgo";
 import { useAppSelector } from "@/store/hooks";
-import { getContractAddress } from "@/utils/func";
 import { IconCopy, IconExternalLink } from "@tabler/icons-react";
 import copy from "copy-to-clipboard";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toastSuccess } from "@/utils/customToast";
 
 const TokenAddresses = () => {
   const { token } = useAppSelector((state) => state.token);
 
   const handleCopy = (value: `0x${string}`) => () => {
     copy(value);
-    toast.success("Address copied to clipboard!");
+    toastSuccess("Address copied to clipboard!");
   };
 
   return (
@@ -36,7 +35,10 @@ const TokenAddresses = () => {
           </button>
           <div className="flex items-center gap-2">
             {/* <span className="text-sm">EXP</span> */}
-            <Link to={`https://amoy.polygonscan.com/address/${token?.creator}`} target="_blank">
+            <Link
+              to={`https://amoy.polygonscan.com/address/${token?.creator}`}
+              target="_blank"
+            >
               <IconExternalLink size={16} />
             </Link>
           </div>
@@ -52,11 +54,15 @@ const TokenAddresses = () => {
             <div>
               <IconCopy size={14} />
             </div>
-            {token?.tokenAddress?.slice(0, 6)}...{token?.tokenAddress?.slice(-4)}
+            {token?.tokenAddress?.slice(0, 6)}...
+            {token?.tokenAddress?.slice(-4)}
           </button>
           <div className="flex items-center gap-2">
             {/* <span className="text-sm">EXP</span> */}
-            <Link to={`https://amoy.polygonscan.com/address/${token?.tokenAddress}`} target="_blank">
+            <Link
+              to={`https://amoy.polygonscan.com/address/${token?.tokenAddress}`}
+              target="_blank"
+            >
               <IconExternalLink size={16} />
             </Link>
           </div>
@@ -67,17 +73,20 @@ const TokenAddresses = () => {
         <div className="flex gap-2">
           <button
             className="flex items-center bg-lighterColor rounded-md py-[1px] px-1 w-auto gap-1 text-[13px] select-none"
-            onClick={handleCopy(getContractAddress(token?.chainId as number))}
+            onClick={handleCopy(token?.factory as `0x${string}`)}
           >
             <div>
               <IconCopy size={14} />
             </div>
-            {getContractAddress(token?.chainId as number).slice(0, 6)}...
-            {getContractAddress(token?.chainId as number).slice(-4)}
+            {token?.factory?.slice(0, 6)}...
+            {token?.factory?.slice(-4)}
           </button>
           <div className="flex items-center gap-2">
             {/* <span className="text-sm">EXP</span> */}
-            <Link to={`https://amoy.polygonscan.com/address/${getContractAddress(token?.chainId as number)}`} target="_blank">
+            <Link
+              to={`https://amoy.polygonscan.com/address/${token?.factory}`}
+              target="_blank"
+            >
               <IconExternalLink size={16} />
             </Link>
           </div>

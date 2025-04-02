@@ -26,6 +26,7 @@ import {
   useTokenAllowance,
 } from "@/utils/contractUtils";
 import { TransactionType } from "@/interfaces/types";
+import { toastSuccess, toastError } from "@/utils/customToast";
 
 const SellTab: React.FC<{
   openFeeDialog: () => void;
@@ -40,6 +41,7 @@ const SellTab: React.FC<{
   const { open } = useWeb3Modal();
   const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
   const { sellGivenIn, sellGivenOut } = useSellToken(
+    token?.factory as `0x${string}`,
     tokenAddress as `0x${string}`
   );
   const [value, setValue] = useState<number>(0);
@@ -129,10 +131,10 @@ const SellTab: React.FC<{
               await approveToken(
                 parseUnits(maxAmountToken.toString(), token?.decimals || 18)
               );
-              toast.success("Token approved successfully!");
+              toastSuccess("Token approved successfully!");
               setIsApproved(true);
             } catch (error) {
-              toast.error("Error approving token!");
+              toastError("Error approving token!");
             } finally {
               setTransactionLoading(false);
             }
@@ -147,7 +149,7 @@ const SellTab: React.FC<{
                 ),
                 parseUnits(priorityFee.toString(), token?.decimals || 18)
               );
-              toast.success("Token sold successfully!");
+              toastSuccess("Token sold successfully!");
               const transaction: TransactionType = {
                 txHash: txHash as `0x${string}`,
                 type: "sell",
@@ -162,7 +164,7 @@ const SellTab: React.FC<{
               };
               dispatch(saveTransactionAction(transaction));
             } catch (error) {
-              toast.error("Error occurred while selling token!");
+              toastError("Error occurred while selling token!");
             } finally {
               setTransactionLoading(false);
             }
@@ -186,10 +188,10 @@ const SellTab: React.FC<{
               await approveToken(
                 parseUnits(maxAmountToken.toString(), token?.decimals || 18)
               );
-              toast.success("Token approved successfully!");
+              toastSuccess("Token approved successfully!");
               setIsApproved(true);
             } catch (error) {
-              toast.error("Error approving token!");
+              toastError("Error approving token!");
             } finally {
               setTransactionLoading(false);
             }
@@ -199,7 +201,7 @@ const SellTab: React.FC<{
               parseUnits((maxAmountToken - amountOutFee).toString(), 18),
               parseUnits(value.toString(), 18)
             );
-            toast.success("Token sold successfully!");
+            toastSuccess("Token sold successfully!");
             const transaction: TransactionType = {
               txHash: txHash as `0x${string}`,
               type: "sell",
@@ -215,7 +217,7 @@ const SellTab: React.FC<{
             dispatch(saveTransactionAction(transaction));
           }
         } catch (error) {
-          toast.error("Error occurred while selling token!");
+          toastError("Error occurred while selling token!");
         } finally {
           setTransactionLoading(false);
         }

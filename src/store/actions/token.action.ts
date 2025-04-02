@@ -1,11 +1,12 @@
 import { PinataSDK } from "pinata-web3";
-import { toast } from "react-toastify";
+import { toastError, toastSuccess } from "@/utils/customToast";
 import axios from "axios";
 import {
   setToken,
   setTokens,
   setTransactions,
   setTokenCount,
+  setTrendingTokens
 } from "../reducers/token-slice";
 import { ThunkAction } from "redux-thunk";
 import { RootState } from "../store";
@@ -19,7 +20,7 @@ const pinata = new PinataSDK({
   pinataGateway: "https://gateway.pinata.cloud",
 });
 
-export const BASE_URL = `${import.meta.env.VITE_SERVER_URL}/api/token`;
+export const BASE_URL_TOKEN = `${import.meta.env.VITE_SERVER_URL}/api/token`;
 
 export const uploadImageToPinata = async (file: File) => {
   try {
@@ -27,7 +28,7 @@ export const uploadImageToPinata = async (file: File) => {
     return "https://gateway.pinata.cloud/ipfs/" + upload.IpfsHash;
   } catch (error) {
     console.error(error);
-    toast.error("Failed to upload image");
+    toastError("Failed to upload image");
     return undefined;
   }
 };
@@ -60,7 +61,7 @@ export const createTokenInfo = async (
   info: TokenInfo
 ) => {
   try {
-    const res = await axios.post(`${BASE_URL}/create`, {
+    const res = await axios.post(`${BASE_URL_TOKEN}/create`, {
       tokenAddress,
       info,
     });
@@ -75,8 +76,23 @@ export const fetchTokens =
     parsed: Record<string, string>
   ): ThunkAction<void, RootState, unknown, AnyAction> =>
   async (dispatch) => {
+    const {
+      chainId,
+      sort,
+      dex,
+      age,
+      minProgress,
+      maxProgress,
+      boosted,
+      ads,
+      search,
+      page,
+    } = parsed;
     try {
-      const res = await axios.post(`${BASE_URL}/get`, parsed);
+      const res = await axios.get(
+        `${BASE_URL_TOKEN}/get/${chainId}/${sort}/${dex}/${age}/${minProgress}/${maxProgress}/${boosted}/${ads}/${search}/${page}`,
+        parsed
+      );
       dispatch(setTokens(res.data.tokens));
       dispatch(setTokenCount(res.data.tokenCount));
     } catch (error) {
@@ -88,7 +104,9 @@ export const getTokenByAddress =
   (address: `0x${string}`): ThunkAction<void, RootState, unknown, AnyAction> =>
   async (dispatch) => {
     try {
-      const res = await axios.get(`${BASE_URL}/get-by-address/${address}`);
+      const res = await axios.get(
+        `${BASE_URL_TOKEN}/get-by-address/${address}`
+      );
       dispatch(setToken(res.data));
       return res.data;
     } catch (error) {
@@ -101,7 +119,7 @@ export const getTransactionsByTokenAddress =
   async (dispatch) => {
     try {
       const res = await axios.get(
-        `${BASE_URL}/get-transactions-by-address/${address}`
+        `${BASE_URL_TOKEN}/get-transactions-by-address/${address}`
       );
       dispatch(setTransactions(res.data));
       return res.data;
@@ -116,10 +134,9 @@ export const saveTransactionAction =
   ): ThunkAction<void, RootState, unknown, AnyAction> =>
   async () => {
     try {
-      const res = await axios.post(`${BASE_URL}/save-transaction`, {
+      const res = await axios.post(`${BASE_URL_TOKEN}/save-transaction`, {
         transaction,
       });
-      console.log("res.data", res.data);
       socket.emit("save-transaction", res.data);
     } catch (error) {
       throw new Error("Failed to save transaction");
@@ -132,16 +149,27 @@ export const updateBoost =
   ): ThunkAction<void, RootState, unknown, AnyAction> =>
   async (dispatch) => {
     try {
-      const res = await axios.put(`${BASE_URL}/update-boosted`, {
+      const res = await axios.put(`${BASE_URL_TOKEN}/update-boosted`, {
         tokenAddress,
         boost,
       });
       dispatch(setToken({ boost: res.data.boost }));
-      toast.success("Boost updated successfully");
+      toastSuccess("Boost updated successfully");
       socket.emit("update-boosted", res.data.boost);
     } catch (error) {
       throw new Error("Failed to update boost");
     } finally {
       dispatch(closeLoading());
+    }
+  };
+
+export const fetchTrendingTokens =
+  (): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async (dispatch) => {
+    try {
+      const res = await axios.get(`${BASE_URL_TOKEN}/get-trending-tokens`);
+      dispatch(setTrendingTokens(res.data));
+    } catch (error) {
+      throw new Error("Failed to fetch trending tokens");
     }
   };

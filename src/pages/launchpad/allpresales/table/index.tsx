@@ -1,5 +1,5 @@
 import Table from "rc-table";
-import { IconSortAscending } from "@tabler/icons-react";
+import { IconBrandDatabricks, IconSortAscending } from "@tabler/icons-react";
 import React from "react";
 import clsx from "clsx";
 import IconText from "@/components/common/IconText";
@@ -34,8 +34,8 @@ const NFTTable = () => {
   const data: TableType[] = tokens.map((item, index) => {
     return {
       chainId: item.chainId,
-      tokenAddress: item.tokenAddress || '',
-      type: item.type || 'presale',
+      tokenAddress: item.tokenAddress || "",
+      type: item.type || "presale",
       token: (
         <div className="py-2 px-3 flex items-center min-w-[160px] md:min-w-[350px] border-l border-r border-borderColor bg-lightColor token-first-item">
           <span className="text-textDark mr-3 text-tedar hidden md:block w-[50px]">
@@ -220,6 +220,12 @@ const NFTTable = () => {
   return (
     <div className="mb-10 token-table overflow-x-scroll -mx-4">
       <Table
+        emptyText={
+          <div className="text-white text-center gap-2 h-[305px] flex items-center justify-center">
+            <IconBrandDatabricks size={40} color="grey" />
+            <span className="text-textDark text-[20px]">No transactions</span>
+          </div>
+        }
         components={{
           table: (props: React.TableHTMLAttributes<HTMLTableElement>) => (
             <table {...props} className="w-full h-full" />

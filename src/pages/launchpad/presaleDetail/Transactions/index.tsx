@@ -6,12 +6,14 @@ import {
   TabsBody,
   TabsHeader,
 } from "@material-tailwind/react";
-import { IconMedal2 } from "@tabler/icons-react";
+import { IconDiamondFilled, IconMedal2 } from "@tabler/icons-react";
 import { useState } from "react";
 import TransactionTable from "./TransactionTable";
 import ScrollOnDrag from "@/components/ui/ScrollOnDrag";
 import TopTraders from "./TopTrader";
 import clsx from "clsx";
+import Holders from "./Holders";
+
 const Transactions: React.FC = () => {
   const [selected, setSelected] = useState<string>("1");
 
@@ -68,7 +70,7 @@ const Transactions: React.FC = () => {
                 Top Traders
               </div>
             </Tab>
-            {/* <Tab
+            <Tab
               className="w-auto px-4"
               onClick={() => setSelected("3")}
               value="3"
@@ -86,9 +88,9 @@ const Transactions: React.FC = () => {
                   className="w-[20px] mr-1"
                   color={selected === "3" ? "white" : "grey"}
                 />
-                Holders (34)
+                Holders
               </div>
-            </Tab> */}
+            </Tab>
           </TabsHeader>
         </ScrollOnDrag>
         <TabsBody
@@ -102,9 +104,9 @@ const Transactions: React.FC = () => {
           <TabPanel value="2" className="p-0">
             <TopTraders />
           </TabPanel>
-          {/* <TabPanel value={selected} className="p-0">
-          
-          </TabPanel> */}
+          <TabPanel value="3" className="p-0">
+            <Holders />
+          </TabPanel>
         </TabsBody>
       </Tabs>
     </div>

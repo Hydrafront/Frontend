@@ -7,6 +7,7 @@ import { TransactionType } from "@/interfaces/types";
 import queryString from "query-string";
 import { getHttpsPriceUrl, getPriceKey } from "./config/chainDexConfig";
 import axios from "axios";
+import { isEmpty, isValidEmail } from "./validation";
 
 // get Signature when create a new token
 export async function generateSignature(
@@ -258,4 +259,17 @@ export const getCurrentEthPrice = async (chainId: number) => {
   const response = await axios.get(priceUrl);
   const priceKey = getPriceKey(chainId);
   return response.data[priceKey as keyof typeof response.data].usd;
+};
+
+export const isFormValid = (obj: Record<string | number, unknown>) => {
+  let isValid = true;
+  Object.keys(obj).forEach((key: string) => {
+    if (isEmpty(obj[key])) {
+      isValid = false;
+    }
+    if (key === "email" && !isValidEmail(obj[key] as string)) {
+      isValid = false;
+    }
+  });
+  return isValid;
 };

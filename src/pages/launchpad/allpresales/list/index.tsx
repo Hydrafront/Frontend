@@ -2,7 +2,7 @@ import NFTCard from "./NFTCard";
 import { TokenType } from "@/interfaces/types";
 import { AnimationOnScroll } from "react-animation-on-scroll";
 import Spin1 from "@/components/spins/Spin1";
-import { IconAlertCircle } from "@tabler/icons-react";
+import { IconAlertCircle, IconBrandDatabricks } from "@tabler/icons-react";
 import { useAppSelector } from "@/store/hooks";
 import { isEmpty } from "@/utils/validation";
 interface PropsType {
@@ -12,6 +12,13 @@ interface PropsType {
 
 const NFTList: React.FC<PropsType> = ({ isLoading, error }) => {
   const { tokens } = useAppSelector((state) => state.token);
+
+  if (isEmpty(tokens)) return (
+    <div className="h-full w-full flex items-center gap-3 justify-center pt-20 md:pt-40">
+      <IconBrandDatabricks size={40} color="grey" />
+      <span className="text-[20px] text-textDark">No Presale</span>
+    </div>
+  )
 
   return (
     <div className="mb-10 -mx-2">

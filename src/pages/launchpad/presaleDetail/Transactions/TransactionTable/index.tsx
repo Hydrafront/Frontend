@@ -187,8 +187,8 @@ const TransactionTable = () => {
       <Table
         emptyText={
           <div className="text-white text-center gap-2 h-[305px] flex items-center justify-center">
-            <IconBrandDatabricks size={40} />
-            <span className="text-white text-[20px]">No transactions</span>
+            <IconBrandDatabricks size={40} color="grey" />
+            <span className="text-textDark text-[20px]">No transactions</span>
           </div>
         }
         rowKey={(record, index) => `${record.txn.toString()}-${index}`}

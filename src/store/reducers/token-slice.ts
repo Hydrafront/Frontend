@@ -10,6 +10,8 @@ interface TokenState {
   tokenCount: number;
   tab: "info" | "chart-txn" | "chart" | "txn";
   initialPrice: number;
+  factoryAddress: string;
+  trendingTokens: TokenType[];
 }
 
 const initialState: TokenState = {
@@ -21,6 +23,8 @@ const initialState: TokenState = {
   tokenCount: 0,
   tab: "info",
   initialPrice: 0,
+  factoryAddress: "",
+  trendingTokens: [],
 };
 
 const TokenSlice = createSlice({
@@ -80,7 +84,9 @@ const TokenSlice = createSlice({
     },
     setInitialPrice: (state, action) => {
       state.initialPrice = action.payload;
-      console.log(state.initialPrice, "initialPrice");
+    },
+    setTrendingTokens: (state, action) => {
+      state.trendingTokens = action.payload;
     },
   },
 });
@@ -98,6 +104,7 @@ export const {
   resetToken,
   resetTransactions,
   setInitialPrice,
+  setTrendingTokens,
 } = TokenSlice.actions;
 
 export default TokenSlice.reducer;

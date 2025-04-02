@@ -16,7 +16,12 @@ import Upload from "rc-upload";
 import { useAccount, useChains } from "wagmi";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import { Checkbox, Input } from "@material-tailwind/react";
+import {
+  Checkbox,
+  DialogBody,
+  DialogFooter,
+  Input,
+} from "@material-tailwind/react";
 import { useForm } from "@/hooks/useForm";
 import { getDex } from "@/utils/config/chainDexConfig";
 import { toast } from "react-toastify";
@@ -42,6 +47,8 @@ import Spin2 from "@/components/spins/Spin2";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { createTokenEmit } from "@/socket/token";
 import { useAppDispatch } from "@/store/hooks";
+import { closeDialog, openDialog } from "@/store/reducers/dialog-slice";
+import { toastSuccess, toastError } from "@/utils/customToast";
 
 const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5MB
 
@@ -99,7 +106,9 @@ const TokenForm: React.FC = () => {
     decimal: 18,
   });
 
-  const { uniswapV2Router } = useUniswapV2Router();
+  const { uniswapV2Router } = useUniswapV2Router(
+    contractAddress as `0x${string}`
+  );
   const dispatch = useAppDispatch();
   const { initialAccumulatedPOL, initialRemainingTokens } =
     useGetInitialReverses(selectedChain.id);
@@ -171,21 +180,13 @@ const TokenForm: React.FC = () => {
   };
 
   const handleCreatePresale = async () => {
+    dispatch(closeDialog());
     if (selectedChain.id !== 80002) {
       toast.error("This chain is not supported yet");
       return;
     }
     const nonce = Date.now();
     const tokenPrice = await getInitialPrice();
-
-    if (
-      isEmpty(form.name) ||
-      isEmpty(form.symbol) ||
-      isEmpty(form.description)
-    ) {
-      toast.error("Please fill all the fields");
-      return;
-    }
 
     // create presale token
     let tokenAddress: `0x${string}` | undefined = undefined;
@@ -200,7 +201,7 @@ const TokenForm: React.FC = () => {
         import.meta.env.VITE_PRIVATE_KEY
       );
       setIsLoading(true);
-      const amountOut = 0.9 * form.initialBuy / currentPrice;
+      const amountOut = (0.9 * form.initialBuy) / currentPrice;
 
       try {
         const receipt = await createPresaleToken(
@@ -259,7 +260,12 @@ const TokenForm: React.FC = () => {
               dispatch(saveTransactionAction(transaction));
             }
             createTokenEmit(token);
-            toast.success("Token created successfully");
+            toastSuccess("Token created successfully. Click here to view token details", {
+              onClick: () => {
+                window.location.href = `/detail/${selectedChain.id}/${tokenAddress}/${"presale"}`;
+              },
+              className: "cursor-pointer",
+            });
           } catch (error) {
             console.log("Error in token creation", error);
           }
@@ -316,6 +322,94 @@ const TokenForm: React.FC = () => {
     }
   };
 
+  const handleOpenModal = () => {
+    if (
+      isEmpty(form.name) ||
+      isEmpty(form.symbol) ||
+      isEmpty(form.description)
+    ) {
+      toastError("Please fill all the fields");
+      return;
+    }
+
+    if (!isEmpty(form.website) && !form.website.includes("https://")) {
+      toastError("Website must not include https://");
+      return;
+    }
+    if (!isEmpty(form.twitter) && !form.twitter.includes("https://x.com/")) {
+      toastError("Twitter must not include https://x.com/");
+      return;
+    }
+    if (!isEmpty(form.telegram) && !form.telegram.includes("https://t.me/")) {
+      toastError("Telegram must not include https://t.me/");
+      return;
+    }
+    if (
+      !isEmpty(form.discord) &&
+      !form.discord.includes("https://discord.gg/")
+    ) {
+      toastError("Discord must not include https://discord.gg/");
+      return;
+    }
+    dispatch(
+      openDialog({
+        children: (
+          <>
+            <DialogBody
+              placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
+            >
+              <div className="flex flex-col gap-2">
+                <div
+                  style={{
+                    backgroundImage: `url(${form.banner})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                  className="pl-4 w-full flex items-center h-[150px] bg-cover bg-center rounded-md"
+                >
+                  <img
+                    src={form.logo}
+                    alt="logo"
+                    className="w-32 h-32 border-2 border-greenColor rounded-md"
+                  />
+                </div>
+                <ul className="list-disc list-inside">
+                  <li>Token Name: {form.name}</li>
+                  <li>Token Symbol: {form.symbol}</li>
+                  <li>Token Description: {form.description}</li>
+                  {form.website && <li>Token Website: {form.website}</li>}
+                  {form.twitter && <li>Token Twitter: {form.twitter}</li>}
+                  {form.telegram && <li>Token Telegram: {form.telegram}</li>}
+                  {form.discord && <li>Token Discord: {form.discord}</li>}
+                </ul>
+              </div>
+            </DialogBody>
+            <DialogFooter
+              placeholder={undefined}
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
+            >
+              <GradientButton
+                className="bg-green-500 mr-2 text-white px-4 py-2 rounded-md"
+                onClick={handleCreatePresale}
+              >
+                Create Presale
+              </GradientButton>
+              <button
+                className="text-white border border-gray-400 px-4 py-2 rounded-md"
+                onClick={() => dispatch(closeDialog())}
+              >
+                Cancel
+              </button>
+            </DialogFooter>
+          </>
+        ),
+      })
+    );
+  };
+
   return (
     <div className="w-full mb-0 px-8">
       <h5 className="mb-8">
@@ -323,7 +417,9 @@ const TokenForm: React.FC = () => {
       </h5>
       <div className="flex mb-4 w-full items-center gap-4">
         <hr className="w-full border-borderColor" />
-        <span className="whitespace-nowrap">Choose a chain</span>
+        <span className="whitespace-nowrap">
+          Choose a chain<b className="text-red-500"> *</b>
+        </span>
         <hr className="w-full border-borderColor" />
       </div>
       <div className="mb-5 flex flex-wrap">
@@ -348,7 +444,9 @@ const TokenForm: React.FC = () => {
       </div>
       <div className="flex mb-4 w-full items-center gap-4">
         <hr className="w-full border-borderColor" />
-        <span className="whitespace-nowrap">Choose a dex</span>
+        <span className="whitespace-nowrap">
+          Choose a dex<b className="text-red-500"> *</b>
+        </span>
         <hr className="w-full border-borderColor" />
       </div>
       <div className="mb-5 flex flex-wrap">
@@ -583,7 +681,7 @@ const TokenForm: React.FC = () => {
               "rounded-lg w-full text-white",
               !form.policy && "opacity-50"
             )}
-            onClick={handleCreatePresale}
+            onClick={handleOpenModal}
           >
             {isLoading ? (
               <div className="flex py-2 gap-8 items-center justify-center">

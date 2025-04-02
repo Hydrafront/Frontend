@@ -5,14 +5,13 @@ import {
 } from "@tabler/icons-react";
 import ContainerBig from "../ui/container-big";
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import ContactForm from "../common/ContactForm";
 import { useAppDispatch } from "@/store/hooks";
 import { openDialog } from "@/store/reducers/dialog-slice";
+import { supportedChains } from "@/utils/config/chainDexConfig";
 // import { toast } from "react-toastify";
 
 export default function Footer() {
-  const [emailContent, setEmailContent] = useState("");
   const dispatch = useAppDispatch();
 
   return (
@@ -44,23 +43,17 @@ export default function Footer() {
               Journey.
             </p>
             <div className="flex justify-between items-center pb-2 border-b border-borderColor mb-4">
-              <input
-                type="text"
-                className="border-0 p-0 m-0 outline-none w-[calc(100%-160px)] bg-transparent"
-                placeholder="Powered by WHD"
-                value={emailContent}
-                onChange={(e) => setEmailContent(e.target.value)}
-              />
+              <span className="">Powered by Superchains</span>
               <span
                 className="py-1 px-10 text-white text-lg relative cursor-pointer hover:text-opacity-60 duration-200 w-max"
                 onClick={() => {
                   // if (emailContent?.length > 0) {
-                    dispatch(
-                      openDialog({
-                        title: "Contact Us",
-                        children: <ContactForm />,
-                      })
-                    );
+                  dispatch(
+                    openDialog({
+                      title: "Contact Us",
+                      children: <ContactForm />,
+                    })
+                  );
                   // } else {
                   //   toast.error("Please enter your email", {
                   //     style: { background: "#211e2ce0", color: "white" },
@@ -84,12 +77,27 @@ export default function Footer() {
             className="w-40 m-auto"
           />
         </div>
-        <div className="lg:flex hidden text-[12px] opacity-70">
+        <div className="lg:flex hidden text-[12px]">
           <div className="w-[14.8vw] pl-[4vw]">
-            <p>© 2025</p>
+            <p className="text-textDark">© 2025</p>
           </div>
-          <div className="w-[66vw]">
-            <p>ALL RIGHTS RESERVED BY HYDRAPAD.COM</p>
+          <div className="w-[66vw] flex justify-between">
+            <p className="text-textDark">ALL RIGHTS RESERVED BY HYDRAPAD.COM</p>
+            <div className="flex items-center">
+              {supportedChains.map((item, index) => (
+                <img
+                  key={index}
+                  src={`/assets/images/chains/${item.name}.png`}
+                  alt="chain-logo"
+                  className="w-9 ml-2"
+                />
+              ))}
+              <img
+                src={`/assets/images/chains/Alchemy.png`}
+                alt="chain-logo"
+                className="w-9 ml-2"
+              />
+            </div>
           </div>
         </div>
         <p className="lg:hidden block text-[12px] opacity-70 text-center">

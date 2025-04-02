@@ -15,7 +15,7 @@ import {
   UserRejectedRequestError,
 } from "viem";
 import { useCallback } from "react";
-import { toast } from "react-toastify";
+import { toastSuccess, toastError } from "@/utils/customToast";
 import { tokenAbi, factoryAbi } from "@/utils/abi";
 
 //-----------------Create Presale Token-----------------
@@ -70,7 +70,7 @@ export const useCreatePresaleToken = () => {
               parseUnits(tokenAmount.toString(), 18),
               signature,
             ],
-            value: parseUnits((initialBuy).toString(), 18),
+            value: parseUnits(initialBuy.toString(), 18),
           });
         } else {
           hash = await writeContractAsync({
@@ -168,8 +168,10 @@ export const useUserBalance = (
 
 //-----------------Buy Token-----------------
 
-export const useBuyToken = (tokenAddress: `0x${string}`) => {
-  const chainId = useChainId();
+export const useBuyToken = (
+  factoryAddress: `0x${string}`,
+  tokenAddress: `0x${string}`
+) => {
   const { writeContractAsync } = useWriteContract();
   const { address } = useAccount();
   const publicClient = usePublicClient();
@@ -180,7 +182,7 @@ export const useBuyToken = (tokenAddress: `0x${string}`) => {
     }
     try {
       const txHash = await writeContractAsync({
-        address: getContractAddress(chainId),
+        address: factoryAddress,
         abi: factoryAbi,
         functionName: "buyGivenIn",
         args: [tokenAddress, minTokenAmount],
@@ -204,7 +206,7 @@ export const useBuyToken = (tokenAddress: `0x${string}`) => {
     }
     try {
       const txHash = await writeContractAsync({
-        address: getContractAddress(chainId),
+        address: factoryAddress,
         abi: factoryAbi,
         functionName: "buyGivenOut",
         args: [tokenAddress, amountToken, maxPriceAmount],
@@ -264,8 +266,10 @@ export const useApproveToken = (tokenAddress: `0x${string}`) => {
 };
 
 //-----------------Sell Token-----------------
-export const useSellToken = (tokenAddress: `0x${string}`) => {
-  const chainId = useChainId();
+export const useSellToken = (
+  factoryAddress: `0x${string}`,
+  tokenAddress: `0x${string}`
+) => {
   const { writeContractAsync } = useWriteContract();
   const { address } = useAccount();
   const publicClient = usePublicClient();
@@ -280,7 +284,7 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
     }
     try {
       const txHash = await writeContractAsync({
-        address: getContractAddress(chainId),
+        address: factoryAddress,
         abi: factoryAbi,
         functionName: "sellGivenIn",
         args: [tokenAddress, amountToken, amountPOLMin],
@@ -304,7 +308,7 @@ export const useSellToken = (tokenAddress: `0x${string}`) => {
     }
     try {
       const txHash = await writeContractAsync({
-        address: getContractAddress(chainId),
+        address: factoryAddress,
         abi: factoryAbi,
         functionName: "sellGivenOut",
         args: [tokenAddress, amountPOL, amountTokenMax],
@@ -376,16 +380,16 @@ export const addTokenToWallet = async ({
       },
     });
     if (wasAdded) {
-      toast.success("Token is added to wallet!");
+      toastSuccess("Token is added to wallet!");
       await window.ethereum?.request({
         method: "wallet_requestPermissions",
         params: [{ eth_accounts: {} }],
       });
     } else {
-      toast.error("User declined to add the token.");
+      toastError("User declined to add the token.");
     }
   } catch (error) {
-    toast.error("Error occurred while adding token to wallet!");
+    toastError("Error occurred while adding token to wallet!");
   }
 };
 
@@ -520,10 +524,9 @@ export const useAmountInAndFee = (
 };
 
 //-----------------Uniswap V2 Router-----------------
-export const useUniswapV2Router = () => {
-  const chainId = useChainId();
+export const useUniswapV2Router = (factoryAddress: `0x${string}`) => {
   const { data: uniswapV2Router } = useReadContract({
-    address: getContractAddress(chainId),
+    address: factoryAddress,
     abi: factoryAbi,
     functionName: "getUniswapV2Router",
   });
@@ -531,7 +534,10 @@ export const useUniswapV2Router = () => {
 };
 
 //-----------------Add Liquidity-----------------
-export const useAddLiquidity = (tokenAddress: `0x${string}`) => {
+export const useAddLiquidity = (
+  uniswapV2Router: `0x${string}`,
+  tokenAddress: `0x${string}`
+) => {
   const { writeContractAsync, error: addLiquidityError } = useWriteContract();
   const { address } = useAccount();
   const addLiquidity = async (
@@ -544,8 +550,8 @@ export const useAddLiquidity = (tokenAddress: `0x${string}`) => {
     }
     try {
       const txHash = await writeContractAsync({
-        address: tokenAddress,
-        abi: tokenAbi,
+        address: uniswapV2Router,
+        abi: factoryAbi,
         functionName: "addLiquidity",
         args: [amountTokenDesired, amountTokenMin, amountETHMin],
       });
@@ -557,6 +563,7 @@ export const useAddLiquidity = (tokenAddress: `0x${string}`) => {
   return { addLiquidity, addLiquidityError };
 };
 
+//-----------------Get Initial Accumulated POL and Remaining Tokens-----------------
 export const useGetInitialReverses = (chainId: number) => {
   const { data: initialAccumulatedPOL } = useReadContract({
     address: getContractAddress(chainId),
@@ -569,4 +576,70 @@ export const useGetInitialReverses = (chainId: number) => {
     functionName: "getRemainingTokens",
   });
   return { initialAccumulatedPOL, initialRemainingTokens };
+};
+
+//-----------------Migrate Token-----------------
+export const useMigrate = (
+  factoryAddress: `0x${string}`,
+  tokenAddress: `0x${string}`
+) => {
+  const { writeContractAsync, error: migrateError } = useWriteContract();
+  const { data: canMigrate, refetch } = useReadContract({
+    address: factoryAddress,
+    abi: factoryAbi,
+    functionName: "getCanMigrate",
+    args: [tokenAddress],
+  });
+  const migrateToken = async () => {
+    if (!tokenAddress) {
+      throw new Error("Error ");
+    }
+    try {
+      const txHash = await writeContractAsync({
+        address: factoryAddress,
+        abi: factoryAbi,
+        functionName: "migrate",
+        args: [tokenAddress],
+      });
+      return txHash;
+    } catch (error) {
+      throw new Error("Error migrating:", { cause: error });
+    }
+  };
+  return { canMigrate, refetchCanMigrate: refetch, migrateToken, migrateError };
+};
+
+//-----------------Get Factory Address-----------------
+export const useFactoryAddress = (tokenAddress: `0x${string}`) => {
+  const { data: factoryAddress } = useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "getPresaleFactory",
+  });
+  return { factoryAddress };
+};
+
+//-----------------Get Token Status-----------------
+export const useTokenStatus = (tokenAddress: `0x${string}`) => {
+  const { data: isNotMigrated } = useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "getNotMigrated",
+  });
+  const { data: isPresaleEnded } = useReadContract({
+    address: tokenAddress,
+    abi: tokenAbi,
+    functionName: "getPresaleEnded",
+  });
+  return { isNotMigrated, isPresaleEnded };
+};
+
+//-----------------Get Total Supply-----------------
+export const useTotalSupply = (factoryAddress: `0x${string}` | undefined) => {
+  const { data: totalSupply } = useReadContract({
+    address: factoryAddress,
+    abi: factoryAbi,
+    functionName: "getTotalSupply",
+  });
+  return { totalSupply: totalSupply ? Number(formatUnits(totalSupply as bigint, 18)) : 0 };
 };

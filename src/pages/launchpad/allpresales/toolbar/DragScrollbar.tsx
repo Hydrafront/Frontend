@@ -160,10 +160,11 @@ const DragScrollbar: React.FC = () => {
                 placeholder={undefined}
                 onPointerEnterCapture={undefined}
                 onPointerLeaveCapture={undefined}
-                className="text-[14px] px-6 rounded-none py-1 whitespace-nowrap"
+                className="text-[14px] px-4 rounded-none py-1 whitespace-nowrap flex items-center"
                 onClick={handleClick(item)}
                 selected={selected === item}
               >
+                {name === "Chain" && item !== "Any" ? <img src={`/assets/images/chains/${getChainName(Number(item))}.png`} alt='chain-logo' className="w-6 mr-2"/> : ""}
                 {name === "Chain" ? (item === "Any" ? "All Chains" : getChainName(Number(item))) : item}
               </ListItem>
               {dividerOption.includes(item) && (

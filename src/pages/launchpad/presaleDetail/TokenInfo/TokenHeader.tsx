@@ -6,7 +6,7 @@ import { getUnit } from "@/utils/config/chainDexConfig";
 import { IconFlame, IconLayersSubtract } from "@tabler/icons-react";
 import copy from "copy-to-clipboard";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toastSuccess } from "@/utils/customToast";
 
 const TokenHeader = ({
   // name,
@@ -30,7 +30,7 @@ const TokenHeader = ({
 
   const handleCopy = () => {
     copy(tokenAddress);
-    toast.success("Address copied to clipboard!");
+    toastSuccess("Address copied to clipboard!");
   };
   return (
     <>

@@ -345,7 +345,7 @@ h6 {
 [class|="Toastify__toast"] {
   z-index: 10000 !important;
 }
-.Toastify-theme--light {
-  /* background-color: #211e2ce0;
-  color: white; */
+
+.custom-toast .Toastify__toast-icon svg {
+  fill: white!important; /* Change to your desired color */
 }

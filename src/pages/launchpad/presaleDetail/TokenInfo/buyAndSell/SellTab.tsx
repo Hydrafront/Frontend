@@ -1,5 +1,4 @@
 import { IconWallet } from "@tabler/icons-react";
-
 import InfoText from "@/components/common/InfoText";
 import { getUnit } from "@/utils/config/chainDexConfig";
 import { isEmpty } from "@/utils/validation";
@@ -9,7 +8,7 @@ import { useParams } from "react-router-dom";
 import { useAccount } from "wagmi";
 import { getMinEthAmount } from "@/utils/func";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toastSuccess, toastError } from "@/utils/customToast";
 import { parseUnits } from "viem";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import IconText from "@/components/common/IconText";
@@ -22,6 +21,7 @@ import {
   useApproveToken,
   useTokenAllowance,
   useSellToken,
+  useMigrate,
 } from "@/utils/contractUtils";
 
 const SellTab: React.FC<{
@@ -36,7 +36,6 @@ const SellTab: React.FC<{
   const { isConnected, address } = useAccount();
   const { open } = useWeb3Modal();
   const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
-  const { sellGivenIn } = useSellToken(tokenAddress as `0x${string}`);
   const [value, setValue] = useState<number>(0);
   const [tokenAmount, setTokenAmount] = useState<number>(0);
   const [minEthAmount, setMinEthAmount] = useState<number>(0);
@@ -49,6 +48,10 @@ const SellTab: React.FC<{
     tokenAddress as `0x${string}`
   );
 
+  const { sellGivenIn } = useSellToken(
+    token?.factory as `0x${string}`,
+    tokenAddress as `0x${string}`
+  );
   const { amountIn, amountInfee } = useAmountInAndFee(
     tokenAddress as `0x${string}`,
     parseUnits(tokenAmount.toString(), token?.decimals || 18),
@@ -62,6 +65,10 @@ const SellTab: React.FC<{
     address as `0x${string}`
   );
   const { approveToken } = useApproveToken(tokenAddress as `0x${string}`);
+  const { canMigrate } = useMigrate(
+    token?.factory as `0x${string}`,
+    tokenAddress as `0x${string}`
+  );
 
   useEffect(() => {
     if (allowance !== undefined && address) {
@@ -83,7 +90,7 @@ const SellTab: React.FC<{
 
   const handleAction = async () => {
     if (isEmpty(tokenAmount)) {
-      toast.error("Missing required information");
+      toastError("Missing required information");
       return;
     }
 
@@ -94,10 +101,10 @@ const SellTab: React.FC<{
           await approveToken(
             parseUnits(tokenAmount.toString(), token?.decimals || 18)
           );
-          toast.success("Token approved successfully!");
+          toastSuccess("Token approved successfully!");
           setIsApproved(true);
         } catch (error) {
-          toast.error("Error approving token!");
+          toastError("Error approving token!");
         } finally {
           setTransactionLoading(false);
         }
@@ -113,11 +120,16 @@ const SellTab: React.FC<{
             parseUnits(priorityFee.toString(), token?.decimals || 18)
           );
           if (token && txHash) {
-            toast.success("Token sold successfully!");
+            toastSuccess("Token sold successfully!");
             dispatch(
               saveTransactionAction({
                 txHash,
-                symbol: token.dex?.name + ":" + token.symbol + "/" + getUnit(Number(chainId)),
+                symbol:
+                  token.dex?.name +
+                  ":" +
+                  token.symbol +
+                  "/" +
+                  getUnit(Number(chainId)),
                 type: "Sell",
                 tokenAddress: tokenAddress as `0x${string}`,
                 token: tokenAmount,
@@ -130,14 +142,14 @@ const SellTab: React.FC<{
             );
           }
         } catch (error) {
-          toast.error("Error occurred while selling token!");
+          toastError("Error occurred while selling token!");
         } finally {
           setTransactionLoading(false);
         }
       }
     } catch (error) {
       console.error(error);
-      toast.error("Error occurred while selling token!");
+      toastError("Error occurred while selling token!");
     } finally {
       setTransactionLoading(false);
     }
@@ -258,7 +270,11 @@ const SellTab: React.FC<{
           placeholder={undefined}
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
-          disabled={transactionLoading || !isEmpty(errorMessage)}
+          disabled={
+            transactionLoading ||
+            !isEmpty(errorMessage) ||
+            (canMigrate as boolean)
+          }
           onClick={isConnected ? handleAction : handleConnectWallet}
           color="red"
           className="w-full py-2 flex justify-center"

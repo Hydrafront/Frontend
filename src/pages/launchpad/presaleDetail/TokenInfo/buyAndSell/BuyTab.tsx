@@ -6,6 +6,7 @@ import {
   useBuyToken,
   useCurrentTokenPrice,
   useAmountOutAndFee,
+  useMigrate,
 } from "@/utils/contractUtils";
 import { isEmpty } from "@/utils/validation";
 import { Button, Input } from "@material-tailwind/react";
@@ -21,10 +22,10 @@ import { useAccount } from "wagmi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getMinTokenAmount } from "@/utils/func";
 import { getMaxEthAmount } from "@/utils/func";
-import { toast } from "react-toastify";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { saveTransactionAction } from "@/store/actions/token.action";
 import FormatPrice from "@/components/ui/FormatPrice";
+import { toastSuccess, toastError } from "@/utils/customToast";
 
 const BuyTab: React.FC<{
   openFeeDialog: () => void;
@@ -43,11 +44,13 @@ const BuyTab: React.FC<{
   const [maxEthAmount, setMaxEthAmount] = useState<number>(0);
   const [priorityFee, setPriorityFee] = useState<number>(0);
   const [transactionLoading, setTransactionLoading] = useState<boolean>(false);
+  const { token } = useAppSelector((state) => state.token);
   const dispatch = useAppDispatch();
+
   const { buyGivenIn, buyGivenOut } = useBuyToken(
+    token?.factory as `0x${string}`,
     tokenAddress as `0x${string}`
   );
-  const { token } = useAppSelector((state) => state.token);
   const { currentPrice, accumulatedPOL, remainingTokens } =
     useCurrentTokenPrice(tokenAddress as `0x${string}`);
   const { ethPrice } = useAppSelector((state) => state.eth);
@@ -66,6 +69,11 @@ const BuyTab: React.FC<{
     parseUnits(remainingTokens?.toString() || "0", 18),
     true
   );
+  const { canMigrate, migrateToken } = useMigrate(
+    token?.factory as `0x${string}`,
+    tokenAddress as `0x${string}`
+  );
+
   useEffect(() => {
     if (!swapped) {
       if (amountOut !== 0) {
@@ -79,6 +87,22 @@ const BuyTab: React.FC<{
       }
     }
   }, [slippage, amountOut, amountIn, swapped, amountInfee, amountOutFee]);
+
+  useEffect(() => {
+    const migrate = async () => {
+      if (canMigrate) {
+        console.log("Token can be migrated!");
+        try {
+          await migrateToken();
+          toastSuccess("Token is migrated successfully!");
+        } catch (error) {
+          toastError("Migration is failed!");
+          console.error(error);
+        }
+      }
+    };
+    migrate();
+  }, [token?.marketCap]);
 
   // useEffect(() => {
   //   if (!swapped) {
@@ -102,7 +126,7 @@ const BuyTab: React.FC<{
     setTransactionLoading(true);
     if (!swapped) {
       if (isEmpty(value)) {
-        toast.error("Missing required infomation");
+        toastError("Missing required infomation");
       } else {
         try {
           setTransactionLoading(true);
@@ -112,7 +136,7 @@ const BuyTab: React.FC<{
           );
           // const tokenAddress = await getTokenAddress(txHash, "buy");
           if (token && txHash) {
-            toast.success("Token purchased successfully!");
+            toastSuccess("Token purchased successfully!");
             // await addTokenToWallet({
             //   tokenAddress: tokenAddress as `0x${string}`,
             //   tokenSymbol: token.symbol,
@@ -122,7 +146,12 @@ const BuyTab: React.FC<{
             dispatch(
               saveTransactionAction({
                 txHash,
-                symbol: token.dex?.name + ":" + token.symbol + "/" + getUnit(Number(chainId)),
+                symbol:
+                  token.dex?.name +
+                  ":" +
+                  token.symbol +
+                  "/" +
+                  getUnit(Number(chainId)),
                 type: "Buy",
                 tokenAddress: tokenAddress as `0x${string}`,
                 token: minTokenAmount,
@@ -135,14 +164,14 @@ const BuyTab: React.FC<{
             );
           }
         } catch (error) {
-          toast.error("Error occurred while buying token!");
+          toastError("Error occurred while buying token!");
         } finally {
           setTransactionLoading(false);
         }
       }
     } else {
       if (isEmpty(tokenAmount)) {
-        toast.error("Missing required infomation");
+        toastError("Missing required infomation");
       } else {
         try {
           setTransactionLoading(true);
@@ -151,7 +180,7 @@ const BuyTab: React.FC<{
             parseUnits(maxEthAmount.toString(), 18)
           );
           if (token && txHash) {
-            toast.success("Token purchased successfully!");
+            toastSuccess("Token purchased successfully!");
             // await addTokenToWallet({
             //   tokenAddress: tokenAddress as `0x${string}`,
             //   tokenSymbol: token.symbol,
@@ -162,7 +191,12 @@ const BuyTab: React.FC<{
             dispatch(
               saveTransactionAction({
                 txHash,
-                symbol: token.dex?.name + ":" + token.symbol + "/" + getUnit(Number(chainId)),
+                symbol:
+                  token.dex?.name +
+                  ":" +
+                  token.symbol +
+                  "/" +
+                  getUnit(Number(chainId)),
                 type: "Buy",
                 tokenAddress: tokenAddress as `0x${string}`,
                 token: tokenAmount,
@@ -175,7 +209,7 @@ const BuyTab: React.FC<{
             );
           }
         } catch (error) {
-          toast.error("Error occurred while buying token!");
+          toastError("Error occurred while buying token!");
         } finally {
           setTransactionLoading(false);
         }
@@ -340,7 +374,11 @@ const BuyTab: React.FC<{
           placeholder={undefined}
           onPointerEnterCapture={undefined}
           onPointerLeaveCapture={undefined}
-          disabled={transactionLoading || !isEmpty(errorMessage)}
+          disabled={
+            transactionLoading ||
+            !isEmpty(errorMessage) ||
+            (canMigrate as boolean)
+          }
           onClick={isConnected ? handleAction : handleConnectWallet}
           color="green"
           className="w-full py-2 flex justify-center"

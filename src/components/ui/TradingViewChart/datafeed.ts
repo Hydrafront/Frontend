@@ -6,14 +6,14 @@ import {
 
 import axios from "axios";
 import {
-  // makeApiRequest,
-  // generateSymbol,
+  makeApiRequest,
+  generateSymbol,
   parseFullSymbol,
   transformToOHLCV,
   TransactionData,
 } from "./helpers";
 import { subscribeOnStream, unsubscribeFromStream } from "./streaming";
-import { BASE_URL } from "@/store/actions/token.action";
+import { BASE_URL_TOKEN } from "@/store/actions/token.action";
 
 const lastBarsCache = new Map();
 const cachedBars: { [key: string]: TransactionData[] } = {};
@@ -140,38 +140,36 @@ export interface HistoryResponse {
 }
 
 // Obtains all symbols for all exchanges supported by CryptoCompare API
-// async function getAllSymbols(): Promise<TradingSymbol[]> {
-//   try {
-//     const data = (await makeApiRequest("data/v3/all/exchanges")) as ApiResponse;
-//     let allSymbols: TradingSymbol[] = [];
-
-//     for (const exchange of configurationData.exchanges) {
-//       const pairs = data.Data[exchange.value].pairs;
-
-//       for (const leftPairPart of Object.keys(pairs)) {
-//         const symbols = pairs[leftPairPart].map((rightPairPart: string) => {
-//           const symbol = generateSymbol(
-//             exchange.value,
-//             leftPairPart,
-//             rightPairPart
-//           );
-//           return {
-//             symbol: symbol.short,
-//             full_name: symbol.short,
-//             description: symbol.short,
-//             exchange: exchange.value,
-//             type: "crypto",
-//           };
-//         });
-//         allSymbols = [...allSymbols, ...symbols];
-//       }
-//     }
-//     return allSymbols;
-//   } catch (error) {
-//     console.error("[getAllSymbols]: Get error", error);
-//     return [];
-//   }
-// }
+async function getAllSymbols(): Promise<TradingSymbol[]> {
+  try {
+    const data = (await makeApiRequest("data/v3/all/exchanges")) as ApiResponse;
+    let allSymbols: TradingSymbol[] = [];
+    for (const exchange of configurationData.exchanges) {
+      const pairs = data.Data["zonda"].pairs;
+      for (const leftPairPart of Object.keys(pairs)) {
+        const symbols = pairs[leftPairPart].map((rightPairPart: string) => {
+          const symbol = generateSymbol(
+            exchange.value,
+            leftPairPart,
+            rightPairPart
+          );
+          return {
+            symbol: symbol.short,
+            full_name: symbol.short,
+            description: symbol.short,
+            exchange: exchange.value,
+            type: "crypto",
+          };
+        });
+        allSymbols = [...allSymbols, ...symbols];
+      }
+    }
+    return allSymbols;
+  } catch (error) {
+    console.error("[getAllSymbols]: Get error", error);
+    return [];
+  }
+}
 
 export default {
   onReady: (callback: (configuration: ConfigurationData) => void) => {
@@ -185,36 +183,37 @@ export default {
   //   symbolType: string,
   //   onResultReadyCallback: (symbols: TradingSymbol[]) => void
   // ) => {
-  //   // console.log("[searchSymbols]: Method call");
-  //   // const symbols = await getAllSymbols();
-  //   // const newSymbols = symbols.filter((symbol) => {
-  //   //   const isExchangeValid = exchange === "" || symbol.exchange === exchange;
-  //   //   const isFullSymbolContainsInput =
-  //   //     symbol.full_name.toLowerCase().indexOf(userInput.toLowerCase()) !== -1;
-  //   //   return isExchangeValid && isFullSymbolContainsInput;
-  //   // });
-  //   // onResultReadyCallback(newSymbols);
+  //   console.log("[searchSymbols]: Method call");
+  //   const symbols = await getAllSymbols();
+  //   const newSymbols = symbols.filter((symbol) => {
+  //     const isExchangeValid = exchange === "" || symbol.exchange === exchange;
+  //     const isFullSymbolContainsInput =
+  //       symbol.full_name.toLowerCase().indexOf(userInput.toLowerCase()) !== -1;
+  //     return isExchangeValid && isFullSymbolContainsInput;
+  //   });
+  //   onResultReadyCallback(newSymbols);
   // },
 
   resolveSymbol: async (
     symbolName: string,
-    onSymbolResolvedCallback: (symbolInfo: LibrarySymbolInfo) => void,
+    onSymbolResolvedCallback: (symbolInfo: LibrarySymbolInfo) => void
     // onResolveErrorCallback: ErrorCallback
   ) => {
     console.log("[resolveSymbol]: Method call", symbolName);
     const pricescale = 10000000000000;
     let symbolItem = null;
-    // const symbols = await getAllSymbols();
-    // symbolItem = symbols.find(({ full_name }) => full_name === symbolName);
+    const symbols = await getAllSymbols();
+    symbolItem = symbols.find(({ full_name }) => full_name === symbolName);
     if (!symbolItem) {
       symbolItem = {
         full_name: symbolName,
         symbol: symbolName,
         description: symbolName,
         type: "crypto",
-        exchange: "uniswap",
+        exchange: "Hydrapad",
       };
     }
+    console.log(symbolItem);
 
     const symbolInfo: LibrarySymbolInfo = {
       ticker: symbolItem.symbol,
@@ -248,7 +247,7 @@ export default {
     onHistoryCallback: (bars: Bar[], response: HistoryResponse) => void,
     onErrorCallback: (error: string) => void
   ) => {
-    const { from, to } = periodParams;
+    const { from, to, firstDataRequest } = periodParams;
 
     const resolutionInSeconds =
       resolutionMap[resolution as keyof typeof resolutionMap];
@@ -260,59 +259,25 @@ export default {
       console.error("[getBars]: onHistoryCallback is not a function!");
       throw new TypeError("onHistoryCallback is not a function");
     }
-
-    console.log("[getBars]: Method call", symbolInfo, resolution);
-    const parsedSymbol = parseFullSymbol(
-      `${symbolInfo.exchange}:${symbolInfo.full_name}`
-    );
-    if (!parsedSymbol) {
-      onErrorCallback("cannot resolve symbol");
-      return;
-    }
-    // const urlParameters = {
-    //   e: parsedSymbol.exchange,
-    //   fsym: parsedSymbol.fromSymbol,
-    //   tsym: parsedSymbol.toSymbol,
-    //   toTs: to,
-    //   limit: 2000,
-    // };
-    // const query = Object.keys(urlParameters)
-    //   .map((name) => `${name}=${encodeURIComponent(urlParameters[name as keyof typeof urlParameters])}`)
-    //   .join("&");
-    try {
-      // const data = await makeApiRequest(
-      //   `data/${resolutionInSeconds.resolution}?${query}`
-      // );
+    //presale
+    if (symbolInfo.exchange === "Hydrapad") {
       const cachedKey = `${symbolInfo.symbol}_${resolution}`;
       if (!cachedBars[cachedKey]) {
         const response = await axios.get(
-          `${BASE_URL}/get-transactions-in-range/${
+          `${BASE_URL_TOKEN}/get-transactions-in-range/${
             window.location.pathname.split("/")[3]
           }/${from}/${to}`
         );
         cachedBars[cachedKey] = response.data.data;
       }
       const transformedData = transformToOHLCV(
-        cachedBars[cachedKey].filter((bar) => new Date(bar.createdAt).getTime() >= from * 1000 && new Date(bar.createdAt).getTime() <= to * 1000),
+        cachedBars[cachedKey].filter(
+          (bar) =>
+            new Date(bar.createdAt).getTime() >= from * 1000 &&
+            new Date(bar.createdAt).getTime() <= to * 1000
+        ),
         resolutionInSeconds.seconds
       );
-      // const response = await axios.get(`${BASE_URL}/get-transactions-by-address/${window.location.pathname.split("/")[3]}`)
-      //   if (
-      //   (data.Response && data.Response === "Error") ||
-      //   data.Data.length === 0
-      // ) {
-      //   // "noData" should be set if there is no data in the requested period
-      //   onHistoryCallback([], {
-      //     noData: true,
-      //   });
-      //   return;
-      // }
-      // if ((response.statusText && response.statusText === "error") || response.data.length === 0) {
-      //   onHistoryCallback([], {
-      //     noData: true,
-      //   });
-      //   return;
-      // }
       let bars: Bar[] = [];
       transformedData.forEach((bar) => {
         bars = [
@@ -333,9 +298,78 @@ export default {
       onHistoryCallback(bars, {
         noData: bars.length !== 0,
       });
-    } catch (error) {
-      console.log("[getBars]: Get error", error);
-      onErrorCallback(error as string);
+      //dex
+    } else {
+      console.log("[getBars]: Method call", symbolInfo, resolution);
+      const parsedSymbol = parseFullSymbol(
+        `${symbolInfo.exchange}:${symbolInfo.full_name}`
+      );
+      if (!parsedSymbol) {
+        onErrorCallback("cannot resolve symbol");
+        return;
+      }
+      const urlParameters = {
+        e: parsedSymbol.exchange,
+        fsym: parsedSymbol.fromSymbol,
+        tsym: parsedSymbol.toSymbol,
+        toTs: to,
+        limit: 2000,
+      };
+      const query = Object.keys(urlParameters)
+        .map(
+          (name) =>
+            `${name}=${encodeURIComponent(
+              urlParameters[name as keyof typeof urlParameters]
+            )}`
+        )
+        .join("&");
+      try {
+        const data = await makeApiRequest(
+          `data/${resolutionInSeconds.resolution}?${query}`
+        );
+        // const response = await axios.get(`${BASE_URL_TOKEN}/get-transactions-by-address/${window.location.pathname.split("/")[3]}`)
+        //   if (
+        //   (data.Response && data.Response === "Error") ||
+        //   data.Data.length === 0
+        // ) {
+        //   // "noData" should be set if there is no data in the requested period
+        //   onHistoryCallback([], {
+        //     noData: true,
+        //   });
+        //   return;
+        // }
+        // if ((response.statusText && response.statusText === "error") || response.data.length === 0) {
+        //   onHistoryCallback([], {
+        //     noData: true,
+        //   });
+        //   return;
+        // }
+        let bars: Bar[] = [];
+        data.Data.Data.forEach((bar: Bar) => {
+          if (bar.time >= from && bar.time < to) {
+            bars = [
+              ...bars,
+              {
+                time: bar.time * 1000,
+                low: bar.low,
+                high: bar.high,
+                open: bar.open,
+                close: bar.close,
+                volume: bar.volume,
+              },
+            ];
+          }
+        });
+        if (firstDataRequest) {
+          lastBarsCache.set(`${symbolInfo.exchange}:${symbolInfo.full_name}`, {
+            ...bars[bars.length - 1],
+          });
+        }
+        onHistoryCallback(bars, { noData: false });
+      } catch (error) {
+        console.log("[getBars]: Get error", error);
+        onErrorCallback(error as string);
+      }
     }
   },
 

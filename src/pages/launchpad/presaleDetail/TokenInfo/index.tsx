@@ -12,12 +12,9 @@ import TokenWarningText from "./TokenWarningText";
 import TokenCommonInfo from "./TokenCommonInfo";
 import TokenSwap from "./TokenSwap";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { useCurrentTokenPrice, useProgressBPS } from "@/utils/contractUtils";
+import { useCurrentTokenPrice, useProgressBPS, useMarketCap } from "@/utils/contractUtils";
 import { useParams } from "react-router";
-import { useMarketCap } from "@/utils/contractUtils";
 import FormatPrice from "@/components/ui/FormatPrice";
-import { useWatchContractEvent } from "wagmi";
-import { tokenAbi } from "@/utils/abi/tokenAbi";
 import socket from "@/socket/token";
 import { setToken } from "@/store/reducers/token-slice";
 import TokenBoost from "./TokenBoost";
@@ -29,17 +26,17 @@ interface Props {
 
 const TokenInfo: React.FC<Props> = () => {
   const { tokenAddress, chainId } = useParams();
-  const { currentPrice, refetchCurrentPrice } = useCurrentTokenPrice(
+  const { currentPrice } = useCurrentTokenPrice(
     tokenAddress as `0x${string}`
   );
-  const { currentMarketCap, refetchCurrentMarketCap } = useMarketCap(
+  const { currentMarketCap } = useMarketCap(
+    tokenAddress as `0x${string}`
+  );
+  const { progressBPS } = useProgressBPS(
     tokenAddress as `0x${string}`
   );
   const { token } = useAppSelector((state) => state.token);
   const { ethPrice } = useAppSelector((state) => state.eth);
-  const { progressBPS, refetchProgressBPS } = useProgressBPS(
-    tokenAddress as `0x${string}`
-  );
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -57,17 +54,7 @@ const TokenInfo: React.FC<Props> = () => {
       marketCap: currentMarketCap * ethPrice[Number(chainId)],
     });
   }, [currentPrice, dispatch, ethPrice, chainId, currentMarketCap]);
-  useWatchContractEvent({
-    address: tokenAddress as `0x${string}`,
-    abi: tokenAbi,
-    eventName: "Transfer",
-    onLogs: (logs) => {
-      console.log(logs, "-------------------------------");
-      refetchCurrentPrice();
-      refetchCurrentMarketCap();
-      refetchProgressBPS();
-    },
-  });
+ 
   if (!token) return null;
 
   return (

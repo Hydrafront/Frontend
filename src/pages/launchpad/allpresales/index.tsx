@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import Toolbar from "./toolbar";
 import NFTList from "./list";
-import BitRivals from "../TrendingBar";
+import TrendingBar from "./TrendingBar";
 import NFTTable from "./table";
-import { fetchTokens } from "@/store/actions/token.action";
+import { fetchTokens, fetchTrendingTokens } from "@/store/actions/token.action";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import queryString from "query-string";
 import { useLocation } from "react-router-dom";
@@ -36,6 +36,7 @@ const AllPresales: React.FC = () => {
       Object.entries(parsed).map(([key, value]) => [key, String(value || "")])
     );
     dispatch(setFilters(params));
+    dispatch(fetchTrendingTokens())
   }, [dispatch]);
 
   useEffect(() => {
@@ -48,7 +49,7 @@ const AllPresales: React.FC = () => {
 
   return (
     <div className="relative px-4 pt-3">
-      <BitRivals />
+      <TrendingBar />
 
       <Toolbar style={style} setStyle={setStyle} tab={tab} setTab={setTab} />
       {style === "apps" ? (

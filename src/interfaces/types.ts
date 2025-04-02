@@ -10,6 +10,7 @@ export interface TokenType {
   discord?: string;
   description: string;
   decimals: number;
+  factory?: `0x${string}`;
   dex?: {
     name: string;
     address: `0x${string}`;
@@ -61,4 +62,13 @@ export interface BoostType {
   hours: number;
   price: number;
   width?: string;
+}
+
+export interface EmailType {
+  email: string;
+  name: string;
+  discord?: string;
+  telegram?: string;
+  twitter?: string;
+  message: string;
 }
