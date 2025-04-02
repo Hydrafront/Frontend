@@ -176,7 +176,8 @@ export const useBuyToken = (
   const { address } = useAccount();
   const publicClient = usePublicClient();
 
-  const buyGivenIn = async (minTokenAmount: bigint, amountPrice: bigint) => {
+  const buyGivenIn = async (minTokenAmount: bigint, amountPrice: bigint, fee: bigint) => {
+    console.log(minTokenAmount, amountPrice)
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
@@ -187,6 +188,7 @@ export const useBuyToken = (
         functionName: "buyGivenIn",
         args: [tokenAddress, minTokenAmount],
         value: amountPrice,
+        maxPriorityFeePerGas: fee
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
@@ -200,7 +202,7 @@ export const useBuyToken = (
       throw new Error("Error buying token:", { cause: error });
     }
   };
-  const buyGivenOut = async (amountToken: bigint, maxPriceAmount: bigint) => {
+  const buyGivenOut = async (amountToken: bigint, maxPriceAmount: bigint, fee: bigint) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
@@ -211,6 +213,7 @@ export const useBuyToken = (
         functionName: "buyGivenOut",
         args: [tokenAddress, amountToken, maxPriceAmount],
         value: maxPriceAmount,
+        maxPriorityFeePerGas: fee
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
@@ -288,7 +291,7 @@ export const useSellToken = (
         abi: factoryAbi,
         functionName: "sellGivenIn",
         args: [tokenAddress, amountToken, amountPOLMin],
-        value: fee,
+        maxPriorityFeePerGas: fee
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,

@@ -52,7 +52,7 @@ const SellTab: React.FC<{
     token?.factory as `0x${string}`,
     tokenAddress as `0x${string}`
   );
-  const { amountIn, amountInfee } = useAmountInAndFee(
+  const { amountIn, amountInfee, refetchAmountIn } = useAmountInAndFee(
     tokenAddress as `0x${string}`,
     parseUnits(tokenAmount.toString(), token?.decimals || 18),
     parseUnits(accumulatedPOL?.toString() || "0", 18),
@@ -88,6 +88,7 @@ const SellTab: React.FC<{
     setValue(isFinite(newValue) ? newValue : 0);
   }, [tokenAmount, currentPrice]);
 
+  
   const handleAction = async () => {
     if (isEmpty(tokenAmount)) {
       toastError("Missing required information");
@@ -114,10 +115,10 @@ const SellTab: React.FC<{
           const txHash = await sellGivenIn(
             parseUnits(tokenAmount.toString(), token?.decimals || 18),
             parseUnits(
-              (minEthAmount + amountInfee).toString(),
+              (minEthAmount).toString(),
               token?.decimals || 18
             ),
-            parseUnits(priorityFee.toString(), token?.decimals || 18)
+            parseUnits(amountInfee.toString(), token?.decimals || 18)
           );
           if (token && txHash) {
             toastSuccess("Token sold successfully!");
@@ -156,6 +157,7 @@ const SellTab: React.FC<{
   };
 
   useEffect(() => {
+    refetchAmountIn();
     if (balance !== undefined) {
       if (tokenBalance < tokenAmount) {
         return setErrorMessage("Insufficient token balance");

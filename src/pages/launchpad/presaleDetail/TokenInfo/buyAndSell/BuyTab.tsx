@@ -55,14 +55,14 @@ const BuyTab: React.FC<{
     useCurrentTokenPrice(tokenAddress as `0x${string}`);
   const { ethPrice } = useAppSelector((state) => state.eth);
 
-  const { amountOut, amountOutFee } = useAmountOutAndFee(
+  const { amountOut, amountOutFee, refetchAmountOut } = useAmountOutAndFee(
     tokenAddress as `0x${string}`,
     parseUnits(value.toString(), 18),
     parseUnits(accumulatedPOL?.toString() || "0", 18),
     parseUnits(remainingTokens?.toString() || "0", 18),
     true
   );
-  const { amountIn, amountInfee } = useAmountInAndFee(
+  const { amountIn, amountInfee, refetchAmountIn } = useAmountInAndFee(
     tokenAddress as `0x${string}`,
     parseUnits(tokenAmount.toString(), 18),
     parseUnits(accumulatedPOL?.toString() || "0", 18),
@@ -132,17 +132,12 @@ const BuyTab: React.FC<{
           setTransactionLoading(true);
           const txHash = await buyGivenIn(
             parseUnits(minTokenAmount.toString(), 18),
-            parseUnits((value + amountOutFee).toString(), 18)
+            parseUnits((value).toString(), 18),
+            parseUnits(amountOutFee.toString(), 18)
           );
-          // const tokenAddress = await getTokenAddress(txHash, "buy");
           if (token && txHash) {
             toastSuccess("Token purchased successfully!");
-            // await addTokenToWallet({
-            //   tokenAddress: tokenAddress as `0x${string}`,
-            //   tokenSymbol: token.symbol,
-            //   tokenImage: token.logo,
-            //   tokenDecimals: token.decimals,
-            // });
+          
             dispatch(
               saveTransactionAction({
                 txHash,
@@ -176,8 +171,9 @@ const BuyTab: React.FC<{
         try {
           setTransactionLoading(true);
           const txHash = await buyGivenOut(
-            parseUnits((tokenAmount - amountInfee).toString(), 18),
-            parseUnits(maxEthAmount.toString(), 18)
+            parseUnits((tokenAmount).toString(), 18),
+            parseUnits(maxEthAmount.toString(), 18),
+            parseUnits(amountInfee.toString(), 18)
           );
           if (token && txHash) {
             toastSuccess("Token purchased successfully!");
@@ -218,6 +214,8 @@ const BuyTab: React.FC<{
   };
 
   useEffect(() => {
+    refetchAmountIn();
+    refetchAmountOut();
     if (balance !== undefined) {
       if (!swapped) {
         if (balance < value) {
