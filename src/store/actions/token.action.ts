@@ -13,7 +13,7 @@ import { RootState } from "../store";
 import { AnyAction } from "redux";
 import { TransactionType } from "@/interfaces/types";
 import socket from "@/socket/token";
-import { closeLoading } from "../reducers/loading-slice";
+import { closeLoading, openLoading } from "../reducers/loading-slice";
 
 const pinata = new PinataSDK({
   pinataJwt: import.meta.env.VITE_PINATA_TOKEN,
@@ -88,6 +88,7 @@ export const fetchTokens =
       search,
       page,
     } = parsed;
+    dispatch(openLoading("Fetching tokens..."));
     try {
       const res = await axios.get(
         `${BASE_URL_TOKEN}/get/${chainId}/${sort}/${dex}/${age}/${minProgress}/${maxProgress}/${boosted}/${ads}/${search}/${page}`,
@@ -97,6 +98,8 @@ export const fetchTokens =
       dispatch(setTokenCount(res.data.tokenCount));
     } catch (error) {
       throw new Error("Failed to fetch tokens");
+    } finally {
+      dispatch(closeLoading());
     }
   };
 

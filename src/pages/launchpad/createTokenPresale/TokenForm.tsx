@@ -23,7 +23,7 @@ import {
   Input,
 } from "@material-tailwind/react";
 import { useForm } from "@/hooks/useForm";
-import { getDex } from "@/utils/config/chainDexConfig";
+import { getDex, getUnit } from "@/utils/config/chainDexConfig";
 import { toast } from "react-toastify";
 import { Chain } from "viem";
 import {
@@ -489,7 +489,7 @@ const TokenForm: React.FC = () => {
         />
       </div>
       <div className="mb-5">
-        <LabelText>Social Links (Optional)</LabelText>
+        <LabelText required={false}>Social Links (Optional)</LabelText>
         <CustomInput
           name="website"
           className="mb-3"
@@ -531,11 +531,11 @@ const TokenForm: React.FC = () => {
         <div className="relative">
           <div className="flex gap-2 absolute left-2 top-1/2 z-[999] -translate-y-1/2">
             <img
-              src="/assets/images/chains/Polygon.png"
-              alt="polygon-icon"
+              src={`/assets/images/chains/${selectedChain.name}.png`}
+              alt="chain-icon"
               className="w-6"
             />
-            <span>POL</span>
+            <span>{getUnit(selectedChain.id)}</span>
           </div>
           <Input
             type="number"
@@ -550,7 +550,7 @@ const TokenForm: React.FC = () => {
             crossOrigin={"false"}
             labelProps={{ className: "content-none" }}
             className={clsx(
-              "placeholder:opacity-50 text-gray-500 border-none mb-3 pl-[70px] appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              "placeholder:opacity-50 text-gray-500 border-none mb-3 pl-[100px] text-lg appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             )}
             style={{ backgroundColor: "#211E2C" }}
             placeholder={undefined}
