@@ -11,7 +11,7 @@ const TokenPregress: React.FC<{ value?: number }> = ({ value = 0 }) => {
     <BorderBox>
       <p>
         <InfoText>Progress: </InfoText>
-        <span className="text-green-400">{value}%</span>
+        <span className="text-green-400">{ value ? value.toFixed(3) : 0}%</span>
       </p>
       <TokenProgressbar value={value} />
       {isNotMigrated === true && <p></p>}

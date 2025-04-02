@@ -70,7 +70,7 @@ const NFTCard: React.FC<NFTCardType> = (props) => {
               src={`/assets/images/chains/${getChainName(props.chainId)}.png`}
             />
             <span className="text-[13px] text-greenColor mx-3">
-              {props.progress}%
+              {props.progress?.toFixed(3)}%
             </span>
             <span className="text-[13px]"><FormatPrice value={props.price} /></span>
           </div>

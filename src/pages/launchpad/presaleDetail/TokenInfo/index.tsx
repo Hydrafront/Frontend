@@ -12,7 +12,7 @@ import TokenWarningText from "./TokenWarningText";
 import TokenCommonInfo from "./TokenCommonInfo";
 import TokenSwap from "./TokenSwap";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { useCurrentTokenPrice, useProgressBPS, useMarketCap } from "@/utils/contractUtils";
+import { useCurrentTokenPrice, useMarketCap } from "@/utils/contractUtils";
 import { useParams } from "react-router";
 import FormatPrice from "@/components/ui/FormatPrice";
 import socket from "@/socket/token";
@@ -29,10 +29,7 @@ const TokenInfo: React.FC<Props> = () => {
   const { currentPrice } = useCurrentTokenPrice(
     tokenAddress as `0x${string}`
   );
-  const { currentMarketCap } = useMarketCap(
-    tokenAddress as `0x${string}`
-  );
-  const { progressBPS } = useProgressBPS(
+  const { currentMarketCap, maxMarketCap } = useMarketCap(
     tokenAddress as `0x${string}`
   );
   const { token } = useAppSelector((state) => state.token);
@@ -42,14 +39,14 @@ const TokenInfo: React.FC<Props> = () => {
   useEffect(() => {
     dispatch(
       setToken({
-        progress: progressBPS,
+        progress: currentMarketCap / maxMarketCap * 100,
         price: currentPrice * ethPrice[Number(chainId)],
         marketCap: currentMarketCap * ethPrice[Number(chainId)],
       })
     );
     socket.emit("update-token-info", {
       tokenAddress: tokenAddress as `0x${string}`,
-      progress: progressBPS,
+      progress: currentMarketCap / maxMarketCap * 100,
       price: currentPrice * ethPrice[Number(chainId)],
       marketCap: currentMarketCap * ethPrice[Number(chainId)],
     });
