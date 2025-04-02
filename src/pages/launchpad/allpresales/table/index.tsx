@@ -70,7 +70,7 @@ const NFTTable = () => {
           )}
         </div>
       ),
-      progress: <span className="text-white">{item.progress}%</span>,
+      progress: <span className="text-white">{item.progress?.toFixed(3)}%</span>,
       mcap: (
         <span className="text-white">
           <FormatPrice value={item.marketCap} />
