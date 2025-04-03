@@ -88,6 +88,9 @@ const TokenSlice = createSlice({
     setTrendingTokens: (state, action) => {
       state.trendingTokens = action.payload;
     },
+    clearTokens: (state) => {
+      state.tokens = [];
+    },
   },
 });
 
@@ -105,6 +108,7 @@ export const {
   resetTransactions,
   setInitialPrice,
   setTrendingTokens,
+  clearTokens,
 } = TokenSlice.actions;
 
 export default TokenSlice.reducer;

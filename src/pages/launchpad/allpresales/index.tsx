@@ -7,7 +7,7 @@ import { fetchTokens, fetchTrendingTokens } from "@/store/actions/token.action";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import queryString from "query-string";
 import { useLocation } from "react-router-dom";
-import { setFilters } from "@/store/reducers/token-slice";
+import { setFilters, clearTokens } from "@/store/reducers/token-slice";
 import Pagination from "@/components/common/Pagination";
 
 const AllPresales: React.FC = () => {
@@ -38,6 +38,12 @@ const AllPresales: React.FC = () => {
   useEffect(() => {
     getTokens(filters);
   }, [filters]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearTokens());
+    };
+  }, []);
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     dispatch(setFilters({ ...filters, page: selectedItem.selected + 1 }));
