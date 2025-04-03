@@ -90,6 +90,7 @@ const TokenSlice = createSlice({
     },
     clearTokens: (state) => {
       state.tokens = [];
+      state.tokenCount = 0;
     },
   },
 });
