@@ -80,8 +80,6 @@ const TokenForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
-  const [signature, setSignature] = useState("");
-  const [nonce, setNonce] = useState("");
   const contractAddress = getContractAddress(selectedChain.id);
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
   const { currentMarketCap } = useMarketCap(
@@ -230,10 +228,10 @@ const TokenForm: React.FC = () => {
       toast.error("This chain is not supported yet");
       return;
     }
+    setIsLoading(true);
     const tokenPrice = await getInitialPrice();
 
     if (chainId !== selectedChain.id) {
-      setIsLoading(true);
       return switchChain({ chainId: selectedChain.id });
     }
 
@@ -241,21 +239,18 @@ const TokenForm: React.FC = () => {
       const res = await axios.get(
         `${BASE_URL_TOKEN}/get-signature/${form.name}/${form.symbol}/${contractAddress}/${selectedChain.id}/${address}`
       );
-      setSignature(res.data.signature);
-      setNonce(res.data.nonce);
 
       // create presale token
       let tokenAddress: `0x${string}` | undefined = undefined;
       try {
-        setIsLoading(true);
         const amountOut = (0.9 * form.initialBuy) / currentPrice;
 
         try {
           const receipt = await createPresaleToken(
             form.name,
             form.symbol,
-            nonce,
-            signature as `0x${string}`,
+            res.data.nonce,
+            res.data.signature as `0x${string}`,
             form.initialBuy,
             amountOut,
             selectedChain.id
@@ -356,7 +351,7 @@ const TokenForm: React.FC = () => {
         setIsLoading(false);
       }
     } catch (error) {
-      console.log(error);
+      toast.error("The token symbol is invalid!");
     }
   };
 
@@ -653,7 +648,7 @@ const TokenForm: React.FC = () => {
           >
             {isLoading ? (
               <div className="flex py-[6px] gap-8 items-center justify-center">
-                <div className="dot-flashing m-auto"></div>
+                <div className="dot-flashing ml-4"></div>
               </div>
             ) : (
               <span>
