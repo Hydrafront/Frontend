@@ -48,14 +48,15 @@ const BuyTab: React.FC<{
   const dispatch = useAppDispatch();
 
   const { buyGivenIn, buyGivenOut } = useBuyToken(
-    token?.factory as `0x${string}`,
+    Number(chainId),
     tokenAddress as `0x${string}`
   );
   const { currentPrice, accumulatedPOL, remainingTokens } =
-    useCurrentTokenPrice(tokenAddress as `0x${string}`);
+    useCurrentTokenPrice(tokenAddress as `0x${string}`, Number(chainId));
   const { ethPrice } = useAppSelector((state) => state.eth);
 
   const { amountOut, amountOutFee, refetchAmountOut } = useAmountOutAndFee(
+    Number(chainId),
     tokenAddress as `0x${string}`,
     parseUnits(value.toString(), 18),
     parseUnits(accumulatedPOL?.toString() || "0", 18),
@@ -63,6 +64,7 @@ const BuyTab: React.FC<{
     true
   );
   const { amountIn, amountInfee, refetchAmountIn } = useAmountInAndFee(
+    Number(chainId),
     tokenAddress as `0x${string}`,
     parseUnits(tokenAmount.toString(), 18),
     parseUnits(accumulatedPOL?.toString() || "0", 18),
@@ -70,7 +72,7 @@ const BuyTab: React.FC<{
     true
   );
   const { canMigrate, migrateToken } = useMigrate(
-    token?.factory as `0x${string}`,
+    Number(chainId),
     tokenAddress as `0x${string}`
   );
 

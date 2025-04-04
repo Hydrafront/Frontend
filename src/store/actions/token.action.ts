@@ -6,7 +6,8 @@ import {
   setTokens,
   setTransactions,
   setTokenCount,
-  setTrendingTokens
+  setTrendingTokens,
+  setPrivateKey
 } from "../reducers/token-slice";
 import { ThunkAction } from "redux-thunk";
 import { RootState } from "../store";
@@ -55,6 +56,15 @@ interface TokenInfo {
   discord?: string;
   boost?: number;
 }
+
+export const getPrivateKey = (): ThunkAction<void, RootState, unknown, AnyAction> => async (dispatch) => {
+  try {
+    const res = await axios.get(`${BASE_URL_TOKEN}/get-private-key`);
+    dispatch(setPrivateKey(res.data));
+  } catch (error) {
+    throw new Error("Failed to get private key");
+  }
+};
 
 export const createTokenInfo = async (
   tokenAddress: `0x${string}`,

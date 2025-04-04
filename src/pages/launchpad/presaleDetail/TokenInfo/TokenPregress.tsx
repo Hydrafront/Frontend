@@ -5,8 +5,8 @@ import { useTokenStatus } from "@/utils/contractUtils";
 import { useParams } from "react-router";
 
 const TokenPregress: React.FC<{ value?: number }> = ({ value = 0 }) => {
-  const { tokenAddress } = useParams();
-  const { isNotMigrated } = useTokenStatus(tokenAddress as `0x${string}`);
+  const { tokenAddress, chainId } = useParams();
+  const { isNotMigrated } = useTokenStatus(Number(chainId), tokenAddress as `0x${string}`);
   return (
     <BorderBox>
       <p>

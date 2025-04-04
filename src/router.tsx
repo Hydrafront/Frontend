@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 import AllPresales from "@/pages/launchpad/allpresales";
 import Locks from "./pages/launchpad/locks";
-import ContactUs from "./pages/launchpad/contactus";
 import MyPortfolio from "./pages/launchpad/myPortfoio";
 import Tokens from "./pages/launchpad/myPortfoio/Tokens";
 import MyInvestments from "./pages/launchpad/myPortfoio/myInvestments";
@@ -34,12 +33,12 @@ const element = createRoutesFromElements(
         <Route path="locks" element={<Locks />} />
         <Route path="create-airdrop" element={<CreateAirdrop />} />
         <Route path="manage-presale" element={<ManagePresale />} />
-        <Route path="apply-for-audit" element={<ContactUs />} />
+        {/* <Route path="apply-for-audit" element={<ContactUs />} />
         <Route path="doc" element={<ContactUs />} />
         <Route path="market-makers" element={<ContactUs />} />
         <Route path="advertising-orgs" element={<ContactUs />} />
         <Route path="kol-groups" element={<ContactUs />} />
-        <Route path="contact-us" element={<ContactUs />} />
+        <Route path="contact-us" element={<ContactUs />} /> */}
         <Route path="detail/:chainId/:tokenAddress/:type" element={<PresaleDetail />} />
         <Route path="manage-position/:type" element={<ManagePosition />} />
       </Route>

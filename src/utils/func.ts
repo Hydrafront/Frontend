@@ -139,8 +139,8 @@ export const numberFormat = (num: number) => {
 //get contract address by chainId
 export const getContractAddress = (chainId: number): `0x${string}` => {
   const address =
-    contractConfig[chainId.toString() as keyof typeof contractConfig]?.factory
-      .address;
+    contractConfig[chainId.toString() as keyof typeof contractConfig]
+      ?.factoryAddress;
   // Remove any whitespace and ensure 0x prefix
   return address?.trim().toLowerCase() as `0x${string}`;
 };

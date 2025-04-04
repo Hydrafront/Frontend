@@ -21,13 +21,14 @@ const metadata = {
   icons: ["https://avatars.githubusercontent.com/u/37784886"],
 };
 // const chains = [mainnet, arbitrum,optimism, apeChain, base, bsc, polygon, sonicTestnet, avalanche, sepolia] as const
-const chains = [polygonAmoy, unichain, base, polygon, avalanche, bsc, optimism, arbitrum] as const;
+const chains = [polygonAmoy, polygon, unichain, base, avalanche, bsc, optimism, arbitrum] as const;
 export const config = defaultWagmiConfig({
   chains,
   projectId,
   metadata,
   transports: {
     [polygonAmoy.id]: http("https://polygon-amoy.g.alchemy.com/v2/CIQZ8kkdzYO_oLFlpmxmZDJP7GOxxEPT"),
+    [polygon.id]: http("https://polygon-mainnet.g.alchemy.com/v2/CIQZ8kkdzYO_oLFlpmxmZDJP7GOxxEPT"),
   },
 });
 

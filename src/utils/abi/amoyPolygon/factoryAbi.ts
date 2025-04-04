@@ -1,4 +1,4 @@
-export const factoryAbi = [
+export default [
   {
     inputs: [
       { internalType: "uint256", name: "totalSupply", type: "uint256" },

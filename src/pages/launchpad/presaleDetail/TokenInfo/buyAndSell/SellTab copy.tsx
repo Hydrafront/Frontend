@@ -39,9 +39,9 @@ const SellTab: React.FC<{
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { isConnected, address } = useAccount();
   const { open } = useWeb3Modal();
-  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
+  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`, Number(chainId));
   const { sellGivenIn, sellGivenOut } = useSellToken(
-    token?.factory as `0x${string}`,
+    Number(chainId),
     tokenAddress as `0x${string}`
   );
   const [value, setValue] = useState<number>(0);
@@ -56,10 +56,12 @@ const SellTab: React.FC<{
   const { ethPrice } = useAppSelector((state) => state.eth);
   const currentEthPrice = ethPrice[Number(chainId)];
   const { accumulatedPOL, remainingTokens } = useCurrentTokenPrice(
-    tokenAddress as `0x${string}`
+    tokenAddress as `0x${string}`,
+    Number(chainId)
   );
 
   const { amountIn, amountInfee } = useAmountInAndFee(
+    Number(chainId),
     tokenAddress as `0x${string}`,
     parseUnits(tokenAmount.toString(), token?.decimals || 18),
     parseUnits(accumulatedPOL?.toString() || "0", 18),
@@ -67,6 +69,7 @@ const SellTab: React.FC<{
     false
   );
   const { amountOut, amountOutFee } = useAmountOutAndFee(
+    Number(chainId),
     tokenAddress as `0x${string}`,
     parseUnits(value.toString(), token?.decimals || 18),
     parseUnits(accumulatedPOL?.toString() || "0", 18),

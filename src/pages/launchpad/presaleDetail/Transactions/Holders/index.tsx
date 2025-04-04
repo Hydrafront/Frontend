@@ -35,12 +35,11 @@ interface HolderType {
 const Holders = () => {
   const { chainId, tokenAddress } = useParams();
   const { transactions } = useAppSelector((state) => state.token);
-  const { token } = useAppSelector((state) => state.token);
   const [holders, setHolders] = useState<HolderType[]>([]);
   const { tab } = useAppSelector((state) => state.token);
   const { ethPrice } = useAppSelector((state) => state.eth);
-  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
-  const { totalSupply } = useTotalSupply(token?.factory as `0x${string}`);
+  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`, Number(chainId));
+  const { totalSupply } = useTotalSupply(Number(chainId));
 
   useEffect(() => {
     if (transactions.length > 0) {

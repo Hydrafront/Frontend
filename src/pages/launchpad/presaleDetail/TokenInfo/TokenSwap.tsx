@@ -7,7 +7,7 @@ import { useParams } from "react-router";
 import clsx from "clsx";
 const TokenSwap = () => {
   const { tokenAddress, chainId } = useParams();
-  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
+  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`, Number(chainId));
   const { ethPrice } = useAppSelector((state) => state.eth);
   const [focused, setFocused] = useState<"token" | "eth">("token");
   const [value, setValue] = useState<string>("1");

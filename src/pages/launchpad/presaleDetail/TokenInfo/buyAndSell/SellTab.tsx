@@ -35,7 +35,6 @@ const SellTab: React.FC<{
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { isConnected, address } = useAccount();
   const { open } = useWeb3Modal();
-  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
   const [value, setValue] = useState<number>(0);
   const [tokenAmount, setTokenAmount] = useState<number>(0);
   const [minEthAmount, setMinEthAmount] = useState<number>(0);
@@ -44,15 +43,15 @@ const SellTab: React.FC<{
   const [priorityFee, setPriorityFee] = useState<number>(0);
   const dispatch = useAppDispatch();
   const { ethPrice } = useAppSelector((state) => state.eth);
-  const { accumulatedPOL, remainingTokens } = useCurrentTokenPrice(
-    tokenAddress as `0x${string}`
-  );
+  const { accumulatedPOL, remainingTokens, currentPrice } =
+    useCurrentTokenPrice(tokenAddress as `0x${string}`, Number(chainId));
 
   const { sellGivenIn } = useSellToken(
-    token?.factory as `0x${string}`,
+    Number(chainId),
     tokenAddress as `0x${string}`
   );
   const { amountIn, amountInfee, refetchAmountIn } = useAmountInAndFee(
+    Number(chainId),
     tokenAddress as `0x${string}`,
     parseUnits(tokenAmount.toString(), token?.decimals || 18),
     parseUnits(accumulatedPOL?.toString() || "0", 18),
@@ -66,7 +65,7 @@ const SellTab: React.FC<{
   );
   const { approveToken } = useApproveToken(tokenAddress as `0x${string}`);
   const { canMigrate } = useMigrate(
-    token?.factory as `0x${string}`,
+    Number(chainId),
     tokenAddress as `0x${string}`
   );
 
@@ -88,7 +87,6 @@ const SellTab: React.FC<{
     setValue(isFinite(newValue) ? newValue : 0);
   }, [tokenAmount, currentPrice]);
 
-  
   const handleAction = async () => {
     if (isEmpty(tokenAmount)) {
       toastError("Missing required information");
@@ -114,10 +112,7 @@ const SellTab: React.FC<{
           setTransactionLoading(true);
           const txHash = await sellGivenIn(
             parseUnits(tokenAmount.toString(), token?.decimals || 18),
-            parseUnits(
-              (minEthAmount).toString(),
-              token?.decimals || 18
-            ),
+            parseUnits(minEthAmount.toString(), token?.decimals || 18),
             parseUnits(amountInfee.toString(), token?.decimals || 18)
           );
           if (token && txHash) {

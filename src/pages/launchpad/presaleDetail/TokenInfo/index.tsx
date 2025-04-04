@@ -27,10 +27,12 @@ interface Props {
 const TokenInfo: React.FC<Props> = () => {
   const { tokenAddress, chainId } = useParams();
   const { currentPrice } = useCurrentTokenPrice(
-    tokenAddress as `0x${string}`
+    tokenAddress as `0x${string}`,
+    Number(chainId)
   );
   const { currentMarketCap, maxMarketCap } = useMarketCap(
-    tokenAddress as `0x${string}`
+    tokenAddress as `0x${string}`,
+    Number(chainId)
   );
   const { token } = useAppSelector((state) => state.token);
   const { ethPrice } = useAppSelector((state) => state.eth);

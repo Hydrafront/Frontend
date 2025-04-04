@@ -12,6 +12,7 @@ interface TokenState {
   initialPrice: number;
   factoryAddress: string;
   trendingTokens: TokenType[];
+  privateKey: string;
 }
 
 const initialState: TokenState = {
@@ -25,6 +26,7 @@ const initialState: TokenState = {
   initialPrice: 0,
   factoryAddress: "",
   trendingTokens: [],
+  privateKey: "",
 };
 
 const TokenSlice = createSlice({
@@ -92,6 +94,9 @@ const TokenSlice = createSlice({
       state.tokens = [];
       state.tokenCount = 0;
     },
+    setPrivateKey: (state, action) => {
+      state.privateKey = action.payload;
+    }
   },
 });
 
@@ -110,6 +115,7 @@ export const {
   setInitialPrice,
   setTrendingTokens,
   clearTokens,
+  setPrivateKey
 } = TokenSlice.actions;
 
 export default TokenSlice.reducer;

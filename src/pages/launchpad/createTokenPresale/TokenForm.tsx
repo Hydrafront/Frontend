@@ -13,25 +13,21 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import Upload from "rc-upload";
-import { useAccount, useChains } from "wagmi";
+import { useAccount, useChains, useSwitchChain } from "wagmi";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import {
-  Checkbox,
-  DialogBody,
-  DialogFooter,
-  Input,
-} from "@material-tailwind/react";
+import { Checkbox, Input } from "@material-tailwind/react";
 import { useForm } from "@/hooks/useForm";
 import { getDex, getUnit } from "@/utils/config/chainDexConfig";
 import { toast } from "react-toastify";
 import { Chain } from "viem";
 import {
+  BASE_URL_TOKEN,
   createTokenInfo,
   saveTransactionAction,
   uploadImageToPinata,
 } from "@/store/actions/token.action";
-import { generateSignature, getCurrentEthPrice } from "@/utils/func";
+import { getCurrentEthPrice } from "@/utils/func";
 import { isEmpty } from "@/utils/validation";
 import { getContractAddress } from "@/utils/func";
 import { useChainId } from "wagmi";
@@ -43,12 +39,11 @@ import {
   useGetInitialReverses,
   useCurrentTokenPrice,
 } from "@/utils/contractUtils";
-import Spin2 from "@/components/spins/Spin2";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { createTokenEmit } from "@/socket/token";
 import { useAppDispatch } from "@/store/hooks";
-import { closeDialog, openDialog } from "@/store/reducers/dialog-slice";
 import { toastSuccess, toastError } from "@/utils/customToast";
+import axios from "axios";
 
 const MAX_FILE_SIZE = 1024 * 1024 * 5; // 5MB
 
@@ -85,12 +80,22 @@ const TokenForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [signature, setSignature] = useState("");
+  const [nonce, setNonce] = useState("");
   const contractAddress = getContractAddress(selectedChain.id);
-  const { currentMarketCap } = useMarketCap(contractAddress as `0x${string}`);
-  const { currentPrice } = useCurrentTokenPrice(
-    contractAddress as `0x${string}`
+  const { switchChain, isPending: isSwitchPending } = useSwitchChain();
+  const { currentMarketCap } = useMarketCap(
+    contractAddress as `0x${string}`,
+    selectedChain.id
   );
-  const { progressBPS } = useProgressBPS(contractAddress as `0x${string}`);
+  const { currentPrice } = useCurrentTokenPrice(
+    contractAddress as `0x${string}`,
+    selectedChain.id
+  );
+  const { progressBPS } = useProgressBPS(
+    contractAddress as `0x${string}`,
+    selectedChain.id
+  );
   const { form, setForm, handleChange } = useForm<FormType>({
     name: "",
     symbol: "",
@@ -107,6 +112,7 @@ const TokenForm: React.FC = () => {
   });
 
   const { uniswapV2Router } = useUniswapV2Router(
+    selectedChain.id,
     contractAddress as `0x${string}`
   );
   const dispatch = useAppDispatch();
@@ -122,7 +128,15 @@ const TokenForm: React.FC = () => {
     );
   }, []);
 
+  useEffect(() => {
+    setIsLoading(isSwitchPending);
+  }, [isSwitchPending]);
+
   const handleChainChange = async (value: Chain) => {
+    if (!supported.includes(value.id)) {
+      toast.error("This chain is not supported yet");
+      return;
+    }
     setSelectedChain(value);
     setSelectedDex(
       getDex(value.id)?.[0] as {
@@ -179,154 +193,15 @@ const TokenForm: React.FC = () => {
     return initialPrice;
   };
 
+  const supported: number[] = [80002, 137];
+
   const handleCreatePresale = async () => {
-    dispatch(closeDialog());
-    if (selectedChain.id !== 80002) {
-      toast.error("This chain is not supported yet");
-      return;
-    }
-    const nonce = Date.now();
-    const tokenPrice = await getInitialPrice();
-
-    // create presale token
-    let tokenAddress: `0x${string}` | undefined = undefined;
-    try {
-      const { signature } = await generateSignature(
-        form.name,
-        form.symbol,
-        nonce,
-        contractAddress,
-        chainId,
-        address as `0x${string}`,
-        import.meta.env.VITE_PRIVATE_KEY
-      );
-      setIsLoading(true);
-      const amountOut = (0.9 * form.initialBuy) / currentPrice;
-
-      try {
-        const receipt = await createPresaleToken(
-          form.name,
-          form.symbol,
-          nonce,
-          signature as `0x${string}`,
-          form.initialBuy,
-          amountOut
-        );
-        if (form.initialBuy > 0) {
-          tokenAddress = receipt?.logs[1].address;
-        } else {
-          tokenAddress = receipt?.logs[0].address;
-        }
-
-        if (tokenAddress) {
-          try {
-            const { token } = await createTokenInfo(
-              tokenAddress as `0x${string}`,
-              {
-                type: "presale",
-                creator: address as `0x${string}`,
-                description: form.description,
-                dex: {
-                  name: selectedDex?.name || "",
-                  address: selectedDex?.address as `0x${string}`,
-                },
-                chainId: selectedChain.id,
-                name: form.name,
-                symbol: form.symbol,
-                progress: progressBPS,
-                logo: form.logo,
-                price: tokenPrice,
-                marketCap: currentMarketCap as number,
-                banner: form.banner,
-                website: form.website,
-                twitter: form.twitter,
-                telegram: form.telegram,
-                discord: form.discord,
-              }
-            );
-            if (form.initialBuy > 0) {
-              const transaction = {
-                txHash: receipt?.transactionHash as `0x${string}`,
-                type: "Buy",
-                tokenAddress: tokenAddress as `0x${string}`,
-                token: amountOut,
-                eth: form.initialBuy,
-                maker: address as `0x${string}`,
-                usd: amountOut * tokenPrice,
-                price: tokenPrice,
-                chainId: Number(chainId),
-                symbol: form.symbol,
-              };
-              dispatch(saveTransactionAction(transaction));
-            }
-            createTokenEmit(token);
-            toastSuccess("Token created successfully. Click here to view token details", {
-              onClick: () => {
-                window.location.href = `/detail/${selectedChain.id}/${tokenAddress}/${"presale"}`;
-              },
-              className: "cursor-pointer",
-            });
-          } catch (error) {
-            console.log("Error in token creation", error);
-          }
-        } else {
-          toast.error("Transaction was reverted. Please try again");
-          throw new Error("Transaction was reverted. Please try again");
-        }
-      } catch (error) {
-        console.log("Error in token creation", error);
-      }
-      setIsLoading(false);
-    } catch (error) {
-      console.log("Error in token creation", error);
-
-      //Reset the creation step to allow the user to try again
-
-      if (error instanceof Error) {
-        if (error instanceof UserRejectedRequestError) {
-          //Metamask user rejected the transaction or similar
-          toast.error("Transaction was cancelled. Please try again.");
-        } else if (!tokenAddress) {
-          // Error occurred before token creation on blockchain
-          toast.error(
-            "Failed to create token on blockchain. Please try again."
-          );
-        } else {
-          // Token created on blockchain but backend update failed
-          toast.error(
-            "Token created on blockchain but failed to store token info on database. Please try storing later in your portfolio"
-          );
-        }
-      } else {
-        toast.error("An unknown error occurred");
-      }
-      setIsLoading(false);
-    }
-  };
-
-  const handleInitialBuyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
-    if (val >= 0) {
-      if (val >= 1 && e.target.value.startsWith("0")) {
-        e.target.value = e.target.value.slice(1);
-      }
-      setForm((prev: FormType) => ({
-        ...prev,
-        initialBuy: val,
-      }));
-    } else {
-      setForm((prev: FormType) => ({
-        ...prev,
-        initialBuy: 0,
-      }));
-    }
-  };
-
-  const handleOpenModal = () => {
     if (
       isEmpty(form.name) ||
       isEmpty(form.symbol) ||
       isEmpty(form.description)
+      // isEmpty(form.logo) ||
+      // isEmpty(form.banner)
     ) {
       toastError("Please fill all the fields");
       return;
@@ -351,63 +226,156 @@ const TokenForm: React.FC = () => {
       toastError("Discord must not include https://discord.gg/");
       return;
     }
-    dispatch(
-      openDialog({
-        children: (
-          <>
-            <DialogBody
-              placeholder={undefined}
-              onPointerEnterCapture={undefined}
-              onPointerLeaveCapture={undefined}
-            >
-              <div className="flex flex-col gap-2">
-                <div
-                  style={{
-                    backgroundImage: `url(${form.banner})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                  className="pl-4 w-full flex items-center h-[150px] bg-cover bg-center rounded-md"
-                >
-                  <img
-                    src={form.logo}
-                    alt="logo"
-                    className="w-32 h-32 border-2 border-greenColor rounded-md"
-                  />
-                </div>
-                <ul className="list-disc list-inside">
-                  <li>Token Name: {form.name}</li>
-                  <li>Token Symbol: {form.symbol}</li>
-                  <li>Token Description: {form.description}</li>
-                  {form.website && <li>Token Website: {form.website}</li>}
-                  {form.twitter && <li>Token Twitter: {form.twitter}</li>}
-                  {form.telegram && <li>Token Telegram: {form.telegram}</li>}
-                  {form.discord && <li>Token Discord: {form.discord}</li>}
-                </ul>
-              </div>
-            </DialogBody>
-            <DialogFooter
-              placeholder={undefined}
-              onPointerEnterCapture={undefined}
-              onPointerLeaveCapture={undefined}
-            >
-              <GradientButton
-                className="bg-green-500 mr-2 text-white px-4 py-2 rounded-md"
-                onClick={handleCreatePresale}
-              >
-                Create Presale
-              </GradientButton>
-              <button
-                className="text-white border border-gray-400 px-4 py-2 rounded-md"
-                onClick={() => dispatch(closeDialog())}
-              >
-                Cancel
-              </button>
-            </DialogFooter>
-          </>
-        ),
-      })
-    );
+    if (!supported.includes(selectedChain.id)) {
+      toast.error("This chain is not supported yet");
+      return;
+    }
+    const tokenPrice = await getInitialPrice();
+
+    if (chainId !== selectedChain.id) {
+      setIsLoading(true);
+      return switchChain({ chainId: selectedChain.id });
+    }
+
+    try {
+      const res = await axios.get(
+        `${BASE_URL_TOKEN}/get-signature/${form.name}/${form.symbol}/${contractAddress}/${selectedChain.id}/${address}`
+      );
+      setSignature(res.data.signature);
+      setNonce(res.data.nonce);
+
+      // create presale token
+      let tokenAddress: `0x${string}` | undefined = undefined;
+      try {
+        setIsLoading(true);
+        const amountOut = (0.9 * form.initialBuy) / currentPrice;
+
+        try {
+          const receipt = await createPresaleToken(
+            form.name,
+            form.symbol,
+            nonce,
+            signature as `0x${string}`,
+            form.initialBuy,
+            amountOut,
+            selectedChain.id
+          );
+          if (form.initialBuy > 0) {
+            tokenAddress = receipt?.logs[1].address;
+          } else {
+            tokenAddress = receipt?.logs[0].address;
+          }
+
+          if (tokenAddress) {
+            try {
+              const { token } = await createTokenInfo(
+                tokenAddress as `0x${string}`,
+                {
+                  type: "presale",
+                  creator: address as `0x${string}`,
+                  description: form.description,
+                  dex: {
+                    name: selectedDex?.name || "",
+                    address: selectedDex?.address as `0x${string}`,
+                  },
+                  chainId: selectedChain.id,
+                  name: form.name,
+                  symbol: form.symbol,
+                  progress: progressBPS,
+                  logo: form.logo,
+                  price: tokenPrice,
+                  marketCap: currentMarketCap as number,
+                  banner: form.banner,
+                  website: form.website,
+                  twitter: form.twitter,
+                  telegram: form.telegram,
+                  discord: form.discord,
+                }
+              );
+              if (form.initialBuy > 0) {
+                const transaction = {
+                  txHash: receipt?.transactionHash as `0x${string}`,
+                  type: "Buy",
+                  tokenAddress: tokenAddress as `0x${string}`,
+                  token: amountOut,
+                  eth: form.initialBuy,
+                  maker: address as `0x${string}`,
+                  usd: amountOut * tokenPrice,
+                  price: tokenPrice,
+                  chainId: Number(chainId),
+                  symbol: form.symbol,
+                };
+                dispatch(saveTransactionAction(transaction));
+              }
+              createTokenEmit(token);
+              toastSuccess(
+                "Token created successfully. Click here to view token details",
+                {
+                  onClick: () => {
+                    window.location.href = `/detail/${
+                      selectedChain.id
+                    }/${tokenAddress}/${"presale"}`;
+                  },
+                  className: "cursor-pointer",
+                }
+              );
+            } catch (error) {
+              console.log("Error in token creation", error);
+            }
+          } else {
+            toast.error("Transaction was reverted. Please try again");
+            throw new Error("Transaction was reverted. Please try again");
+          }
+        } catch (error) {
+          console.log("Error in token creation", error);
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.log("Error in token creation", error);
+
+        //Reset the creation step to allow the user to try again
+
+        if (error instanceof Error) {
+          if (error instanceof UserRejectedRequestError) {
+            //Metamask user rejected the transaction or similar
+            toast.error("Transaction was cancelled. Please try again.");
+          } else if (!tokenAddress) {
+            // Error occurred before token creation on blockchain
+            toast.error(
+              "Failed to create token on blockchain. Please try again."
+            );
+          } else {
+            // Token created on blockchain but backend update failed
+            toast.error(
+              "Token created on blockchain but failed to store token info on database. Please try storing later in your portfolio"
+            );
+          }
+        } else {
+          toast.error("An unknown error occurred");
+        }
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleInitialBuyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value);
+    if (val >= 0) {
+      if (val >= 1 && e.target.value.startsWith("0")) {
+        e.target.value = e.target.value.slice(1);
+      }
+      setForm((prev: FormType) => ({
+        ...prev,
+        initialBuy: val,
+      }));
+    } else {
+      setForm((prev: FormType) => ({
+        ...prev,
+        initialBuy: 0,
+      }));
+    }
   };
 
   return (
@@ -594,7 +562,7 @@ const TokenForm: React.FC = () => {
               ) : (
                 <div className="flex justify-center items-center w-full h-full">
                   {isUploadingLogo ? (
-                    <Spin2 />
+                    <div className="dot-flashing"></div>
                   ) : (
                     <div>
                       <IconPhotoPlus className="w-[30px] h-[30px] m-auto mb-2" />
@@ -636,7 +604,7 @@ const TokenForm: React.FC = () => {
               ) : (
                 <div className="flex justify-center items-center w-full h-full">
                   {isUploadingBanner ? (
-                    <Spin2 />
+                    <div className="dot-flashing"></div>
                   ) : (
                     <div>
                       <IconPhotoPlus className="w-[30px] h-[30px] m-auto mb-2" />
@@ -681,14 +649,18 @@ const TokenForm: React.FC = () => {
               "rounded-lg w-full text-white",
               !form.policy && "opacity-50"
             )}
-            onClick={handleOpenModal}
+            onClick={handleCreatePresale}
           >
             {isLoading ? (
-              <div className="flex py-2 gap-8 items-center justify-center">
+              <div className="flex py-[6px] gap-8 items-center justify-center">
                 <div className="dot-flashing m-auto"></div>
               </div>
             ) : (
-              <span>Create Presale</span>
+              <span>
+                {chainId === selectedChain.id
+                  ? "Create Presale"
+                  : "Switch Network"}
+              </span>
             )}
           </GradientButton>
         ) : (

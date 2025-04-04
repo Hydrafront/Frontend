@@ -54,7 +54,7 @@ const TopTraders = () => {
   const [traders, setTraders] = useState<TraderType[]>([]);
   const { tab } = useAppSelector((state) => state.token);
   const { ethPrice } = useAppSelector((state) => state.eth);
-  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`);
+  const { currentPrice } = useCurrentTokenPrice(tokenAddress as `0x${string}`, Number(chainId));
 
   useEffect(() => {
     if (transactions.length > 0) {

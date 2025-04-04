@@ -36,17 +36,25 @@ const PresaleDetail: React.FC = () => {
   const { token } = useAppSelector((state) => state.token);
   const dispatch = useAppDispatch();
   const { refetchCurrentPrice } = useCurrentTokenPrice(
-    tokenAddress as `0x${string}`
+    tokenAddress as `0x${string}`,
+    Number(chainId)
   );
   const { refetchCurrentMarketCap } = useMarketCap(
-    tokenAddress as `0x${string}`
+    tokenAddress as `0x${string}`,
+    Number(chainId)
   );
-  const { refetchProgressBPS } = useProgressBPS(tokenAddress as `0x${string}`);
+  const { refetchProgressBPS } = useProgressBPS(
+    tokenAddress as `0x${string}`,
+    Number(chainId)
+  );
   const { refetchCanMigrate } = useMigrate(
-    token?.factory as `0x${string}`,
+    Number(chainId),
     tokenAddress as `0x${string}`
   );
-  const { factoryAddress } = useFactoryAddress(tokenAddress as `0x${string}`);
+  const { factoryAddress } = useFactoryAddress(
+    Number(chainId),
+    tokenAddress as `0x${string}`
+  );
 
   useEffect(() => {
     dispatch(getTokenByAddress(tokenAddress as `0x${string}`));
