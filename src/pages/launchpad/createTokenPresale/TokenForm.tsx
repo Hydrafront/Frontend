@@ -198,8 +198,8 @@ const TokenForm: React.FC = () => {
       isEmpty(form.name) ||
       isEmpty(form.symbol) ||
       isEmpty(form.description)
-      // isEmpty(form.logo) ||
-      // isEmpty(form.banner)
+      isEmpty(form.logo) ||
+      isEmpty(form.banner)
     ) {
       toastError("Please fill all the fields");
       return;
