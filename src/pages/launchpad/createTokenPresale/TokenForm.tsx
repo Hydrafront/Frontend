@@ -197,7 +197,7 @@ const TokenForm: React.FC = () => {
     if (
       isEmpty(form.name) ||
       isEmpty(form.symbol) ||
-      isEmpty(form.description)
+      isEmpty(form.description) ||
       isEmpty(form.logo) ||
       isEmpty(form.banner)
     ) {
