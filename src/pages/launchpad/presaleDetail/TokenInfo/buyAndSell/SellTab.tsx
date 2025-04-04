@@ -5,7 +5,7 @@ import { isEmpty } from "@/utils/validation";
 import { Button, Input } from "@material-tailwind/react";
 import { IconShieldHalfFilled } from "@tabler/icons-react";
 import { useParams } from "react-router-dom";
-import { useAccount } from "wagmi";
+import { useAccount, useSwitchChain, useChainId } from "wagmi";
 import { getMinEthAmount } from "@/utils/func";
 import { useEffect, useState } from "react";
 import { toastSuccess, toastError } from "@/utils/customToast";
@@ -30,10 +30,12 @@ const SellTab: React.FC<{
   tokenBalance: number;
 }> = ({ balance, tokenBalance }) => {
   const { chainId, tokenAddress } = useParams();
+  const currentChainId = useChainId();
   const { token } = useAppSelector((state) => state.token);
   const [slippage, setSlippage] = useState<number>(5);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { isConnected, address } = useAccount();
+  const { switchChain, isPending: isSwitchPending } = useSwitchChain();
   const { open } = useWeb3Modal();
   const [value, setValue] = useState<number>(0);
   const [tokenAmount, setTokenAmount] = useState<number>(0);
@@ -58,6 +60,10 @@ const SellTab: React.FC<{
     parseUnits(remainingTokens?.toString() || "0", 18),
     false
   );
+
+  useEffect(() => {
+    setTransactionLoading(isSwitchPending);
+  }, [isSwitchPending]);
 
   const { data: allowance } = useTokenAllowance(
     tokenAddress as `0x${string}`,
@@ -88,11 +94,13 @@ const SellTab: React.FC<{
   }, [tokenAmount, currentPrice]);
 
   const handleAction = async () => {
+    if (currentChainId.toString() !== chainId?.toString()) {
+      return switchChain({ chainId: Number(chainId) });
+    }
     if (isEmpty(tokenAmount)) {
       toastError("Missing required information");
       return;
     }
-
     try {
       if (!isApproved) {
         try {
@@ -284,7 +292,11 @@ const SellTab: React.FC<{
             <>
               {isConnected ? (
                 isApproved ? (
-                  "SELL"
+                  currentChainId.toString() === chainId?.toString() ? (
+                    "SELL"
+                  ) : (
+                    "Switch Network"
+                  )
                 ) : (
                   "APPROVE"
                 )
