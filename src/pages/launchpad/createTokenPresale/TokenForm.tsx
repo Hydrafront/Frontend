@@ -37,7 +37,7 @@ import {
   useUniswapV2Router,
   useMarketCap,
   useGetInitialReverses,
-  useCurrentTokenPrice,
+  useInitialPrice,
 } from "@/utils/contractUtils";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { createTokenEmit } from "@/socket/token";
@@ -70,6 +70,8 @@ const TokenForm: React.FC = () => {
     useCreatePresaleToken();
   const { isConnected, address } = useAccount();
   const [selectedChain, setSelectedChain] = useState<Chain>(chains[0]);
+  const [tokenAddress, setTokenAddress] = useState<string>("");
+  const [txHash, setTxHash] = useState<string>("");
   const [selectedDex, setSelectedDex] = useState<
     | {
         name: string;
@@ -82,19 +84,20 @@ const TokenForm: React.FC = () => {
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const contractAddress = getContractAddress(selectedChain.id);
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
-  const { currentMarketCap } = useMarketCap(
-    contractAddress as `0x${string}`,
+
+  const { currentMarketCap, refetchCurrentMarketCap } = useMarketCap(
+    tokenAddress as `0x${string}`,
     selectedChain.id
   );
-  const { currentPrice } = useCurrentTokenPrice(
-    contractAddress as `0x${string}`,
+  const { currentPrice, refetchInitialPrice } = useInitialPrice(
     selectedChain.id
   );
-  const { progressBPS } = useProgressBPS(
-    contractAddress as `0x${string}`,
+  const { progressBPS, refetchProgressBPS } = useProgressBPS(
+    tokenAddress as `0x${string}`,
     selectedChain.id
   );
-  const { form, setForm, handleChange } = useForm<FormType>({
+
+  const initialForm = {
     name: "",
     symbol: "",
     description: "",
@@ -107,12 +110,19 @@ const TokenForm: React.FC = () => {
     initialBuy: 0,
     policy: false,
     decimal: 18,
-  });
+  };
+  const { form, setForm, handleChange, clearForm } =
+    useForm<FormType>(initialForm);
 
-  const { uniswapV2Router } = useUniswapV2Router(
-    selectedChain.id,
-    contractAddress as `0x${string}`
-  );
+  const clearPage = () => {
+    setSelectedChain(chains[0]);
+    setTokenAddress("");
+    setTxHash("");
+    setSelectedDex(undefined);
+    clearForm();
+  };
+
+  const { uniswapV2Router } = useUniswapV2Router(selectedChain.id);
   const dispatch = useAppDispatch();
   const { initialAccumulatedPOL, initialRemainingTokens } =
     useGetInitialReverses(selectedChain.id);
@@ -229,7 +239,6 @@ const TokenForm: React.FC = () => {
       return;
     }
     setIsLoading(true);
-    const tokenPrice = await getInitialPrice();
 
     if (chainId !== selectedChain.id) {
       return switchChain({ chainId: selectedChain.id });
@@ -241,7 +250,7 @@ const TokenForm: React.FC = () => {
       );
 
       // create presale token
-      let tokenAddress: `0x${string}` | undefined = undefined;
+      let createToken: `0x${string}` | undefined = undefined;
       try {
         const amountOut = (0.9 * form.initialBuy) / currentPrice;
 
@@ -256,77 +265,19 @@ const TokenForm: React.FC = () => {
             selectedChain.id
           );
           if (form.initialBuy > 0) {
-            tokenAddress = receipt?.logs[1].address;
+            createToken = receipt?.logs[1].address;
           } else {
-            tokenAddress = receipt?.logs[0].address;
+            createToken = receipt?.logs[0].address;
           }
-
-          if (tokenAddress) {
-            try {
-              const { token } = await createTokenInfo(
-                tokenAddress as `0x${string}`,
-                {
-                  type: "presale",
-                  creator: address as `0x${string}`,
-                  description: form.description,
-                  dex: {
-                    name: selectedDex?.name || "",
-                    address: selectedDex?.address as `0x${string}`,
-                  },
-                  chainId: selectedChain.id,
-                  name: form.name,
-                  symbol: form.symbol,
-                  progress: progressBPS,
-                  logo: form.logo,
-                  price: tokenPrice,
-                  marketCap: currentMarketCap as number,
-                  banner: form.banner,
-                  website: form.website,
-                  twitter: form.twitter,
-                  telegram: form.telegram,
-                  discord: form.discord,
-                }
-              );
-              if (form.initialBuy > 0) {
-                const transaction = {
-                  txHash: receipt?.transactionHash as `0x${string}`,
-                  type: "Buy",
-                  tokenAddress: tokenAddress as `0x${string}`,
-                  token: amountOut,
-                  eth: form.initialBuy,
-                  maker: address as `0x${string}`,
-                  usd: amountOut * tokenPrice,
-                  price: tokenPrice,
-                  chainId: Number(chainId),
-                  symbol: form.symbol,
-                };
-                dispatch(saveTransactionAction(transaction));
-              }
-              createTokenEmit(token);
-              toastSuccess(
-                "Token created successfully. Click here to view token details",
-                {
-                  onClick: () => {
-                    window.location.href = `/detail/${
-                      selectedChain.id
-                    }/${tokenAddress}/${"presale"}`;
-                  },
-                  className: "cursor-pointer",
-                }
-              );
-            } catch (error) {
-              console.log("Error in token creation", error);
-            }
-          } else {
-            toast.error("Transaction was reverted. Please try again");
-            throw new Error("Transaction was reverted. Please try again");
-          }
+          setTokenAddress(createToken as string);
+          setTxHash(receipt?.transactionHash as string);
         } catch (error) {
           console.log("Error in token creation", error);
         }
         setIsLoading(false);
       } catch (error) {
         console.log("Error in token creation", error);
+        setIsLoading(false);
 
         //Reset the creation step to allow the user to try again
 
@@ -348,12 +299,83 @@ const TokenForm: React.FC = () => {
         } else {
           toast.error("An unknown error occurred");
         }
-        setIsLoading(false);
       }
     } catch (error) {
       toast.error("The token symbol is invalid!");
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isEmpty(tokenAddress) && !isEmpty(txHash)) {
+      refetchCurrentMarketCap();
+      refetchInitialPrice();
+      refetchProgressBPS();
+    }
+  }, [tokenAddress, txHash]);
+
+  useEffect(() => {
+    const createToken = async () => {
+      try {
+        const amountOut = (0.9 * form.initialBuy) / currentPrice;
+        const tokenPrice = await getInitialPrice();
+        const { token } = await createTokenInfo(tokenAddress as `0x${string}`, {
+          type: "presale",
+          creator: address as `0x${string}`,
+          description: form.description,
+          dex: {
+            name: selectedDex?.name || "",
+            address: selectedDex?.address as `0x${string}`,
+          },
+          chainId: selectedChain.id,
+          name: form.name,
+          symbol: form.symbol,
+          progress: progressBPS,
+          logo: form.logo,
+          price: tokenPrice,
+          marketCap: currentMarketCap as number,
+          banner: form.banner,
+          website: form.website,
+          twitter: form.twitter,
+          telegram: form.telegram,
+          discord: form.discord,
+        });
+        if (form.initialBuy > 0) {
+          const transaction = {
+            txHash,
+            type: "Buy",
+            tokenAddress: tokenAddress as `0x${string}`,
+            token: amountOut,
+            eth: form.initialBuy,
+            maker: address as `0x${string}`,
+            usd: amountOut * tokenPrice,
+            price: tokenPrice,
+            chainId: Number(chainId),
+            symbol: form.symbol,
+          };
+          dispatch(saveTransactionAction(transaction));
+        }
+        createTokenEmit(token);
+        clearPage();
+        toastSuccess(
+          "Token created successfully. Click here to view token details",
+          {
+            onClick: () => {
+              window.location.href = `/detail/${
+                selectedChain.id
+              }/${tokenAddress}/${"presale"}`;
+            },
+            className: "cursor-pointer",
+          }
+        );
+      } catch (error) {
+        console.log("Error in token creation", error);
+      }
+    };
+    if (currentPrice && currentMarketCap && progressBPS) {
+      createToken();
+    }
+  }, [currentPrice, currentMarketCap, progressBPS]);
 
   const handleInitialBuyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);

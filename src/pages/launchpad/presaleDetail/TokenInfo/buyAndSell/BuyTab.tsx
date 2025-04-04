@@ -18,7 +18,7 @@ import {
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { parseUnits } from "viem";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getMinTokenAmount } from "@/utils/func";
 import { getMaxEthAmount } from "@/utils/func";
@@ -34,6 +34,8 @@ const BuyTab: React.FC<{
 }> = ({ balance }) => {
   const { isConnected, address } = useAccount();
   const { tokenAddress, chainId } = useParams();
+  const currentChainId = useChainId();
+  const { switchChain, isPending: isSwitchPending } = useSwitchChain();
   const { open } = useWeb3Modal();
   const [value, setValue] = useState<number>(0.1);
   const [tokenAmount, setTokenAmount] = useState<number>(0);
@@ -75,6 +77,10 @@ const BuyTab: React.FC<{
     Number(chainId),
     tokenAddress as `0x${string}`
   );
+
+  useEffect(() => {
+      setTransactionLoading(isSwitchPending);
+    }, [isSwitchPending]);
 
   useEffect(() => {
     if (!swapped) {
@@ -126,6 +132,9 @@ const BuyTab: React.FC<{
 
   const handleAction = async () => {
     setTransactionLoading(true);
+    if (currentChainId.toString() !== chainId?.toString()) {
+      return switchChain({ chainId: Number(chainId) });
+    }
     if (!swapped) {
       if (isEmpty(value)) {
         toastError("Missing required infomation");
@@ -134,12 +143,12 @@ const BuyTab: React.FC<{
           setTransactionLoading(true);
           const txHash = await buyGivenIn(
             parseUnits(minTokenAmount.toString(), 18),
-            parseUnits((value).toString(), 18),
+            parseUnits(value.toString(), 18),
             parseUnits(amountOutFee.toString(), 18)
           );
           if (token && txHash) {
             toastSuccess("Token purchased successfully!");
-          
+
             dispatch(
               saveTransactionAction({
                 txHash,
@@ -173,7 +182,7 @@ const BuyTab: React.FC<{
         try {
           setTransactionLoading(true);
           const txHash = await buyGivenOut(
-            parseUnits((tokenAmount).toString(), 18),
+            parseUnits(tokenAmount.toString(), 18),
             parseUnits(maxEthAmount.toString(), 18),
             parseUnits(amountInfee.toString(), 18)
           );
@@ -388,7 +397,11 @@ const BuyTab: React.FC<{
           ) : (
             <>
               {isConnected ? (
-                "BUY"
+                currentChainId.toString() === chainId?.toString() ? (
+                  "BUY"
+                ) : (
+                  "Switch Network"
+                )
               ) : (
                 <IconText>
                   <IconWallet size={16} color="white" />

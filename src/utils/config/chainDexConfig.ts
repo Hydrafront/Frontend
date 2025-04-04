@@ -56,7 +56,7 @@ export const supportedChains = [
   },
   {
     name: "Polygon",
-    unit: "MATIC",
+    unit: "POL",
     id: 137,
     logo: "/assets/images/chains/Polygon.png",
     priceUrl: "wss://stream.binance.com:9443/ws/maticusdt@trade",

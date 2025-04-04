@@ -19,6 +19,7 @@ import socket from "@/socket/token";
 import { setToken } from "@/store/reducers/token-slice";
 import TokenBoost from "./TokenBoost";
 import { useEffect } from "react";
+import { isEmpty } from "@/utils/validation";
 
 interface Props {
   type?: string | undefined;
@@ -39,21 +40,27 @@ const TokenInfo: React.FC<Props> = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(
-      setToken({
-        progress: currentMarketCap / maxMarketCap * 100,
+    if (
+      !isEmpty(currentPrice) &&
+      !isEmpty(ethPrice) &&
+      !isEmpty(currentMarketCap)
+    ) {
+      dispatch(
+        setToken({
+          progress: (currentMarketCap / maxMarketCap) * 100,
+          price: currentPrice * ethPrice[Number(chainId)],
+          marketCap: currentMarketCap * ethPrice[Number(chainId)],
+        })
+      );
+      socket.emit("update-token-info", {
+        tokenAddress: tokenAddress as `0x${string}`,
+        progress: (currentMarketCap / maxMarketCap) * 100,
         price: currentPrice * ethPrice[Number(chainId)],
         marketCap: currentMarketCap * ethPrice[Number(chainId)],
-      })
-    );
-    socket.emit("update-token-info", {
-      tokenAddress: tokenAddress as `0x${string}`,
-      progress: currentMarketCap / maxMarketCap * 100,
-      price: currentPrice * ethPrice[Number(chainId)],
-      marketCap: currentMarketCap * ethPrice[Number(chainId)],
-    });
+      });
+    }
   }, [currentPrice, dispatch, ethPrice, chainId, currentMarketCap]);
- 
+
   if (!token) return null;
 
   return (

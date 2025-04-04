@@ -60,7 +60,9 @@ export const useCreatePresaleToken = () => {
       try {
         if (initialBuy > 0) {
           hash = await writeContractAsync({
-            abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+            abi: contractConfig[
+              chainId.toString() as keyof typeof contractConfig
+            ].factoryAbi,
             address: getContractAddress(chainId),
             functionName: "createHydrapadPresaleTokenAndBuy",
             args: [
@@ -71,12 +73,16 @@ export const useCreatePresaleToken = () => {
               signature,
             ],
             value: parseUnits(initialBuy.toString(), 18),
-            maxPriorityFeePerGas: parseUnits((initialBuy /100).toString(), 18)
+            maxPriorityFeePerGas: parseUnits((initialBuy / 100).toString(), 18),
           });
         } else {
           hash = await writeContractAsync({
-            abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
-            address: getContractAddress(chainId),
+            abi: contractConfig[
+              chainId.toString() as keyof typeof contractConfig
+            ].factoryAbi,
+            address: contractConfig[
+              chainId.toString() as keyof typeof contractConfig
+            ].factoryAddress,
             functionName: "createHydrapadPresaleToken",
             args: [name, symbol, BigInt(nonce), signature],
             // value: totalValue,
@@ -169,27 +175,30 @@ export const useUserBalance = (
 
 //-----------------Buy Token-----------------
 
-export const useBuyToken = (
-  chainId: number,
-  tokenAddress: `0x${string}`
-) => {
+export const useBuyToken = (chainId: number, tokenAddress: `0x${string}`) => {
   const { writeContractAsync } = useWriteContract();
   const { address } = useAccount();
   const publicClient = usePublicClient();
 
-  const buyGivenIn = async (minTokenAmount: bigint, amountPrice: bigint, fee: bigint) => {
-    console.log(minTokenAmount, amountPrice)
+  const buyGivenIn = async (
+    minTokenAmount: bigint,
+    amountPrice: bigint,
+    fee: bigint
+  ) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
     try {
       const txHash = await writeContractAsync({
-        address: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAddress,
-        abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+        address:
+          contractConfig[chainId.toString() as keyof typeof contractConfig]
+            .factoryAddress,
+        abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+          .factoryAbi,
         functionName: "buyGivenIn",
         args: [tokenAddress, minTokenAmount],
         value: amountPrice,
-        maxPriorityFeePerGas: fee
+        maxFeePerGas: fee
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
@@ -203,18 +212,25 @@ export const useBuyToken = (
       throw new Error("Error buying token:", { cause: error });
     }
   };
-  const buyGivenOut = async (amountToken: bigint, maxPriceAmount: bigint, fee: bigint) => {
+  const buyGivenOut = async (
+    amountToken: bigint,
+    maxPriceAmount: bigint,
+    fee: bigint
+  ) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
     try {
       const txHash = await writeContractAsync({
-        address: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAddress,
-        abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+        address:
+          contractConfig[chainId.toString() as keyof typeof contractConfig]
+            .factoryAddress,
+        abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+          .factoryAbi,
         functionName: "buyGivenOut",
         args: [tokenAddress, amountToken, maxPriceAmount],
         value: maxPriceAmount,
-        maxPriorityFeePerGas: fee
+        maxPriorityFeePerGas: fee,
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
@@ -239,7 +255,8 @@ export function useTokenAllowance(
   const chainId = useChainId();
   return useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "allowance",
     args: [owner, getContractAddress(Number(chainId))],
   }) as { data: bigint | undefined };
@@ -257,7 +274,8 @@ export const useApproveToken = (tokenAddress: `0x${string}`) => {
     try {
       const txHash = await writeContractAsync({
         address: tokenAddress,
-        abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+        abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+          .tokenAbi,
         functionName: "approve",
         args: [getContractAddress(Number(chainId)), amount],
       });
@@ -270,10 +288,7 @@ export const useApproveToken = (tokenAddress: `0x${string}`) => {
 };
 
 //-----------------Sell Token-----------------
-export const useSellToken = (
-  chainId: number,
-  tokenAddress: `0x${string}`
-) => {
+export const useSellToken = (chainId: number, tokenAddress: `0x${string}`) => {
   const { writeContractAsync } = useWriteContract();
   const { address } = useAccount();
   const publicClient = usePublicClient();
@@ -288,11 +303,14 @@ export const useSellToken = (
     }
     try {
       const txHash = await writeContractAsync({
-        address: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAddress,
-        abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+        address:
+          contractConfig[chainId.toString() as keyof typeof contractConfig]
+            .factoryAddress,
+        abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+          .factoryAbi,
         functionName: "sellGivenIn",
         args: [tokenAddress, amountToken, amountPOLMin],
-        maxPriorityFeePerGas: fee
+        maxPriorityFeePerGas: fee,
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
@@ -312,8 +330,11 @@ export const useSellToken = (
     }
     try {
       const txHash = await writeContractAsync({
-        address: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAddress,
-        abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+        address:
+          contractConfig[chainId.toString() as keyof typeof contractConfig]
+            .factoryAddress,
+        abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+          .factoryAbi,
         functionName: "sellGivenOut",
         args: [tokenAddress, amountPOL, amountTokenMax],
       });
@@ -397,18 +418,64 @@ export const addTokenToWallet = async ({
   }
 };
 
+export function useInitialPrice(chainId: number) {
+  const { data: accumulatedPOL, refetch: refetchAccumulatedPOL } =
+    useReadContract({
+      address:
+        contractConfig[chainId.toString() as keyof typeof contractConfig]
+          .factoryAddress,
+      abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .factoryAbi,
+      functionName: "getAccumulatedPOL",
+    });
+  const { data: remainingTokens, refetch: refetchRemainingTokens } =
+    useReadContract({
+      address:
+        contractConfig[chainId.toString() as keyof typeof contractConfig]
+          .factoryAddress,
+      abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .factoryAbi,
+      functionName: "getRemainingTokens",
+    });
+
+  let currentPrice;
+  if (accumulatedPOL && remainingTokens) {
+    currentPrice =
+      parseFloat(formatUnits(accumulatedPOL as bigint, 18)) /
+      parseFloat(formatUnits(remainingTokens as bigint, 18));
+  } else {
+    currentPrice = 0;
+  }
+
+  const refetchInitialPrice = useCallback(() => {
+    refetchAccumulatedPOL();
+    refetchRemainingTokens();
+  }, [refetchAccumulatedPOL, refetchRemainingTokens]);
+
+  return {
+    accumulatedPOL,
+    remainingTokens,
+    currentPrice: currentPrice || 0,
+    refetchInitialPrice,
+  };
+}
 //-----------------Current Token Price-----------------
-export function useCurrentTokenPrice(tokenAddress: `0x${string}`, chainId: number) {
+export function useCurrentTokenPrice(
+  tokenAddress: `0x${string}`,
+  chainId: number
+) {
   const { data: accumulatedPOL, refetch: refetchAccumulatedPOL } =
     useReadContract({
       address: tokenAddress,
-      abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+      abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .tokenAbi,
       functionName: "getAccumulatedPOL",
     });
   const { data: remainingTokens, refetch: refetchRemainingTokens } =
     useReadContract({
       address: tokenAddress,
-      abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+      abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .tokenAbi,
       functionName: "getRemainingTokens",
     });
 
@@ -441,26 +508,32 @@ export function useMarketCap(tokenAddress: `0x${string}`, chainId: number) {
   const { data: currentMarketCap, refetch: refetchCurrentMarketCap } =
     useReadContract({
       address: tokenAddress,
-      abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+      abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .tokenAbi,
       functionName: "getMarketCap",
     });
   const { data: minMarketCap } = useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "getMarketCapMin",
   });
   const { data: maxMarketCap } = useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "getMarketCapMax",
   });
   return {
-    currentMarketCap:
-      Number(formatUnits((currentMarketCap as bigint) || BigInt(0), 18)) || 0,
-    minMarketCap:
-      Number(formatUnits((minMarketCap as bigint) || BigInt(0), 18)) || 0,
-    maxMarketCap:
-      Number(formatUnits((maxMarketCap as bigint) || BigInt(0), 18)) || 0,
+    currentMarketCap: Number(
+      formatUnits((currentMarketCap as bigint) || BigInt(0), 18)
+    ),
+    minMarketCap: Number(
+      formatUnits((minMarketCap as bigint) || BigInt(0), 18)
+    ),
+    maxMarketCap: Number(
+      formatUnits((maxMarketCap as bigint) || BigInt(0), 18)
+    ),
     refetchCurrentMarketCap,
   };
 }
@@ -468,16 +541,21 @@ export function useMarketCap(tokenAddress: `0x${string}`, chainId: number) {
 export const useFeeBPS = (tokenAddress: `0x${string}`, chainId: number) => {
   const { data: feeBPS } = useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "getFeeBPS",
   });
   return { fee: Number(formatUnits((feeBPS as bigint) || BigInt(0), 2)) };
 };
 
-export const useProgressBPS = (tokenAddress: `0x${string}`, chainId: number) => {
+export const useProgressBPS = (
+  tokenAddress: `0x${string}`,
+  chainId: number
+) => {
   const { data: progressBPS, refetch: refetchProgressBPS } = useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "getProgressBPS",
   });
   return {
@@ -496,7 +574,8 @@ export const useAmountOutAndFee = (
 ) => {
   const { data, refetch: refetchAmountOut } = useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "getAmountOutAndFee",
     args: [amountIn, remainingIn, remainingOut, inIsPOL],
   }) as { data: [bigint, bigint] | undefined; refetch: () => void };
@@ -517,7 +596,8 @@ export const useAmountInAndFee = (
 ) => {
   const { data, refetch: refetchAmountIn } = useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "getAmountInAndFee",
     args: [amountOut, remainingIn, remainingOut, inIsPOL],
   }) as { data: [bigint, bigint] | undefined; refetch: () => void };
@@ -530,10 +610,13 @@ export const useAmountInAndFee = (
 };
 
 //-----------------Uniswap V2 Router-----------------
-export const useUniswapV2Router = (chainId: number, factoryAddress: `0x${string}`) => {
+export const useUniswapV2Router = (chainId: number) => {
   const { data: uniswapV2Router } = useReadContract({
-    address: factoryAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+    address:
+      contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .factoryAddress,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .factoryAbi,
     functionName: "getUniswapV2Router",
   });
   return { uniswapV2Router };
@@ -558,7 +641,8 @@ export const useAddLiquidity = (
     try {
       const txHash = await writeContractAsync({
         address: uniswapV2Router,
-        abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+        abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+          .factoryAbi,
         functionName: "addLiquidity",
         args: [amountTokenDesired, amountTokenMin, amountETHMin],
       });
@@ -574,26 +658,28 @@ export const useAddLiquidity = (
 export const useGetInitialReverses = (chainId: number) => {
   const { data: initialAccumulatedPOL } = useReadContract({
     address: getContractAddress(chainId),
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .factoryAbi,
     functionName: "getAccumulatedPOL",
   });
   const { data: initialRemainingTokens } = useReadContract({
     address: getContractAddress(chainId),
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .factoryAbi,
     functionName: "getRemainingTokens",
   });
   return { initialAccumulatedPOL, initialRemainingTokens };
 };
 
 //-----------------Migrate Token-----------------
-export const useMigrate = (
-  chainId: number,
-  tokenAddress: `0x${string}`
-) => {
+export const useMigrate = (chainId: number, tokenAddress: `0x${string}`) => {
   const { writeContractAsync, error: migrateError } = useWriteContract();
   const { data: canMigrate, refetch } = useReadContract({
-    address: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+    address:
+      contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .factoryAddress,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .factoryAbi,
     functionName: "getCanMigrate",
     args: [tokenAddress],
   });
@@ -603,8 +689,11 @@ export const useMigrate = (
     }
     try {
       const txHash = await writeContractAsync({
-        address: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAddress,
-        abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+        address:
+          contractConfig[chainId.toString() as keyof typeof contractConfig]
+            .factoryAddress,
+        abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+          .factoryAbi,
         functionName: "migrate",
         args: [tokenAddress],
       });
@@ -617,25 +706,34 @@ export const useMigrate = (
 };
 
 //-----------------Get Factory Address-----------------
-export const useFactoryAddress = (chainId: number, tokenAddress: `0x${string}`) => {
+export const useFactoryAddress = (
+  chainId: number,
+  tokenAddress: `0x${string}`
+) => {
   const { data: factoryAddress } = useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "getPresaleFactory",
   });
   return { factoryAddress };
 };
 
 //-----------------Get Token Status-----------------
-export const useTokenStatus = (chainId: number, tokenAddress: `0x${string}`) => {
+export const useTokenStatus = (
+  chainId: number,
+  tokenAddress: `0x${string}`
+) => {
   const { data: isNotMigrated } = useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "getNotMigrated",
   });
   const { data: isPresaleEnded } = useReadContract({
     address: tokenAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].tokenAbi,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .tokenAbi,
     functionName: "getPresaleEnded",
   });
   return { isNotMigrated, isPresaleEnded };
@@ -644,9 +742,16 @@ export const useTokenStatus = (chainId: number, tokenAddress: `0x${string}`) => 
 //-----------------Get Total Supply-----------------
 export const useTotalSupply = (chainId: number) => {
   const { data: totalSupply } = useReadContract({
-    address: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAddress,
-    abi: contractConfig[chainId.toString() as keyof typeof contractConfig].factoryAbi,
+    address:
+      contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .factoryAddress,
+    abi: contractConfig[chainId.toString() as keyof typeof contractConfig]
+      .factoryAbi,
     functionName: "getTotalSupply",
   });
-  return { totalSupply: totalSupply ? Number(formatUnits(totalSupply as bigint, 18)) : 0 };
+  return {
+    totalSupply: totalSupply
+      ? Number(formatUnits(totalSupply as bigint, 18))
+      : 0,
+  };
 };
