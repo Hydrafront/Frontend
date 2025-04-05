@@ -250,9 +250,9 @@ export const useBuyToken = (chainId: number, tokenAddress: `0x${string}`) => {
 //-----------------Token Allowance-----------------
 export function useTokenAllowance(
   tokenAddress: `0x${string}`,
-  owner: `0x${string}`
+  owner: `0x${string}`, 
+  chainId: string
 ) {
-  const chainId = useChainId();
   return useReadContract({
     address: tokenAddress,
     abi: contractConfig[chainId.toString() as keyof typeof contractConfig]

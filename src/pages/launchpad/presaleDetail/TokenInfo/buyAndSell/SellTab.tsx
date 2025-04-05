@@ -67,7 +67,8 @@ const SellTab: React.FC<{
 
   const { data: allowance } = useTokenAllowance(
     tokenAddress as `0x${string}`,
-    address as `0x${string}`
+    address as `0x${string}`,
+    chainId as string
   );
   const { approveToken } = useApproveToken(tokenAddress as `0x${string}`);
   const { canMigrate } = useMigrate(
