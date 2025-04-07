@@ -198,7 +198,7 @@ export const useBuyToken = (chainId: number, tokenAddress: `0x${string}`) => {
         functionName: "buyGivenIn",
         args: [tokenAddress, minTokenAmount],
         value: amountPrice,
-        maxFeePerGas: fee
+        maxPriorityFeePerGas: fee
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
