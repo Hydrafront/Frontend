@@ -18,7 +18,3 @@ export const contractConfig = {
   },
 };
 
-export const factoryContract = {
-  address: import.meta.env.VITE_AMOY_CONTRACT_ADDRESS,
-  abi: amoyPolygonFactoryAbi,
-} as const;

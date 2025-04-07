@@ -215,25 +215,6 @@ const TokenForm: React.FC = () => {
       return;
     }
 
-    if (!isEmpty(form.website) && !form.website.includes("https://")) {
-      toastError("Website must not include https://");
-      return;
-    }
-    if (!isEmpty(form.twitter) && !form.twitter.includes("https://x.com/")) {
-      toastError("Twitter must not include https://x.com/");
-      return;
-    }
-    if (!isEmpty(form.telegram) && !form.telegram.includes("https://t.me/")) {
-      toastError("Telegram must not include https://t.me/");
-      return;
-    }
-    if (
-      !isEmpty(form.discord) &&
-      !form.discord.includes("https://discord.gg/")
-    ) {
-      toastError("Discord must not include https://discord.gg/");
-      return;
-    }
     if (!supported.includes(selectedChain.id)) {
       toast.error("This chain is not supported yet");
       return;
