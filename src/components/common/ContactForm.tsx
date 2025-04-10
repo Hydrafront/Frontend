@@ -54,7 +54,7 @@ const ContactForm: React.FC = () => {
       <div className="flex justify-end">
         <CloseButton
           handleOpen={() => dispatch(closeDialog())}
-          className="-mr-6 -mt-2"
+          className="-mr-6 -mt-2 bg-red-500"
         />
       </div>
       <h5 className="mb-5">CONTACT US</h5>

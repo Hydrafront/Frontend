@@ -144,7 +144,7 @@ const BuyTab: React.FC<{
           const txHash = await buyGivenIn(
             parseUnits(minTokenAmount.toString(), 18),
             parseUnits(value.toString(), 18),
-            parseUnits(amountOutFee.toString(), 18)
+            // parseUnits((amountOutFee).toString(), 18)
           );
           if (token && txHash) {
             toastSuccess("Token purchased successfully!");
@@ -184,7 +184,7 @@ const BuyTab: React.FC<{
           const txHash = await buyGivenOut(
             parseUnits(tokenAmount.toString(), 18),
             parseUnits(maxEthAmount.toString(), 18),
-            parseUnits(amountInfee.toString(), 18)
+            // parseUnits(amountInfee.toString(), 18)
           );
           if (token && txHash) {
             toastSuccess("Token purchased successfully!");

@@ -109,7 +109,7 @@ const TokenForm: React.FC = () => {
     discord: "",
     initialBuy: 0,
     policy: false,
-    decimal: 18,
+    decimal: 0,
   };
   const { form, setForm, handleChange, clearForm } =
     useForm<FormType>(initialForm);
@@ -207,9 +207,9 @@ const TokenForm: React.FC = () => {
     if (
       isEmpty(form.name) ||
       isEmpty(form.symbol) ||
-      isEmpty(form.description) ||
-      isEmpty(form.logo) ||
-      isEmpty(form.banner)
+      isEmpty(form.description)
+      // isEmpty(form.logo) ||
+      // isEmpty(form.banner)
     ) {
       toastError("Please fill all the fields");
       return;

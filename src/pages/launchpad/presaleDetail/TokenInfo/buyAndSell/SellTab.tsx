@@ -122,7 +122,7 @@ const SellTab: React.FC<{
           const txHash = await sellGivenIn(
             parseUnits(tokenAmount.toString(), token?.decimals || 18),
             parseUnits(minEthAmount.toString(), token?.decimals || 18),
-            parseUnits(amountInfee.toString(), token?.decimals || 18)
+            // parseUnits(amountInfee.toString(), token?.decimals || 18)
           );
           if (token && txHash) {
             toastSuccess("Token sold successfully!");

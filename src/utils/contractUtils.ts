@@ -10,6 +10,7 @@ import { useAccount } from "wagmi";
 import { getContractAddress } from "./func";
 import {
   formatUnits,
+  parseGwei,
   parseUnits,
   TransactionReceipt,
   UserRejectedRequestError,
@@ -29,6 +30,7 @@ export const useCreatePresaleToken = () => {
     isError,
   } = useWaitForTransactionReceipt();
   const publicClient = usePublicClient();
+  const { address } = useAccount();
 
   const createPresaleToken = async (
     name: string,
@@ -45,20 +47,28 @@ export const useCreatePresaleToken = () => {
 
     try {
       console.log("Initiating token creation transaction...");
-      // const totalValue = initialBuy;
-
-      // // First estimate the gas
-      // const estimatedGas = await publicClient.estimateContractGas({
-      //   address: process.env.NEXT_PUBLIC_BONDING_CURVE_MANAGER_ADDRESS as `0x${string}`,
-      //   abi: BondingCurveManagerABI,
-      //   functionName: 'create',
-      //   args: [name, symbol],
-      //   value: totalValue,
-      //   account: address,
-      // });
+    
       let hash;
       try {
         if (initialBuy > 0) {
+        
+          const gas = await publicClient?.estimateContractGas({
+            address: contractConfig[
+              chainId.toString() as keyof typeof contractConfig
+            ].factoryAddress,
+            abi: contractConfig[
+              chainId.toString() as keyof typeof contractConfig
+            ].factoryAbi,
+            functionName: "createHydrapadPresaleTokenAndBuy",
+            args: [
+              name,
+              symbol,
+              BigInt(nonce),
+              parseUnits(tokenAmount.toString(), 18),
+              signature,
+            ],
+            value: parseUnits(initialBuy.toString(), 18),
+          });
           hash = await writeContractAsync({
             abi: contractConfig[
               chainId.toString() as keyof typeof contractConfig
@@ -73,16 +83,16 @@ export const useCreatePresaleToken = () => {
               signature,
             ],
             value: parseUnits(initialBuy.toString(), 18),
-            maxPriorityFeePerGas: parseUnits((initialBuy / 100).toString(), 18),
+            gas,
           });
         } else {
           hash = await writeContractAsync({
             abi: contractConfig[
               chainId.toString() as keyof typeof contractConfig
             ].factoryAbi,
-            address: contractConfig[
-              chainId.toString() as keyof typeof contractConfig
-            ].factoryAddress,
+            address:
+              contractConfig[chainId.toString() as keyof typeof contractConfig]
+                .factoryAddress,
             functionName: "createHydrapadPresaleToken",
             args: [name, symbol, BigInt(nonce), signature],
             // value: totalValue,
@@ -139,7 +149,7 @@ export const useCreatePresaleToken = () => {
       }
       return receipt;
     } catch (error) {
-      throw new Error("Error creating token:", { cause: error });
+      throw new Error("Error creating token:" + error, { cause: error });
     }
   };
   return {
@@ -182,12 +192,18 @@ export const useBuyToken = (chainId: number, tokenAddress: `0x${string}`) => {
 
   const buyGivenIn = async (
     minTokenAmount: bigint,
-    amountPrice: bigint,
-    fee: bigint
+    amountPrice: bigint
+    // fee: bigint
   ) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
+    const gas = await publicClient?.estimateGas({
+      account: address,
+      to: contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .factoryAddress,
+      value: amountPrice,
+    });
     try {
       const txHash = await writeContractAsync({
         address:
@@ -198,7 +214,7 @@ export const useBuyToken = (chainId: number, tokenAddress: `0x${string}`) => {
         functionName: "buyGivenIn",
         args: [tokenAddress, minTokenAmount],
         value: amountPrice,
-        maxPriorityFeePerGas: fee
+        gas,
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
@@ -214,12 +230,18 @@ export const useBuyToken = (chainId: number, tokenAddress: `0x${string}`) => {
   };
   const buyGivenOut = async (
     amountToken: bigint,
-    maxPriceAmount: bigint,
-    fee: bigint
+    maxPriceAmount: bigint
+    // fee: bigint
   ) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
+    const gas = await publicClient?.estimateGas({
+      account: address,
+      to: contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .factoryAddress,
+      value: maxPriceAmount,
+    });
     try {
       const txHash = await writeContractAsync({
         address:
@@ -230,7 +252,7 @@ export const useBuyToken = (chainId: number, tokenAddress: `0x${string}`) => {
         functionName: "buyGivenOut",
         args: [tokenAddress, amountToken, maxPriceAmount],
         value: maxPriceAmount,
-        maxPriorityFeePerGas: fee,
+        gas,
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
@@ -250,7 +272,7 @@ export const useBuyToken = (chainId: number, tokenAddress: `0x${string}`) => {
 //-----------------Token Allowance-----------------
 export function useTokenAllowance(
   tokenAddress: `0x${string}`,
-  owner: `0x${string}`, 
+  owner: `0x${string}`,
   chainId: string
 ) {
   return useReadContract({
@@ -295,12 +317,18 @@ export const useSellToken = (chainId: number, tokenAddress: `0x${string}`) => {
 
   const sellGivenIn = async (
     amountToken: bigint,
-    amountPOLMin: bigint,
-    fee: bigint
+    amountPOLMin: bigint
+    // fee: bigint
   ) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
+    const gas = await publicClient?.estimateGas({
+      account: address,
+      to: contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .factoryAddress,
+      value: amountPOLMin,
+    });
     try {
       const txHash = await writeContractAsync({
         address:
@@ -310,7 +338,7 @@ export const useSellToken = (chainId: number, tokenAddress: `0x${string}`) => {
           .factoryAbi,
         functionName: "sellGivenIn",
         args: [tokenAddress, amountToken, amountPOLMin],
-        maxPriorityFeePerGas: fee,
+        gas,
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
@@ -328,6 +356,12 @@ export const useSellToken = (chainId: number, tokenAddress: `0x${string}`) => {
     if (!address || !tokenAddress) {
       throw new Error("Missing required information");
     }
+    const gas = await publicClient?.estimateGas({
+      account: address,
+      to: contractConfig[chainId.toString() as keyof typeof contractConfig]
+        .factoryAddress,
+      value: amountPOL,
+    });
     try {
       const txHash = await writeContractAsync({
         address:
@@ -337,6 +371,7 @@ export const useSellToken = (chainId: number, tokenAddress: `0x${string}`) => {
           .factoryAbi,
         functionName: "sellGivenOut",
         args: [tokenAddress, amountPOL, amountTokenMax],
+        gas,
       });
       const receipt = await publicClient?.waitForTransactionReceipt({
         hash: txHash,
