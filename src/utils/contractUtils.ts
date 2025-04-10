@@ -10,7 +10,6 @@ import { useAccount } from "wagmi";
 import { getContractAddress } from "./func";
 import {
   formatUnits,
-  parseGwei,
   parseUnits,
   TransactionReceipt,
   UserRejectedRequestError,
@@ -30,7 +29,6 @@ export const useCreatePresaleToken = () => {
     isError,
   } = useWaitForTransactionReceipt();
   const publicClient = usePublicClient();
-  const { address } = useAccount();
 
   const createPresaleToken = async (
     name: string,
